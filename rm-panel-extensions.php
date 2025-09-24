@@ -92,7 +92,7 @@ class RM_Panel_Extensions {
         add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
         
         // Initialize modules
-        add_action( 'init', [ $this, 'init_modules' ] );
+        add_action( 'init', [ $this, 'init_modules' ], 5 ); // Priority 5 to ensure it runs early
         
         // Admin menu
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
@@ -118,10 +118,15 @@ class RM_Panel_Extensions {
         // Load module files
         $this->load_modules();
         
-        // Initialize each module
-        foreach ( $this->modules as $module_id => $module_class ) {
-            if ( class_exists( $module_class ) ) {
-                new $module_class();
+        // Initialize Survey module first (doesn't depend on anything)
+        if ( isset( $this->modules['survey'] ) && class_exists( $this->modules['survey'] ) ) {
+            new $this->modules['survey']();
+        }
+        
+        // Initialize Elementor module if Elementor is active
+        if ( did_action( 'elementor/loaded' ) ) {
+            if ( isset( $this->modules['elementor-widgets'] ) && class_exists( $this->modules['elementor-widgets'] ) ) {
+                new $this->modules['elementor-widgets']();
             }
         }
         
@@ -134,43 +139,58 @@ class RM_Panel_Extensions {
      */
     private function load_modules() {
         // Core modules to load
-        $core_modules = [
-            'elementor-widgets' => 'RM_Panel_Elementor_Module',
-        ];
+        $core_modules = [];
         
-        // Check if module file exists before requiring
-        $elementor_module_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/class-elementor-module.php';
+        // Load Survey module (independent of other modules)
+        $survey_module_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-module.php';
+        if ( file_exists( $survey_module_file ) ) {
+            require_once $survey_module_file;
+            $core_modules['survey'] = 'RM_Panel_Survey_Module';
+        }
         
-        // Load Elementor module if Elementor is active and module file exists
+        // Load Elementor module if Elementor is active
         if ( did_action( 'elementor/loaded' ) ) {
+            $elementor_module_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/class-elementor-module.php';
             if ( file_exists( $elementor_module_file ) ) {
                 require_once $elementor_module_file;
-            } else {
-                add_action( 'admin_notices', [ $this, 'module_missing_notice' ] );
-                return;
+                $core_modules['elementor-widgets'] = 'RM_Panel_Elementor_Module';
             }
         }
         
         // Allow filtering of modules
         $this->modules = apply_filters( 'rm_panel_extensions_modules', $core_modules );
+        
+        // Check if any critical files are missing
+        $missing_files = [];
+        
+        if ( ! file_exists( $survey_module_file ) ) {
+            $missing_files[] = 'modules/survey/class-survey-module.php';
+        }
+        
+        if ( did_action( 'elementor/loaded' ) && ! file_exists( RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/class-elementor-module.php' ) ) {
+            $missing_files[] = 'modules/elementor/class-elementor-module.php';
+        }
+        
+        if ( ! empty( $missing_files ) ) {
+            add_action( 'admin_notices', function() use ( $missing_files ) {
+                $this->show_missing_files_notice( $missing_files );
+            });
+        }
     }
 
     /**
-     * Module missing notice
+     * Show missing files notice
      */
-    public function module_missing_notice() {
+    private function show_missing_files_notice( $missing_files ) {
         ?>
-        <div class="notice notice-error">
-            <p><?php _e( 'RM Panel Extensions: Module files are missing. Please ensure all files are properly uploaded.', 'rm-panel-extensions' ); ?></p>
-            <p><strong><?php _e( 'Required file structure:', 'rm-panel-extensions' ); ?></strong></p>
+        <div class="notice notice-warning">
+            <p><strong><?php _e( 'RM Panel Extensions: Some module files are missing:', 'rm-panel-extensions' ); ?></strong></p>
             <ul style="list-style: disc; margin-left: 20px;">
-                <li>/modules/elementor/class-elementor-module.php</li>
-                <li>/modules/elementor/widgets/login-widget.php</li>
-                <li>/modules/elementor/templates/login-form.php</li>
-                <li>/assets/css/admin.css</li>
-                <li>/assets/css/elementor-widgets.css</li>
-                <li>/assets/js/elementor-widgets.js</li>
+                <?php foreach ( $missing_files as $file ) : ?>
+                    <li><code><?php echo esc_html( $file ); ?></code></li>
+                <?php endforeach; ?>
             </ul>
+            <p><?php _e( 'Please ensure all plugin files are properly uploaded.', 'rm-panel-extensions' ); ?></p>
         </div>
         <?php
     }
@@ -249,11 +269,15 @@ class RM_Panel_Extensions {
                 <?php
                 // Check if all required files exist
                 $required_files = [
+                    'modules/survey/class-survey-module.php' => __( 'Survey Module', 'rm-panel-extensions' ),
                     'modules/elementor/class-elementor-module.php' => __( 'Elementor Module', 'rm-panel-extensions' ),
                     'modules/elementor/widgets/login-widget.php' => __( 'Login Widget', 'rm-panel-extensions' ),
+                    'modules/elementor/widgets/survey-listing-widget.php' => __( 'Survey Listing Widget', 'rm-panel-extensions' ),
                     'modules/elementor/templates/login-form.php' => __( 'Login Form Template', 'rm-panel-extensions' ),
                     'assets/css/elementor-widgets.css' => __( 'Widget Styles', 'rm-panel-extensions' ),
+                    'assets/css/survey-styles.css' => __( 'Survey Styles', 'rm-panel-extensions' ),
                     'assets/js/elementor-widgets.js' => __( 'Widget Scripts', 'rm-panel-extensions' ),
+                    'assets/js/survey-scripts.js' => __( 'Survey Scripts', 'rm-panel-extensions' ),
                 ];
                 
                 $missing_files = [];
@@ -273,6 +297,10 @@ class RM_Panel_Extensions {
                         </ul>
                         <p><?php _e( 'Please ensure all plugin files are properly uploaded.', 'rm-panel-extensions' ); ?></p>
                     </div>
+                <?php else : ?>
+                    <div class="notice notice-success" style="margin: 20px 0;">
+                        <p><?php _e( 'All required files are present and ready!', 'rm-panel-extensions' ); ?></p>
+                    </div>
                 <?php endif; ?>
                 
                 <div class="rm-panel-stats">
@@ -283,6 +311,18 @@ class RM_Panel_Extensions {
                         <div class="stat-content">
                             <h3><?php _e( 'Active Modules', 'rm-panel-extensions' ); ?></h3>
                             <p class="stat-number"><?php echo count( $this->modules ); ?></p>
+                        </div>
+                    </div>
+                    
+                    <div class="rm-panel-stat-card">
+                        <div class="stat-icon">
+                            <span class="dashicons dashicons-clipboard"></span>
+                        </div>
+                        <div class="stat-content">
+                            <h3><?php _e( 'Survey Module', 'rm-panel-extensions' ); ?></h3>
+                            <p class="stat-status <?php echo class_exists( 'RM_Panel_Survey_Module' ) ? 'active' : 'inactive'; ?>">
+                                <?php echo class_exists( 'RM_Panel_Survey_Module' ) ? __( 'Active', 'rm-panel-extensions' ) : __( 'Inactive', 'rm-panel-extensions' ); ?>
+                            </p>
                         </div>
                     </div>
                     
@@ -322,6 +362,16 @@ class RM_Panel_Extensions {
                             <span class="dashicons dashicons-admin-plugins"></span>
                             <span><?php _e( 'Modules', 'rm-panel-extensions' ); ?></span>
                         </a>
+                        <?php if ( post_type_exists( 'rm_survey' ) ) : ?>
+                            <a href="<?php echo admin_url( 'edit.php?post_type=rm_survey' ); ?>" class="quick-link">
+                                <span class="dashicons dashicons-clipboard"></span>
+                                <span><?php _e( 'Surveys', 'rm-panel-extensions' ); ?></span>
+                            </a>
+                            <a href="<?php echo admin_url( 'edit-tags.php?taxonomy=survey_category&post_type=rm_survey' ); ?>" class="quick-link">
+                                <span class="dashicons dashicons-category"></span>
+                                <span><?php _e( 'Survey Categories', 'rm-panel-extensions' ); ?></span>
+                            </a>
+                        <?php endif; ?>
                         <?php if ( did_action( 'elementor/loaded' ) ) : ?>
                             <a href="<?php echo admin_url( 'edit.php?post_type=elementor_library' ); ?>" class="quick-link">
                                 <span class="dashicons dashicons-admin-page"></span>
@@ -351,6 +401,10 @@ class RM_Panel_Extensions {
                                 <td><strong><?php _e( 'WordPress Version', 'rm-panel-extensions' ); ?></strong></td>
                                 <td><?php echo get_bloginfo( 'version' ); ?></td>
                             </tr>
+                            <tr>
+                                <td><strong><?php _e( 'Active Modules', 'rm-panel-extensions' ); ?></strong></td>
+                                <td><?php echo implode( ', ', array_keys( $this->modules ) ); ?></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -378,7 +432,34 @@ class RM_Panel_Extensions {
             <form method="post" action="">
                 <?php wp_nonce_field( 'rm_panel_settings', 'rm_panel_settings_nonce' ); ?>
                 
+                <h2><?php _e( 'Module Settings', 'rm-panel-extensions' ); ?></h2>
+                
                 <table class="form-table">
+                    <tr>
+                        <th scope="row" colspan="2">
+                            <h3><?php _e( 'Survey Module', 'rm-panel-extensions' ); ?></h3>
+                        </th>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row">
+                            <label for="enable_survey_module">
+                                <?php _e( 'Enable Survey Module', 'rm-panel-extensions' ); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" name="rm_panel_settings[enable_survey_module]" id="enable_survey_module" value="1" 
+                                <?php checked( isset( $settings['enable_survey_module'] ) ? $settings['enable_survey_module'] : 1 ); ?>>
+                            <p class="description"><?php _e( 'Enable the Survey custom post type and functionality', 'rm-panel-extensions' ); ?></p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row" colspan="2">
+                            <h3><?php _e( 'Elementor Widgets', 'rm-panel-extensions' ); ?></h3>
+                        </th>
+                    </tr>
+                    
                     <tr>
                         <th scope="row">
                             <label for="enable_login_widget">
@@ -389,6 +470,19 @@ class RM_Panel_Extensions {
                             <input type="checkbox" name="rm_panel_settings[enable_login_widget]" id="enable_login_widget" value="1" 
                                 <?php checked( isset( $settings['enable_login_widget'] ) ? $settings['enable_login_widget'] : 1 ); ?>>
                             <p class="description"><?php _e( 'Enable the custom login widget for Elementor', 'rm-panel-extensions' ); ?></p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row">
+                            <label for="enable_survey_widget">
+                                <?php _e( 'Enable Survey Listing Widget', 'rm-panel-extensions' ); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" name="rm_panel_settings[enable_survey_widget]" id="enable_survey_widget" value="1" 
+                                <?php checked( isset( $settings['enable_survey_widget'] ) ? $settings['enable_survey_widget'] : 1 ); ?>>
+                            <p class="description"><?php _e( 'Enable the survey listing widget for Elementor', 'rm-panel-extensions' ); ?></p>
                         </td>
                     </tr>
                     
@@ -431,7 +525,9 @@ class RM_Panel_Extensions {
      */
     private function get_default_settings() {
         return [
+            'enable_survey_module' => 1,
             'enable_login_widget' => 1,
+            'enable_survey_widget' => 1,
             'enable_wpml_support' => 1,
             'custom_widget_category' => 'RM Panel Widgets',
         ];
@@ -448,7 +544,9 @@ class RM_Panel_Extensions {
         $settings = isset( $_POST['rm_panel_settings'] ) ? $_POST['rm_panel_settings'] : [];
         $sanitized = [];
         
+        $sanitized['enable_survey_module'] = isset( $settings['enable_survey_module'] ) ? 1 : 0;
         $sanitized['enable_login_widget'] = isset( $settings['enable_login_widget'] ) ? 1 : 0;
+        $sanitized['enable_survey_widget'] = isset( $settings['enable_survey_widget'] ) ? 1 : 0;
         $sanitized['enable_wpml_support'] = isset( $settings['enable_wpml_support'] ) ? 1 : 0;
         $sanitized['custom_widget_category'] = sanitize_text_field( $settings['custom_widget_category'] );
         
@@ -471,6 +569,42 @@ class RM_Panel_Extensions {
             <h1><?php _e( 'RM Panel Modules', 'rm-panel-extensions' ); ?></h1>
             
             <div class="rm-panel-modules-grid">
+                <?php if ( class_exists( 'RM_Panel_Survey_Module' ) ) : ?>
+                    <div class="module-card active">
+                        <div class="module-header">
+                            <h3><?php _e( 'Survey Module', 'rm-panel-extensions' ); ?></h3>
+                            <span class="module-status active"><?php _e( 'Active', 'rm-panel-extensions' ); ?></span>
+                        </div>
+                        <div class="module-content">
+                            <p><?php _e( 'Create and manage surveys with custom fields and settings.', 'rm-panel-extensions' ); ?></p>
+                            <ul>
+                                <li>✓ <?php _e( 'Custom Post Type', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Survey Categories', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Start/End Dates', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Question Count', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Status Management', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Access Control', 'rm-panel-extensions' ); ?></li>
+                            </ul>
+                            <p>
+                                <a href="<?php echo admin_url( 'edit.php?post_type=rm_survey' ); ?>" class="button">
+                                    <?php _e( 'Manage Surveys', 'rm-panel-extensions' ); ?>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                <?php else : ?>
+                    <div class="module-card inactive">
+                        <div class="module-header">
+                            <h3><?php _e( 'Survey Module', 'rm-panel-extensions' ); ?></h3>
+                            <span class="module-status inactive"><?php _e( 'Module File Missing', 'rm-panel-extensions' ); ?></span>
+                        </div>
+                        <div class="module-content">
+                            <p><?php _e( 'The Survey module file is missing. Please ensure the file exists at:', 'rm-panel-extensions' ); ?></p>
+                            <code>modules/survey/class-survey-module.php</code>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                
                 <?php if ( did_action( 'elementor/loaded' ) ) : ?>
                     <div class="module-card active">
                         <div class="module-header">
@@ -478,12 +612,14 @@ class RM_Panel_Extensions {
                             <span class="module-status active"><?php _e( 'Active', 'rm-panel-extensions' ); ?></span>
                         </div>
                         <div class="module-content">
-                            <p><?php _e( 'Custom Elementor widgets including login forms with role-based redirection.', 'rm-panel-extensions' ); ?></p>
+                            <p><?php _e( 'Custom Elementor widgets including login forms and survey listings.', 'rm-panel-extensions' ); ?></p>
                             <ul>
                                 <li>✓ <?php _e( 'Login Widget', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Survey Listing Widget', 'rm-panel-extensions' ); ?></li>
                                 <li>✓ <?php _e( 'Role-based Redirection', 'rm-panel-extensions' ); ?></li>
                                 <li>✓ <?php _e( 'WPML Support', 'rm-panel-extensions' ); ?></li>
                                 <li>✓ <?php _e( 'Customizable Text', 'rm-panel-extensions' ); ?></li>
+                                <li>✓ <?php _e( 'Multiple Layouts', 'rm-panel-extensions' ); ?></li>
                             </ul>
                         </div>
                     </div>
@@ -526,13 +662,24 @@ register_activation_hook( __FILE__, 'rm_panel_extensions_activate' );
 function rm_panel_extensions_activate() {
     // Set default options
     $default_settings = [
+        'enable_survey_module' => 1,
         'enable_login_widget' => 1,
+        'enable_survey_widget' => 1,
         'enable_wpml_support' => 1,
         'custom_widget_category' => 'RM Panel Widgets'
     ];
     
     if ( ! get_option( 'rm_panel_extensions_settings' ) ) {
         update_option( 'rm_panel_extensions_settings', $default_settings );
+    }
+    
+    // Load and initialize the Survey module to register post type
+    $survey_module_file = plugin_dir_path( __FILE__ ) . 'modules/survey/class-survey-module.php';
+    if ( file_exists( $survey_module_file ) ) {
+        require_once $survey_module_file;
+        if ( class_exists( 'RM_Panel_Survey_Module' ) ) {
+            $survey_module = new RM_Panel_Survey_Module();
+        }
     }
     
     // Flush rewrite rules
