@@ -383,6 +383,247 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
         );
 
         $this->end_controls_section();
+
+        // Header Style
+        $this->start_controls_section(
+            'header_style',
+            [
+                'label' => __( 'Header', 'rm-panel-extensions' ),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'header_background',
+            [
+                'label' => __( 'Background Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#f8f9fa',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-header' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'header_active_background',
+            [
+                'label' => __( 'Active Background Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#007cba',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-item.active .rm-survey-accordion-header' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'header_padding',
+            [
+                'label' => __( 'Padding', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-header' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Title Style
+        $this->start_controls_section(
+            'title_style',
+            [
+                'label' => __( 'Title', 'rm-panel-extensions' ),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'title_typography',
+                'selector' => '{{WRAPPER}} .rm-survey-accordion-title',
+            ]
+        );
+
+        $this->add_control(
+            'title_color',
+            [
+                'label' => __( 'Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#333333',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-title' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_active_color',
+            [
+                'label' => __( 'Active Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-item.active .rm-survey-accordion-title' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Content Style
+        $this->start_controls_section(
+            'content_style',
+            [
+                'label' => __( 'Content', 'rm-panel-extensions' ),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'content_background',
+            [
+                'label' => __( 'Background Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-content' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'content_padding',
+            [
+                'label' => __( 'Padding', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-content-wrapper' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Button Style
+        $this->start_controls_section(
+            'button_style',
+            [
+                'label' => __( 'Button', 'rm-panel-extensions' ),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'show_take_survey_button' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'button_typography',
+                'selector' => '{{WRAPPER}} .rm-survey-button',
+            ]
+        );
+
+        $this->start_controls_tabs( 'button_style_tabs' );
+
+        $this->start_controls_tab(
+            'button_normal_tab',
+            [
+                'label' => __( 'Normal', 'rm-panel-extensions' ),
+            ]
+        );
+
+        $this->add_control(
+            'button_text_color',
+            [
+                'label' => __( 'Text Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_background',
+            [
+                'label' => __( 'Background Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#007cba',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab(
+            'button_hover_tab',
+            [
+                'label' => __( 'Hover', 'rm-panel-extensions' ),
+            ]
+        );
+
+        $this->add_control(
+            'button_hover_text_color',
+            [
+                'label' => __( 'Text Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'button_hover_background',
+            [
+                'label' => __( 'Background Color', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#005a87',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button:hover' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
+        $this->add_control(
+            'button_border_radius',
+            [
+                'label' => __( 'Border Radius', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', '%' ],
+                'separator' => 'before',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'button_padding',
+            [
+                'label' => __( 'Padding', 'rm-panel-extensions' ),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => [ 'px', 'em', '%' ],
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     /**
@@ -570,7 +811,7 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                             </span>
                         <?php endif; ?>
                         
-                        <?php if ( $survey_type === 'paid' && $survey_amount ) : ?>
+                        <?php if ( $survey_type === 'paid' && $survey_amount && $settings['show_payment_info'] === 'yes' ) : ?>
                             <span class="rm-survey-amount-badge">
                                 $<?php echo number_format( $survey_amount, 2 ); ?>
                             </span>
@@ -603,33 +844,63 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                         </div>
                     <?php endif; ?>
                     
-                    <div class="rm-survey-details">
-                        <?php if ( $settings['show_category'] === 'yes' ) : ?>
-                            <?php $categories = get_the_terms( $post_id, 'survey_category' ); ?>
-                            <?php if ( $categories && ! is_wp_error( $categories ) ) : ?>
-                                <div class="rm-survey-categories">
-                                    <?php foreach ( $categories as $category ) : ?>
-                                        <span class="rm-survey-category">
-                                            <?php echo esc_html( $category->name ); ?>
-                                        </span>
-                                    <?php endforeach; ?>
+                    <?php if ( $settings['show_category'] === 'yes' ) : ?>
+                        <?php $categories = get_the_terms( $post_id, 'survey_category' ); ?>
+                        <?php if ( $categories && ! is_wp_error( $categories ) ) : ?>
+                            <div class="rm-survey-categories">
+                                <?php foreach ( $categories as $category ) : ?>
+                                    <span class="rm-survey-category">
+                                        <?php echo esc_html( $category->name ); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    
+                    <div class="rm-survey-description">
+                        <?php the_excerpt(); ?>
+                    </div>
+                    
+                    <div class="rm-survey-info-grid">
+                        <?php if ( $settings['show_dates'] === 'yes' && $duration_type === 'date_range' ) : ?>
+                            <?php if ( $start_date || $end_date ) : ?>
+                                <div class="rm-survey-info-item">
+                                    <strong><?php _e( 'Duration:', 'rm-panel-extensions' ); ?></strong>
+                                    <?php 
+                                    if ( $start_date && $end_date ) {
+                                        echo date( 'M j', strtotime( $start_date ) ) . ' - ' . date( 'M j, Y', strtotime( $end_date ) );
+                                    } elseif ( $start_date ) {
+                                        echo __( 'Starts:', 'rm-panel-extensions' ) . ' ' . date( 'M j, Y', strtotime( $start_date ) );
+                                    } elseif ( $end_date ) {
+                                        echo __( 'Ends:', 'rm-panel-extensions' ) . ' ' . date( 'M j, Y', strtotime( $end_date ) );
+                                    }
+                                    ?>
                                 </div>
                             <?php endif; ?>
                         <?php endif; ?>
                         
-                        <div class="rm-survey-description">
-                            <?php the_excerpt(); ?>
-                        </div>
-                        
-                        <?php if ( $settings['show_take_survey_button'] === 'yes' && $final_survey_url ) : ?>
-                            <div class="rm-survey-action">
-                                <a href="<?php echo esc_url( $final_survey_url ); ?>" class="rm-survey-button" target="_blank">
-                                    <?php echo esc_html( $settings['button_text'] ); ?>
-                                    <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
-                                </a>
+                        <?php if ( $settings['show_target_audience'] === 'yes' && $target_audience ) : ?>
+                            <div class="rm-survey-info-item">
+                                <strong><?php _e( 'Target Audience:', 'rm-panel-extensions' ); ?></strong>
+                                <?php echo esc_html( $target_audience ); ?>
                             </div>
                         <?php endif; ?>
                     </div>
+                    
+                    <?php if ( $settings['show_take_survey_button'] === 'yes' && $final_survey_url ) : ?>
+                        <div class="rm-survey-action">
+                            <a href="<?php echo esc_url( $final_survey_url ); ?>" class="rm-survey-button" target="_blank">
+                                <?php echo esc_html( $settings['button_text'] ); ?>
+                                <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
+                            </a>
+                        </div>
+                    <?php elseif ( $settings['show_take_survey_button'] === 'yes' ) : ?>
+                        <div class="rm-survey-action">
+                            <a href="<?php the_permalink(); ?>" class="rm-survey-button">
+                                <?php echo esc_html( $settings['button_text'] ); ?>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
