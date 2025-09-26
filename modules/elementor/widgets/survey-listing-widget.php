@@ -786,100 +786,216 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
      * Render single survey item
      */
     private function render_survey_item( $settings ) {
-        $post_id = get_the_ID();
-        $status = get_post_meta( $post_id, '_rm_survey_status', true );
-        $start_date = get_post_meta( $post_id, '_rm_survey_start_date', true );
-        $end_date = get_post_meta( $post_id, '_rm_survey_end_date', true );
-        $questions_count = get_post_meta( $post_id, '_rm_survey_questions_count', true );
-        $estimated_time = get_post_meta( $post_id, '_rm_survey_estimated_time', true );
+    $post_id = get_the_ID();
+    $status = get_post_meta( $post_id, '_rm_survey_status', true );
+    $start_date = get_post_meta( $post_id, '_rm_survey_start_date', true );
+    $end_date = get_post_meta( $post_id, '_rm_survey_end_date', true );
+    $questions_count = get_post_meta( $post_id, '_rm_survey_questions_count', true );
+    $estimated_time = get_post_meta( $post_id, '_rm_survey_estimated_time', true );
+    $survey_url = get_post_meta( $post_id, '_rm_survey_url', true );
+    $parameters = get_post_meta( $post_id, '_rm_survey_parameters', true );
+    
+    // Build survey URL with parameters
+    $final_survey_url = $survey_url;
+    if ( ! empty( $survey_url ) && ! empty( $parameters ) ) {
+        $query_params = [];
         
-        $item_classes = [
-            'survey-item',
-            'survey-status-' . ( $status ?: 'draft' ),
-        ];
-        ?>
-        <article class="<?php echo esc_attr( implode( ' ', $item_classes ) ); ?>">
-            <?php if ( $settings['show_thumbnail'] === 'yes' && has_post_thumbnail() ) : ?>
-                <div class="survey-thumbnail">
+        // Process parameters
+        foreach ( $parameters as $param ) {
+            $value = '';
+            
+            switch ( $param['field'] ) {
+                case 'survey_id':
+                    $value = $post_id;
+                    break;
+                case 'timestamp':
+                    $value = time();
+                    break;
+                case 'custom':
+                    $value = $param['custom_value'];
+                    break;
+                // User-specific parameters
+                case 'user_id':
+                    if ( is_user_logged_in() ) {
+                        $value = get_current_user_id();
+                    }
+                    break;
+                case 'username':
+                    if ( is_user_logged_in() ) {
+                        $current_user = wp_get_current_user();
+                        $value = $current_user->user_login;
+                    }
+                    break;
+                case 'email':
+                    if ( is_user_logged_in() ) {
+                        $current_user = wp_get_current_user();
+                        $value = $current_user->user_email;
+                    }
+                    break;
+                case 'first_name':
+                    if ( is_user_logged_in() ) {
+                        $current_user = wp_get_current_user();
+                        $value = $current_user->first_name;
+                    }
+                    break;
+                case 'last_name':
+                    if ( is_user_logged_in() ) {
+                        $current_user = wp_get_current_user();
+                        $value = $current_user->last_name;
+                    }
+                    break;
+                case 'display_name':
+                    if ( is_user_logged_in() ) {
+                        $current_user = wp_get_current_user();
+                        $value = $current_user->display_name;
+                    }
+                    break;
+                case 'user_role':
+                    if ( is_user_logged_in() ) {
+                        $current_user = wp_get_current_user();
+                        $value = implode( ',', $current_user->roles );
+                    }
+                    break;
+            }
+            
+            if ( ! empty( $value ) && ! empty( $param['variable'] ) ) {
+                $query_params[ $param['variable'] ] = $value;
+            }
+        }
+        
+        if ( ! empty( $query_params ) ) {
+            $final_survey_url = add_query_arg( $query_params, $survey_url );
+        }
+    }
+    
+    $item_classes = [
+        'survey-item',
+        'survey-status-' . ( $status ?: 'draft' ),
+    ];
+    ?>
+    <article class="<?php echo esc_attr( implode( ' ', $item_classes ) ); ?>">
+        <?php if ( $settings['show_thumbnail'] === 'yes' && has_post_thumbnail() ) : ?>
+            <div class="survey-thumbnail">
+                <?php if ( ! empty( $survey_url ) ) : ?>
+                    <a href="<?php echo esc_url( $final_survey_url ?: $survey_url ); ?>" target="_blank">
+                        <?php the_post_thumbnail( 'medium' ); ?>
+                    </a>
+                <?php else : ?>
                     <a href="<?php the_permalink(); ?>">
                         <?php the_post_thumbnail( 'medium' ); ?>
                     </a>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        
+        <div class="survey-content">
+            <?php if ( $settings['show_status'] === 'yes' && $status ) : ?>
+                <span class="survey-status-badge status-<?php echo esc_attr( $status ); ?>">
+                    <?php echo esc_html( ucfirst( $status ) ); ?>
+                </span>
+            <?php endif; ?>
+            
+            <?php if ( $settings['show_category'] === 'yes' ) : ?>
+                <?php $categories = get_the_terms( $post_id, 'survey_category' ); ?>
+                <?php if ( $categories && ! is_wp_error( $categories ) ) : ?>
+                    <div class="survey-categories">
+                        <?php foreach ( $categories as $category ) : ?>
+                            <a href="<?php echo esc_url( get_term_link( $category ) ); ?>" class="survey-category">
+                                <?php echo esc_html( $category->name ); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+            
+            <?php if ( $settings['show_title'] === 'yes' ) : ?>
+                <h3 class="survey-title">
+                    <?php if ( ! empty( $survey_url ) ) : ?>
+                        <a href="<?php echo esc_url( $final_survey_url ?: $survey_url ); ?>" target="_blank">
+                            <?php the_title(); ?>
+                        </a>
+                    <?php else : ?>
+                        <a href="<?php the_permalink(); ?>">
+                            <?php the_title(); ?>
+                        </a>
+                    <?php endif; ?>
+                </h3>
+            <?php endif; ?>
+            
+            <?php if ( $settings['show_excerpt'] === 'yes' ) : ?>
+                <div class="survey-excerpt">
+                    <?php echo wp_trim_words( get_the_excerpt(), $settings['excerpt_length'] ); ?>
                 </div>
             <?php endif; ?>
             
-            <div class="survey-content">
-                <?php if ( $settings['show_status'] === 'yes' && $status ) : ?>
-                    <span class="survey-status-badge status-<?php echo esc_attr( $status ); ?>">
-                        <?php echo esc_html( ucfirst( $status ) ); ?>
-                    </span>
-                <?php endif; ?>
-                
-                <?php if ( $settings['show_category'] === 'yes' ) : ?>
-                    <?php $categories = get_the_terms( $post_id, 'survey_category' ); ?>
-                    <?php if ( $categories && ! is_wp_error( $categories ) ) : ?>
-                        <div class="survey-categories">
-                            <?php foreach ( $categories as $category ) : ?>
-                                <a href="<?php echo esc_url( get_term_link( $category ) ); ?>" class="survey-category">
-                                    <?php echo esc_html( $category->name ); ?>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                <?php endif; ?>
-                
-                <?php if ( $settings['show_title'] === 'yes' ) : ?>
-                    <h3 class="survey-title">
-                        <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
-                    </h3>
-                <?php endif; ?>
-                
-                <?php if ( $settings['show_excerpt'] === 'yes' ) : ?>
-                    <div class="survey-excerpt">
-                        <?php echo wp_trim_words( get_the_excerpt(), $settings['excerpt_length'] ); ?>
+            <div class="survey-meta">
+                <?php if ( $settings['show_dates'] === 'yes' && ( $start_date || $end_date ) ) : ?>
+                    <div class="survey-dates">
+                        <?php if ( $start_date ) : ?>
+                            <span class="start-date">
+                                <i class="eicon-calendar"></i>
+                                <?php echo esc_html( date( 'M j, Y', strtotime( $start_date ) ) ); ?>
+                            </span>
+                        <?php endif; ?>
+                        <?php if ( $end_date ) : ?>
+                            <span class="end-date">
+                                - <?php echo esc_html( date( 'M j, Y', strtotime( $end_date ) ) ); ?>
+                            </span>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
                 
-                <div class="survey-meta">
-                    <?php if ( $settings['show_dates'] === 'yes' && ( $start_date || $end_date ) ) : ?>
-                        <div class="survey-dates">
-                            <?php if ( $start_date ) : ?>
-                                <span class="start-date">
-                                    <i class="eicon-calendar"></i>
-                                    <?php echo esc_html( date( 'M j, Y', strtotime( $start_date ) ) ); ?>
-                                </span>
-                            <?php endif; ?>
-                            <?php if ( $end_date ) : ?>
-                                <span class="end-date">
-                                    - <?php echo esc_html( date( 'M j, Y', strtotime( $end_date ) ) ); ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ( $settings['show_questions_count'] === 'yes' && $questions_count ) : ?>
-                        <div class="survey-questions">
-                            <i class="eicon-editor-list-ul"></i>
-                            <?php echo sprintf( _n( '%s Question', '%s Questions', $questions_count, 'rm-panel-extensions' ), $questions_count ); ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if ( $settings['show_estimated_time'] === 'yes' && $estimated_time ) : ?>
-                        <div class="survey-time">
-                            <i class="eicon-clock"></i>
-                            <?php echo sprintf( _n( '%s Minute', '%s Minutes', $estimated_time, 'rm-panel-extensions' ), $estimated_time ); ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                <?php if ( $settings['show_questions_count'] === 'yes' && $questions_count ) : ?>
+                    <div class="survey-questions">
+                        <i class="eicon-editor-list-ul"></i>
+                        <?php echo sprintf( _n( '%s Question', '%s Questions', $questions_count, 'rm-panel-extensions' ), $questions_count ); ?>
+                    </div>
+                <?php endif; ?>
                 
-                <?php if ( $settings['show_button'] === 'yes' ) : ?>
-                    <a href="<?php the_permalink(); ?>" class="survey-button">
-                        <?php echo esc_html( $settings['button_text'] ); ?>
-                    </a>
+                <?php if ( $settings['show_estimated_time'] === 'yes' && $estimated_time ) : ?>
+                    <div class="survey-time">
+                        <i class="eicon-clock"></i>
+                        <?php echo sprintf( _n( '%s Minute', '%s Minutes', $estimated_time, 'rm-panel-extensions' ), $estimated_time ); ?>
+                    </div>
                 <?php endif; ?>
             </div>
-        </article>
-        <?php
-    }
+            
+            <?php if ( $settings['show_button'] === 'yes' ) : ?>
+                <?php if ( ! empty( $final_survey_url ) ) : ?>
+                    <a href="<?php echo esc_url( $final_survey_url ); ?>" 
+                       class="survey-button" 
+                       target="_blank"
+                       data-survey-id="<?php echo esc_attr( $post_id ); ?>">
+                        <?php echo esc_html( $settings['button_text'] ); ?>
+                        <i class="fas fa-external-link-alt" style="margin-left: 5px; font-size: 12px;"></i>
+                    </a>
+                <?php elseif ( ! empty( $survey_url ) ) : ?>
+                    <!-- Fallback to survey URL without parameters -->
+                    <a href="<?php echo esc_url( $survey_url ); ?>" 
+                       class="survey-button" 
+                       target="_blank"
+                       data-survey-id="<?php echo esc_attr( $post_id ); ?>">
+                        <?php echo esc_html( $settings['button_text'] ); ?>
+                        <i class="fas fa-external-link-alt" style="margin-left: 5px; font-size: 12px;"></i>
+                    </a>
+                <?php else : ?>
+                    <!-- No survey URL defined, use WordPress post URL -->
+                    <a href="<?php the_permalink(); ?>" 
+                       class="survey-button"
+                       data-survey-id="<?php echo esc_attr( $post_id ); ?>">
+                        <?php echo esc_html( $settings['button_text'] ); ?>
+                    </a>
+                    <?php if ( current_user_can( 'edit_posts' ) ) : ?>
+                        <small style="display: block; color: #d63638; margin-top: 5px;">
+                            <?php _e( 'No survey URL configured', 'rm-panel-extensions' ); ?>
+                        </small>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </article>
+    <?php
+}
 
     /**
      * Render pagination

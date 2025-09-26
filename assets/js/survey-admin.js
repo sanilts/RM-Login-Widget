@@ -1,5 +1,5 @@
 /**
- * Survey Admin JavaScript
+ * Survey Admin JavaScript with Survey ID support
  * File: assets/js/survey-admin.js
  */
 
@@ -29,13 +29,83 @@ jQuery(document).ready(function($) {
             }
         }
         
+        // Update preview URL
+        function updatePreviewUrl() {
+            var baseUrl = $('#rm_survey_url').val();
+            var $previewDiv = $('#preview-url');
+            
+            if (!baseUrl) {
+                $previewDiv.text('Enter a survey URL above to see preview');
+                return;
+            }
+            
+            // Build parameters
+            var params = [];
+            $('#survey-parameters-table tbody tr').each(function() {
+                var field = $(this).find('select[name*="[field]"]').val();
+                var variable = $(this).find('input[name*="[variable]"]').val();
+                var customValue = $(this).find('input[name*="[custom_value]"]').val();
+                
+                if (variable) {
+                    var value = '';
+                    switch(field) {
+                        case 'survey_id':
+                            value = $('input[readonly][value]').first().val() || '{SURVEY_ID}';
+                            break;
+                        case 'user_id':
+                            value = '{USER_ID}';
+                            break;
+                        case 'username':
+                            value = '{USERNAME}';
+                            break;
+                        case 'email':
+                            value = '{EMAIL}';
+                            break;
+                        case 'first_name':
+                            value = '{FIRST_NAME}';
+                            break;
+                        case 'last_name':
+                            value = '{LAST_NAME}';
+                            break;
+                        case 'display_name':
+                            value = '{DISPLAY_NAME}';
+                            break;
+                        case 'user_role':
+                            value = '{USER_ROLE}';
+                            break;
+                        case 'timestamp':
+                            value = '{TIMESTAMP}';
+                            break;
+                        case 'custom':
+                            value = customValue || '{CUSTOM}';
+                            break;
+                    }
+                    
+                    if (value) {
+                        params.push(variable + '=' + value);
+                    }
+                }
+            });
+            
+            // Build final URL
+            var finalUrl = baseUrl;
+            if (params.length > 0) {
+                var separator = baseUrl.indexOf('?') !== -1 ? '&' : '?';
+                finalUrl = baseUrl + separator + params.join('&');
+            }
+            
+            $previewDiv.text(finalUrl);
+        }
+        
         // Initialize on page load
         togglePaymentAmount();
         toggleDurationFields();
+        updatePreviewUrl();
         
         // Bind change events
         $('#rm_survey_type').on('change', togglePaymentAmount);
         $('#rm_survey_duration_type').on('change', toggleDurationFields);
+        $('#rm_survey_url').on('input', updatePreviewUrl);
         
         // Calculate the next parameter index
         function getNextParameterIndex() {
@@ -64,6 +134,7 @@ jQuery(document).ready(function($) {
             var html = '<tr class="survey-parameter-row">' +
                 '<td>' +
                     '<select name="rm_survey_parameters[' + parameterIndex + '][field]">' +
+                        '<option value="survey_id">Survey ID</option>' +
                         '<option value="user_id">User ID</option>' +
                         '<option value="username">Username</option>' +
                         '<option value="email">Email</option>' +
@@ -71,6 +142,7 @@ jQuery(document).ready(function($) {
                         '<option value="last_name">Last Name</option>' +
                         '<option value="display_name">Display Name</option>' +
                         '<option value="user_role">User Role</option>' +
+                        '<option value="timestamp">Timestamp</option>' +
                         '<option value="custom">Custom Field</option>' +
                     '</select>' +
                 '</td>' +
@@ -86,12 +158,14 @@ jQuery(document).ready(function($) {
             '</tr>';
             
             $('#survey-parameters-table tbody').append(html);
+            updatePreviewUrl();
         });
         
         // Remove parameter row
         $(document).on('click', '.remove-parameter', function(e) {
             e.preventDefault();
             $(this).closest('tr').remove();
+            updatePreviewUrl();
         });
         
         // Show/hide custom value field based on field selection
@@ -104,6 +178,13 @@ jQuery(document).ready(function($) {
             } else {
                 $customValueField.prop('disabled', true).css('opacity', '0.5').val('');
             }
+            
+            updatePreviewUrl();
+        });
+        
+        // Update preview when parameter values change
+        $(document).on('input', '#survey-parameters-table input', function() {
+            updatePreviewUrl();
         });
         
         // Initialize custom value fields on page load
@@ -115,5 +196,10 @@ jQuery(document).ready(function($) {
                 $customValueField.prop('disabled', true).css('opacity', '0.5');
             }
         });
+        
+        // Trigger initial preview update for existing parameters
+        if ($('#survey-parameters-table tbody tr').length > 0) {
+            updatePreviewUrl();
+        }
     }
 });
