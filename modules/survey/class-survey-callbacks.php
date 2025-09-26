@@ -40,8 +40,8 @@ class RM_Survey_Callbacks {
         // Add test callback handler
         add_action('wp_ajax_test_callback_url', [$this, 'ajax_test_callback_url']);
         
-        // Add admin page for testing
-        add_action('admin_menu', [$this, 'add_test_page']);
+        // REMOVED: Admin menu hooks - No longer needed
+        // add_action('admin_menu', [$this, 'add_test_page']);
         
         // Check and fix rewrite rules if needed
         add_action('init', [$this, 'check_and_fix_rewrite_rules'], 999);
@@ -49,8 +49,8 @@ class RM_Survey_Callbacks {
         // Add fallback handler for callback URLs
         add_action('template_redirect', [$this, 'fallback_callback_handler'], 1);
         
-        // Add admin notices for debugging
-        add_action('admin_notices', [$this, 'show_rewrite_debug']);
+        // Add admin notices for debugging (only when needed)
+        // add_action('admin_notices', [$this, 'show_rewrite_debug']);
     }
 
     /**
@@ -246,7 +246,7 @@ class RM_Survey_Callbacks {
                             <li>User ID: ' . esc_html($user_id) . '</li>
                             <li>Token: Valid ✓</li>
                         </ul>
-                        <p><a href="' . admin_url('edit.php?post_type=rm_survey&page=rm-survey-test-callbacks') . '">Back to Test Page</a></p>',
+                        <p><a href="' . admin_url('edit.php?post_type=rm_survey') . '">Back to Surveys</a></p>',
                         'Test Successful'
                     );
                 }
@@ -266,64 +266,6 @@ class RM_Survey_Callbacks {
                 // Redirect to thank you page
                 $this->redirect_to_thank_you($survey_id, $internal_status);
             }
-        }
-    }
-    
-    /**
-     * Show rewrite rules debug information
-     */
-    public function show_rewrite_debug() {
-        // Only show to admins on survey pages or with debug parameter
-        if (!current_user_can('manage_options')) {
-            return;
-        }
-        
-        $show_debug = false;
-        
-        // Check if we're on a survey page
-        $screen = get_current_screen();
-        if ($screen && $screen->post_type === 'rm_survey' && isset($_GET['debug_callbacks'])) {
-            $show_debug = true;
-        }
-        
-        if ($show_debug) {
-            $rules = get_option('rewrite_rules');
-            $survey_rules = array_filter($rules ?: [], function($rule) {
-                return strpos($rule, 'rm_callback') !== false;
-            });
-            
-            ?>
-            <div class="notice notice-info">
-                <h3><?php _e('Callback URL Debug Information', 'rm-panel-extensions'); ?></h3>
-                
-                <?php if (empty($survey_rules)) : ?>
-                    <p style="color: red; font-weight: bold;">
-                        ⚠️ <?php _e('Survey callback rewrite rules are NOT registered!', 'rm-panel-extensions'); ?>
-                    </p>
-                    <p>
-                        <a href="<?php echo admin_url('edit.php?post_type=rm_survey&page=rm-survey-fix-callbacks'); ?>" class="button button-primary">
-                            <?php _e('Fix Callback URLs Now', 'rm-panel-extensions'); ?>
-                        </a>
-                    </p>
-                <?php else : ?>
-                    <p style="color: green; font-weight: bold;">
-                        ✓ <?php _e('Survey callback rewrite rules are properly registered', 'rm-panel-extensions'); ?>
-                    </p>
-                    <details>
-                        <summary><?php _e('View Registered Rules', 'rm-panel-extensions'); ?></summary>
-                        <pre><?php print_r($survey_rules); ?></pre>
-                    </details>
-                <?php endif; ?>
-                
-                <p>
-                    <strong><?php _e('Test URLs:', 'rm-panel-extensions'); ?></strong><br>
-                    Success: <code><?php echo home_url('/survey-callback/success/?sid=1&uid=1&token=test&test_mode=1'); ?></code><br>
-                    <a href="<?php echo home_url('/survey-callback/success/?sid=1&uid=1&token=test&test_mode=1'); ?>" target="_blank" class="button button-secondary">
-                        <?php _e('Test Success URL', 'rm-panel-extensions'); ?>
-                    </a>
-                </p>
-            </div>
-            <?php
         }
     }
 
@@ -736,241 +678,6 @@ class RM_Survey_Callbacks {
         $query .= " GROUP BY completion_status";
 
         return $wpdb->get_results($query, OBJECT_K);
-    }
-    
-    /**
-     * Add admin test page
-     */
-    public function add_test_page() {
-        // Add flush rewrite rules page
-        add_submenu_page(
-            'edit.php?post_type=rm_survey',
-            __('Fix Callback URLs', 'rm-panel-extensions'),
-            __('Fix Callback URLs', 'rm-panel-extensions'),
-            'manage_options',
-            'rm-survey-fix-callbacks',
-            [$this, 'render_fix_page']
-        );
-        
-        // Add test callbacks page
-        add_submenu_page(
-            'edit.php?post_type=rm_survey',
-            __('Test Callbacks', 'rm-panel-extensions'),
-            __('Test Callbacks', 'rm-panel-extensions'),
-            'manage_options',
-            'rm-survey-test-callbacks',
-            [$this, 'render_test_page']
-        );
-    }
-    
-    /**
-     * Render test page
-     */
-    public function render_test_page() {
-        ?>
-        <div class="wrap">
-            <h1><?php _e('Test Survey Callbacks', 'rm-panel-extensions'); ?></h1>
-            
-            <div class="card">
-                <h2><?php _e('Test Callback URLs', 'rm-panel-extensions'); ?></h2>
-                <p><?php _e('Use this page to test if callback URLs are working properly.', 'rm-panel-extensions'); ?></p>
-                
-                <table class="form-table">
-                    <tr>
-                        <th scope="row">
-                            <label for="test_survey_id"><?php _e('Select Survey', 'rm-panel-extensions'); ?></label>
-                        </th>
-                        <td>
-                            <select id="test_survey_id" name="test_survey_id">
-                                <option value=""><?php _e('Select a survey', 'rm-panel-extensions'); ?></option>
-                                <?php
-                                $surveys = get_posts([
-                                    'post_type' => 'rm_survey',
-                                    'posts_per_page' => -1,
-                                    'orderby' => 'title',
-                                    'order' => 'ASC'
-                                ]);
-                                foreach ($surveys as $survey) {
-                                    echo '<option value="' . $survey->ID . '">' . esc_html($survey->post_title) . '</option>';
-                                }
-                                ?>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-                
-                <div id="test_urls_container" style="display: none;">
-                    <h3><?php _e('Generated Test URLs', 'rm-panel-extensions'); ?></h3>
-                    <div id="test_urls_list"></div>
-                    
-                    <h3><?php _e('Test Results', 'rm-panel-extensions'); ?></h3>
-                    <div id="test_results" style="background: #f0f0f0; padding: 15px; border-radius: 5px; min-height: 100px;">
-                        <p><?php _e('Select a URL above and click Test to see results.', 'rm-panel-extensions'); ?></p>
-                    </div>
-                </div>
-            </div>
-            
-            <script>
-            jQuery(document).ready(function($) {
-                $('#test_survey_id').on('change', function() {
-                    var surveyId = $(this).val();
-                    if (!surveyId) {
-                        $('#test_urls_container').hide();
-                        return;
-                    }
-                    
-                    // Generate test URLs
-                    var userId = <?php echo get_current_user_id(); ?>;
-                    var token = '<?php echo substr(hash('sha256', uniqid()), 0, 20); ?>...';
-                    
-                    var urls = {
-                        success: '<?php echo home_url('/survey-callback/success/'); ?>?sid=' + surveyId + '&uid=' + userId + '&token=' + token,
-                        terminate: '<?php echo home_url('/survey-callback/terminate/'); ?>?sid=' + surveyId + '&uid=' + userId + '&token=' + token,
-                        quotafull: '<?php echo home_url('/survey-callback/quotafull/'); ?>?sid=' + surveyId + '&uid=' + userId + '&token=' + token
-                    };
-                    
-                    var html = '<table class="widefat">';
-                    html += '<thead><tr><th>Type</th><th>URL</th><th>Action</th></tr></thead>';
-                    html += '<tbody>';
-                    
-                    $.each(urls, function(type, url) {
-                        html += '<tr>';
-                        html += '<td>' + type.charAt(0).toUpperCase() + type.slice(1) + '</td>';
-                        html += '<td><code style="font-size: 11px;">' + url + '</code></td>';
-                        html += '<td><button class="button test-single-url" data-type="' + type + '" data-survey-id="' + surveyId + '">Test</button></td>';
-                        html += '</tr>';
-                    });
-                    
-                    html += '</tbody></table>';
-                    
-                    $('#test_urls_list').html(html);
-                    $('#test_urls_container').show();
-                });
-                
-                $(document).on('click', '.test-single-url', function() {
-                    var btn = $(this);
-                    var type = btn.data('type');
-                    var surveyId = btn.data('survey-id');
-                    
-                    btn.text('Testing...').prop('disabled', true);
-                    
-                    $('#test_results').html('<p>Testing ' + type + ' callback...</p>');
-                    
-                    // Simulate the test
-                    setTimeout(function() {
-                        var result = '<strong>Test Complete!</strong><br>';
-                        result += 'Type: ' + type + '<br>';
-                        result += 'Survey ID: ' + surveyId + '<br>';
-                        result += 'User ID: <?php echo get_current_user_id(); ?><br>';
-                        result += 'Status: <span style="color: green;">✓ URL is properly formatted</span><br>';
-                        result += '<br><em>Note: To fully test, you need to access the URL directly or use a tool like Postman.</em>';
-                        
-                        $('#test_results').html(result);
-                        btn.text('Test').prop('disabled', false);
-                    }, 1000);
-                });
-            });
-            </script>
-        </div>
-        <?php
-    }
-    
-    /**
-     * Render fix page
-     */
-    public function render_fix_page() {
-        // Process fix if requested
-        if (isset($_POST['fix_rewrite_rules']) && check_admin_referer('fix_callback_urls')) {
-            // Re-register endpoints
-            $this->register_callback_endpoints();
-            
-            // Force flush
-            flush_rewrite_rules();
-            
-            echo '<div class="notice notice-success"><p>' . __('Rewrite rules have been fixed!', 'rm-panel-extensions') . '</p></div>';
-        }
-        
-        // Check current status
-        $rules = get_option('rewrite_rules');
-        $rules_exist = isset($rules['^survey-callback/success/?$']);
-        
-        ?>
-        <div class="wrap">
-            <h1><?php _e('Fix Survey Callback URLs', 'rm-panel-extensions'); ?></h1>
-            
-            <div class="card">
-                <h2><?php _e('Current Status', 'rm-panel-extensions'); ?></h2>
-                
-                <?php if ($rules_exist) : ?>
-                    <p style="color: green; font-size: 18px;">
-                        ✓ <?php _e('Callback URLs are properly configured', 'rm-panel-extensions'); ?>
-                    </p>
-                <?php else : ?>
-                    <p style="color: red; font-size: 18px;">
-                        ✗ <?php _e('Callback URLs are NOT configured', 'rm-panel-extensions'); ?>
-                    </p>
-                <?php endif; ?>
-                
-                <form method="post">
-                    <?php wp_nonce_field('fix_callback_urls'); ?>
-                    <p>
-                        <input type="submit" name="fix_rewrite_rules" class="button button-primary button-large" 
-                               value="<?php _e('Fix Callback URLs Now', 'rm-panel-extensions'); ?>">
-                    </p>
-                </form>
-                
-                <h3><?php _e('Test Your Callback URLs', 'rm-panel-extensions'); ?></h3>
-                <p><?php _e('After fixing, test these URLs:', 'rm-panel-extensions'); ?></p>
-                
-                <?php
-                $test_token = $this->generate_token(1, 1);
-                $test_urls = [
-                    'Success' => home_url('/survey-callback/success/?sid=1&uid=1&token=' . $test_token . '&test_mode=1'),
-                    'Terminate' => home_url('/survey-callback/terminate/?sid=1&uid=1&token=' . $test_token . '&test_mode=1'),
-                    'Quota Full' => home_url('/survey-callback/quotafull/?sid=1&uid=1&token=' . $test_token . '&test_mode=1'),
-                ];
-                ?>
-                
-                <table class="widefat">
-                    <thead>
-                        <tr>
-                            <th><?php _e('Type', 'rm-panel-extensions'); ?></th>
-                            <th><?php _e('Test URL', 'rm-panel-extensions'); ?></th>
-                            <th><?php _e('Action', 'rm-panel-extensions'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($test_urls as $type => $url) : ?>
-                            <tr>
-                                <td><?php echo esc_html($type); ?></td>
-                                <td><code style="font-size: 11px;"><?php echo esc_html($url); ?></code></td>
-                                <td>
-                                    <a href="<?php echo esc_url($url); ?>" target="_blank" class="button">
-                                        <?php _e('Test', 'rm-panel-extensions'); ?>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                
-                <h3><?php _e('Alternative Solutions', 'rm-panel-extensions'); ?></h3>
-                <ol>
-                    <li>
-                        <strong><?php _e('Via Permalinks:', 'rm-panel-extensions'); ?></strong><br>
-                        <?php printf(
-                            __('Go to %s and click "Save Changes" without making any changes.', 'rm-panel-extensions'),
-                            '<a href="' . admin_url('options-permalink.php') . '">' . __('Settings → Permalinks', 'rm-panel-extensions') . '</a>'
-                        ); ?>
-                    </li>
-                    <li>
-                        <strong><?php _e('Plugin Reactivation:', 'rm-panel-extensions'); ?></strong><br>
-                        <?php _e('Deactivate and reactivate the RM Panel Extensions plugin.', 'rm-panel-extensions'); ?>
-                    </li>
-                </ol>
-            </div>
-        </div>
-        <?php
     }
 }
 
