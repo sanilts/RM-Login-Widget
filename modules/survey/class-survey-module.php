@@ -1004,27 +1004,33 @@ class RM_Panel_Survey_Module {
                 $redirect_url = $survey_url;
                 $query_params = [];
 
-// Get survey ID
+                // Get survey ID - ALWAYS use current post ID
                 $survey_id = $post->ID;
 
-// Check if user is logged in
+                // Check if user is logged in
                 if (is_user_logged_in()) {
                     $current_user = wp_get_current_user();
                     $user_id = $current_user->ID;
 
-// Start survey tracking if tracking module exists
+                    // Start survey tracking if tracking module exists
                     if (class_exists('RM_Panel_Survey_Tracking')) {
                         $tracker = new RM_Panel_Survey_Tracking();
                         $response_id = $tracker->start_survey($user_id, $survey_id);
                     }
 
-// Add parameters based on configuration
-                    if (!empty($parameters)) {
+                    // Add parameters based on configuration
+                    if (!empty($parameters) && is_array($parameters)) {
                         foreach ($parameters as $param) {
+                            // Skip if no variable name defined
+                            if (empty($param['variable'])) {
+                                continue;
+                            }
+
                             $value = '';
 
                             switch ($param['field']) {
                                 case 'survey_id':
+                                    // ALWAYS use the current survey's ID
                                     $value = $survey_id;
                                     break;
                                 case 'user_id':
@@ -1052,40 +1058,62 @@ class RM_Panel_Survey_Module {
                                     $value = time();
                                     break;
                                 case 'custom':
-                                    $value = $param['custom_value'];
+                                    $value = isset($param['custom_value']) ? $param['custom_value'] : '';
                                     break;
                             }
 
+                            // Only add non-empty values
                             if (!empty($value) && !empty($param['variable'])) {
                                 $query_params[$param['variable']] = $value;
                             }
                         }
                     }
+
+                    // Add callback parameters if needed
+                    if (class_exists('RM_Survey_Callbacks')) {
+                        // Generate callback URLs
+                        $callback_handler = new RM_Survey_Callbacks();
+                        $callback_urls = $callback_handler->generate_callback_urls($survey_id, $user_id);
+
+                        // Optionally add callback URL as a parameter
+                        // Some survey platforms need this
+                        if (isset($callback_urls['success'])) {
+                            $query_params['callback_success'] = urlencode($callback_urls['success']);
+                        }
+                    }
+
                 } else {
-// For non-logged in users, still add survey_id and custom fields if configured
-                    if (!empty($parameters)) {
+                    // For non-logged in users, still process non-user specific parameters
+                    if (!empty($parameters) && is_array($parameters)) {
                         foreach ($parameters as $param) {
+                            // Skip if no variable name defined
+                            if (empty($param['variable'])) {
+                                continue;
+                            }
+
                             $value = '';
 
                             switch ($param['field']) {
                                 case 'survey_id':
+                                    // ALWAYS use the current survey's ID
                                     $value = $survey_id;
                                     break;
                                 case 'timestamp':
                                     $value = time();
                                     break;
                                 case 'custom':
-                                    $value = $param['custom_value'];
+                                    $value = isset($param['custom_value']) ? $param['custom_value'] : '';
                                     break;
                             }
 
+                            // Only add non-empty values
                             if (!empty($value) && !empty($param['variable'])) {
                                 $query_params[$param['variable']] = $value;
                             }
                         }
                     }
 
-// Check if login is required
+                    // Check if login is required
                     $requires_login = get_post_meta($post->ID, '_rm_survey_requires_login', true);
                     if ($requires_login) {
                         wp_redirect(wp_login_url(get_permalink()));
@@ -1093,34 +1121,25 @@ class RM_Panel_Survey_Module {
                     }
                 }
 
-// Add callback URL if user is logged in
-                if (is_user_logged_in()) {
-                    $callback_url = home_url('/survey-callback/');
-
-// Create a stable token
-                    $token = wp_hash($user_id . '-' . $survey_id . '-' . wp_salt('auth'));
-
-// Add callback parameters
-                    $query_params['callback_url'] = urlencode($callback_url);
-                    $query_params['uid'] = $user_id;
-                    $query_params['sid'] = $survey_id;
-                    $query_params['token'] = $token;
-
-// Optional: Add response ID if you need to track it
-                    if (isset($response_id)) {
-                        $query_params['rid'] = $response_id;
-                    }
-                }
-
-// Add parameters to URL
+                // Add parameters to URL
                 if (!empty($query_params)) {
                     $redirect_url = add_query_arg($query_params, $redirect_url);
                 }
 
-// Allow filtering the final redirect URL
+                // Log the redirect for debugging
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Survey Redirect Debug:');
+                    error_log('Survey ID: ' . $survey_id);
+                    error_log('Base URL: ' . $survey_url);
+                    error_log('Parameters: ' . print_r($parameters, true));
+                    error_log('Query Params: ' . print_r($query_params, true));
+                    error_log('Final URL: ' . $redirect_url);
+                }
+
+                // Allow filtering the final redirect URL
                 $redirect_url = apply_filters('rm_panel_survey_redirect_url', $redirect_url, $survey_id, $query_params);
 
-// Redirect to survey URL
+                // Redirect to survey URL
                 wp_redirect($redirect_url);
                 exit;
             }
