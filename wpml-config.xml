@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<wpml-config>
+    <!-- Plugin Text Domain -->
+    <key name="rm-panel-extensions">
+        <key name="context">RM Panel Extensions</key>
+    </key>
+    
+    <!-- Elementor Widget Fields -->
+    <elementor-widgets>
+        <widget name="rm_panel_login_widget">
+            <!-- Text Fields -->
+            <fields>
+                <field>username_label</field>
+                <field>username_placeholder</field>
+                <field>password_label</field>
+                <field>password_placeholder</field>
+                <field>remember_text</field>
+                <field>login_button_text</field>
+                <field>register_link_text</field>
+                <field>lost_password_text</field>
+                <field>logged_in_message</field>
+                <field>logout_link_text</field>
+                <field>loading_text</field>
+                <field>error_message</field>
+                <field>success_message</field>
+            </fields>
+            
+            <!-- URL Fields -->
+            <fields-in-item items_of="redirect_section">
+                <field>default_redirect.url</field>
+                <field>redirect_administrator.url</field>
+                <field>redirect_editor.url</field>
+                <field>redirect_author.url</field>
+                <field>redirect_contributor.url</field>
+                <field>redirect_subscriber.url</field>
+                <field>redirect_customer.url</field>
+                <field>redirect_shop_manager.url</field>
+            </fields-in-item>
+            
+            <fields-in-item items_of="content_section">
+                <field>custom_register_url.url</field>
+                <field>custom_lost_password_url.url</field>
+            </fields-in-item>
+        </widget>
+    </elementor-widgets>
+    
+    <!-- Admin Page Strings -->
+    <admin-texts>
+        <key name="rm_panel_extensions_settings">
+            <key name="enable_login_widget" />
+            <key name="enable_wpml_support" />
+            <key name="custom_widget_category" />
+        </key>
+    </admin-texts>
+</wpml-config>
