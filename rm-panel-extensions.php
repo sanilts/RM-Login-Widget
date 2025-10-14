@@ -136,6 +136,13 @@ class RM_Panel_Extensions {
             }
         }
 
+        // Initialize Fluent Forms module if Fluent Forms is active
+        if (defined('FLUENTFORM') || function_exists('wpFluentForm')) {
+            if (isset($this->modules['fluent-forms']) && class_exists($this->modules['fluent-forms'])) {
+                new $this->modules['fluent-forms']();
+            }
+        }
+
         // Fire action for external modules
         do_action('rm_panel_extensions_modules_loaded');
     }
@@ -152,6 +159,15 @@ class RM_Panel_Extensions {
         if (file_exists($survey_module_file)) {
             require_once $survey_module_file;
             $core_modules['survey'] = 'RM_Panel_Survey_Module';
+        }
+
+        // Load Fluent Forms module if Fluent Forms is active
+        if (defined('FLUENTFORM') || function_exists('wpFluentForm')) {
+            $fluent_forms_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/fluent-forms/class-fluent-forms-module.php';
+            if (file_exists($fluent_forms_file)) {
+                require_once $fluent_forms_file;
+                $core_modules['fluent-forms'] = 'RM_Panel_Fluent_Forms_Module';
+            }
         }
 
         // Load Survey Tracking module
@@ -215,11 +231,11 @@ class RM_Panel_Extensions {
         if (file_exists($survey_tabs_file)) {
             require_once $survey_tabs_file;
         }
-        
+
         $referral_system_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/referral/class-referral-system.php';
-if (file_exists($referral_system_file)) {
-    require_once $referral_system_file;
-}
+        if (file_exists($referral_system_file)) {
+            require_once $referral_system_file;
+        }
     }
 
     /**
@@ -279,22 +295,22 @@ if (file_exists($referral_system_file)) {
                 );
             }
         }
-        
+
         // Enqueue survey accordion tabs CSS
-wp_enqueue_style(
-    'rm-survey-accordion-tabs',
-    RM_PANEL_EXT_PLUGIN_URL . 'assets/css/survey-accordion-tabs.css',
-    [],
-    RM_PANEL_EXT_VERSION
-);
+        wp_enqueue_style(
+                'rm-survey-accordion-tabs',
+                RM_PANEL_EXT_PLUGIN_URL . 'assets/css/survey-accordion-tabs.css',
+                [],
+                RM_PANEL_EXT_VERSION
+        );
 
 // Load Font Awesome for social icons
-wp_enqueue_style(
-    'font-awesome',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-    [],
-    '6.0.0'
-);
+        wp_enqueue_style(
+                'font-awesome',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+                [],
+                '6.0.0'
+        );
     }
 
     /**
@@ -816,7 +832,37 @@ wp_enqueue_style(
                 <?php endif; ?>
             </div>
         </div>
+        <?php if (defined('FLUENTFORM')) : ?>
+            <div class="module-card active">
+                <div class="module-header">
+                    <h3><?php _e('Fluent Forms Integration', 'rm-panel-extensions'); ?></h3>
+                    <span class="module-status active"><?php _e('Active', 'rm-panel-extensions'); ?></span>
+                </div>
+                <div class="module-content">
+                    <p><?php _e('Custom validation for Fluent Forms including password confirmation.', 'rm-panel-extensions'); ?></p>
+                    <ul>
+                        <li>✓ <?php _e('Password Confirmation Validation', 'rm-panel-extensions'); ?></li>
+                        <li>✓ <?php _e('Password Strength Validation', 'rm-panel-extensions'); ?></li>
+                        <li>✓ <?php _e('Custom Error Messages', 'rm-panel-extensions'); ?></li>
+                        <li>✓ <?php _e('User Registration Support', 'rm-panel-extensions'); ?></li>
+                    </ul>
+                </div>
+            </div>
+        <?php else : ?>
+            <div class="module-card inactive">
+                <div class="module-header">
+                    <h3><?php _e('Fluent Forms Integration', 'rm-panel-extensions'); ?></h3>
+                    <span class="module-status inactive"><?php _e('Requires Fluent Forms', 'rm-panel-extensions'); ?></span>
+                </div>
+                <div class="module-content">
+                    <p><?php _e('Install and activate Fluent Forms to use this module.', 'rm-panel-extensions'); ?></p>
+                    <a href="<?php echo admin_url('plugin-install.php?s=fluent+forms&tab=search&type=term'); ?>" class="button">
+                        <?php _e('Install Fluent Forms', 'rm-panel-extensions'); ?>
+                    </a>
+                </div>
+            </div>
         <?php
+        endif;
     }
 
     /**
@@ -895,7 +941,7 @@ wp_enqueue_style(
             <h2><?php _e('Recent Responses', 'rm-panel-extensions'); ?></h2>
             <?php if (empty($recent_responses)) : ?>
                 <p><?php _e('No survey responses found.', 'rm-panel-extensions'); ?></p>
-            <?php else : ?>
+        <?php else : ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <tr>
@@ -907,26 +953,26 @@ wp_enqueue_style(
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($recent_responses as $response) : ?>
+            <?php foreach ($recent_responses as $response) : ?>
                             <tr>
                                 <td><?php echo esc_html($response->display_name); ?></td>
                                 <td><?php echo esc_html($response->survey_title); ?></td>
                                 <td><?php echo $response->start_time ? date_i18n('Y-m-d H:i', strtotime($response->start_time)) : '—'; ?></td>
                                 <td><?php echo esc_html(ucfirst($response->status)); ?></td>
                                 <td>
-                                    <?php if ($response->completion_status) : ?>
+                                        <?php if ($response->completion_status) : ?>
                                         <span class="status-badge status-<?php echo esc_attr($response->completion_status); ?>">
-                                            <?php echo esc_html(str_replace('_', ' ', ucfirst($response->completion_status))); ?>
+                                        <?php echo esc_html(str_replace('_', ' ', ucfirst($response->completion_status))); ?>
                                         </span>
                                     <?php else : ?>
                                         —
-                                    <?php endif; ?>
+                <?php endif; ?>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
+            <?php endforeach; ?>
                     </tbody>
                 </table>
-            <?php endif; ?>
+        <?php endif; ?>
         </div>
 
         <style>

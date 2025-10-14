@@ -3,7 +3,7 @@
 ## 📋 Project Overview
 **Plugin Name:** RM Panel Extensions  
 **Version:** 1.0.0  
-**Purpose:** Comprehensive WordPress plugin with survey management, Elementor widgets, and user tracking
+**Purpose:** Comprehensive WordPress plugin with survey management, Elementor widgets, user tracking, and Fluent Forms integration
 
 ---
 
@@ -30,8 +30,10 @@ rm-panel-extensions.php (Main plugin file)
 │   │   │   └── survey-accordion-tabs-widget.php (Tabs + Accordion)
 │   │   └── templates/
 │   │       └── login-form.php (Login form HTML)
-│   └── referral/
-│       └── class-referral-system.php (Referral tracking)
+│   ├── referral/
+│   │   └── class-referral-system.php (Referral tracking)
+│   └── fluent-forms/
+│       └── class-fluent-forms-module.php (Fluent Forms integration & validation)
 └── assets/
     ├── css/ (All stylesheets)
     └── js/ (All JavaScript files)
@@ -151,7 +153,62 @@ $token = hash('sha256', 'survey_' . $survey_id . '_callback_' . wp_salt('auth'))
 
 ---
 
-### 5. **Survey Widgets** (widgets/*.php)
+### 5. **RM_Panel_Fluent_Forms_Module** (class-fluent-forms-module.php)
+**Purpose:** Integrates Fluent Forms with password validation and user registration
+
+**Key Methods:**
+- `validate_password_confirmation($errors, $formData, $form, $fields)` - Main validation method
+- `validate_password_strength($password)` - Checks password complexity
+- `before_submission($insertData, $formData, $form)` - Pre-submission processing
+- `create_wordpress_user($formData)` - Creates WordPress user from form data
+- `custom_password_messages($message, $formData, $form)` - Custom error messages
+
+**Required Field Names (Default):**
+```php
+'password'          // Password field
+'confirm_password'  // Confirm password field
+```
+
+**Validation Rules:**
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- Passwords must match
+
+**User Registration Fields:**
+```php
+'username'     // WordPress username
+'email'        // User email
+'password'     // User password
+'first_name'   // First name (optional)
+'last_name'    // Last name (optional)
+'gender'       // Gender (optional)
+'country'      // Country (optional)
+```
+
+**Hooks Used:**
+- `fluentform/validation_errors` - Main validation filter
+- `fluentform/before_insert_submission` - Pre-submission action
+- `fluentform/validation_message_password` - Custom messages
+
+**Error Messages:**
+```php
+'Passwords do not match. Please ensure both password fields are identical.'
+'Password must be at least 8 characters long.'
+'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+'Username or email already exists.'
+```
+
+**Integration Check:**
+```php
+// Check if Fluent Forms is active
+defined('FLUENTFORM') || function_exists('wpFluentForm')
+```
+
+---
+
+### 6. **Survey Widgets** (widgets/*.php)
 
 #### **Survey Listing Widget**
 **Key Features:**
@@ -198,6 +255,27 @@ $token = hash('sha256', 'survey_' . $survey_id . '_callback_' . wp_salt('auth'))
 
 6. Redirect to thank you page
    → /survey-thank-you/?survey_id=X&status=success
+```
+
+### Fluent Forms Registration Flow
+```
+1. User fills registration form
+   → Form includes password + confirm_password fields
+
+2. Form submission triggers validation
+   → validate_password_confirmation() checks:
+      - Passwords match
+      - Minimum length (8 chars)
+      - Password strength (uppercase, lowercase, numbers)
+
+3. If validation passes
+   → before_submission() is called
+   → Optional: create_wordpress_user() creates WP user
+
+4. User created successfully
+   → User meta saved (first_name, last_name, gender, country)
+   → Optional: Welcome email sent
+   → User can now access surveys
 ```
 
 ### Parameter Building Flow
@@ -300,6 +378,16 @@ CREATE TABLE wp_rm_referrals (
 **Cause:** `get_available_surveys()` not filtering properly  
 **Solution:** Ensure `get_user_completed_survey_ids()` is working
 
+### Issue 5: Fluent Forms Password Validation Not Working
+**Problem:** Form submits even with mismatched passwords  
+**Cause:** Field names don't match expected names  
+**Solution:** Ensure fields are named exactly `password` and `confirm_password`, or update field names in line 42 of module
+
+### Issue 6: Fluent Forms Module Not Loading
+**Problem:** Password validation doesn't run  
+**Cause:** Fluent Forms not detected as active  
+**Solution:** Check that `defined('FLUENTFORM')` returns true, and integration code is added to main plugin file
+
 ---
 
 ## 🎯 Quick Reference Commands
@@ -325,6 +413,20 @@ $history = $tracker->get_user_survey_history($user_id, ['limit' => 10]);
 $callbacks = new RM_Survey_Callbacks();
 $urls = $callbacks->generate_callback_urls($survey_id, $user_id);
 // Returns: ['success' => 'url', 'terminate' => 'url', 'quotafull' => 'url']
+```
+
+### Create WordPress User from Form
+```php
+$fluent_forms = new RM_Panel_Fluent_Forms_Module();
+$user_id = $fluent_forms->create_wordpress_user($formData);
+// Returns: int (user ID) or WP_Error on failure
+```
+
+### Validate Password Strength
+```php
+$fluent_forms = new RM_Panel_Fluent_Forms_Module();
+$is_valid = $fluent_forms->validate_password_strength($password);
+// Returns: bool
 ```
 
 ---
@@ -354,6 +456,9 @@ $urls = $callbacks->generate_callback_urls($survey_id, $user_id);
 2. **Nonce Verification:** All AJAX requests use `wp_verify_nonce()`
 3. **User Capabilities:** Admin functions check `manage_options`
 4. **SQL Injection:** All queries use `$wpdb->prepare()`
+5. **Password Security:** Fluent Forms module never stores raw passwords
+6. **User Registration:** Passwords automatically hashed by `wp_create_user()`
+7. **Input Sanitization:** All form inputs sanitized using WordPress functions
 
 ---
 
@@ -366,6 +471,68 @@ $urls = $callbacks->generate_callback_urls($survey_id, $user_id);
 **Optional:**
 - Elementor (for widgets)
 - WPML (for translations)
+- Fluent Forms (for form integration & validation)
+
+---
+
+## 🔌 Module Loading Order
+
+The plugin loads modules in this order:
+1. Survey Module (independent)
+2. Survey Tracking (depends on Survey Module)
+3. Survey Callbacks (depends on Survey Module)
+4. Elementor Module (if Elementor active)
+5. Fluent Forms Module (if Fluent Forms active)
+6. Referral System (depends on Survey Module)
+
+**Integration Code Locations:**
+
+**In `load_modules()` method:**
+```php
+// Load Fluent Forms module
+if (defined('FLUENTFORM') || function_exists('wpFluentForm')) {
+    $fluent_forms_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/fluent-forms/class-fluent-forms-module.php';
+    if (file_exists($fluent_forms_file)) {
+        require_once $fluent_forms_file;
+        $core_modules['fluent-forms'] = 'RM_Panel_Fluent_Forms_Module';
+    }
+}
+```
+
+**In `init_modules()` method:**
+```php
+// Initialize Fluent Forms module
+if (defined('FLUENTFORM') || function_exists('wpFluentForm')) {
+    if (isset($this->modules['fluent-forms']) && class_exists($this->modules['fluent-forms'])) {
+        new $this->modules['fluent-forms']();
+    }
+}
+```
+
+---
+
+## 🎨 Fluent Forms Field Configuration
+
+### Registration Form Field Names
+Use these exact field names in your Fluent Forms for automatic validation:
+
+| Field Purpose | Field Name | Type | Required |
+|--------------|------------|------|----------|
+| First Name | `first_name` | Text | Yes |
+| Last Name | `last_name` | Text | Yes |
+| Username | `username` | Text | Yes |
+| Email | `email` | Email | Yes |
+| Password | `password` | Password | Yes |
+| Confirm Password | `confirm_password` | Password | Yes |
+| Gender | `gender` | Select/Radio | Optional |
+| Country | `country` | Select | Optional |
+
+### Custom Field Names
+To use different field names, edit `class-fluent-forms-module.php` line ~42:
+```php
+$password_field = 'your_custom_password_field';
+$confirm_password_field = 'your_custom_confirm_field';
+```
 
 ---
 
@@ -375,6 +542,24 @@ $urls = $callbacks->generate_callback_urls($survey_id, $user_id);
 - "Check the Survey Tracking Flow section"
 - "Reference: RM_Survey_Callbacks::generate_survey_token()"
 - "See 'Issue 1: Survey ID is Wrong' in Common Issues"
+- "Check Fluent Forms Registration Flow"
+- "Reference: RM_Panel_Fluent_Forms_Module::validate_password_confirmation()"
+
+---
+
+## 📊 Module Status Reference
+
+Check module status at: **RM Panel Ext** → **Modules**
+
+**Active Modules Indicators:**
+- ✅ Survey Module - `class_exists('RM_Panel_Survey_Module')`
+- ✅ Survey Tracking - `class_exists('RM_Panel_Survey_Tracking')`
+- ✅ Elementor Widgets - `did_action('elementor/loaded')`
+- ✅ Fluent Forms - `defined('FLUENTFORM')`
+- ✅ WPML Support - `function_exists('icl_object_id')`
+
+---
 
 **Last Updated:** October 2025  
-**Project Version:** 1.0.0
+**Project Version:** 1.0.0  
+**New in this version:** Fluent Forms integration with password validation and user registration
