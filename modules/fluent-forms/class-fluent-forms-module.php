@@ -1,15 +1,8 @@
 <?php
 /**
- * Fluent Forms Integration Module - Enhanced with Real-time Validation
+ * Fluent Forms Integration Module - Enhanced with Real-time Validation & Country Detection
  * 
  * File: modules/fluent-forms/class-fluent-forms-module.php
- * 
- * Handles Fluent Forms integration including:
- * - Password confirmation validation
- * - Real-time username validation
- * - Real-time email validation
- * - Real-time password strength validation
- * - Per-form validation settings
  */
 if (!defined('ABSPATH')) {
     exit;
@@ -17,10 +10,16 @@ if (!defined('ABSPATH')) {
 
 class RM_Panel_Fluent_Forms_Module {
 
-    /**
-     * Constructor
-     */
-    public function __construct() {
+    private static $instance = null;
+
+    public static function get_instance() {
+        if (null === self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct() {
         // Check if Fluent Forms is active
         if (!$this->is_fluent_forms_active()) {
             add_action('admin_notices', [$this, 'fluent_forms_missing_notice']);
@@ -39,6 +38,10 @@ class RM_Panel_Fluent_Forms_Module {
         add_action('wp_ajax_check_password_strength', [$this, 'check_password_strength']);
         add_action('wp_ajax_nopriv_check_password_strength', [$this, 'check_password_strength']);
         
+        // Country detection AJAX endpoints
+        add_action('wp_ajax_get_country_from_ip', [$this, 'ajax_get_country_from_ip']);
+        add_action('wp_ajax_nopriv_get_country_from_ip', [$this, 'ajax_get_country_from_ip']);
+        
         // Frontend scripts
         add_action('wp_enqueue_scripts', [$this, 'enqueue_validation_scripts']);
         
@@ -50,25 +53,16 @@ class RM_Panel_Fluent_Forms_Module {
         $this->init_hooks();
     }
 
-    /**
-     * Check if Fluent Forms is active
-     */
     private function is_fluent_forms_active() {
         return defined('FLUENTFORM') || function_exists('wpFluentForm');
     }
 
-    /**
-     * Initialize hooks
-     */
     private function init_hooks() {
         add_filter('fluentform/validation_errors', [$this, 'validate_password_confirmation'], 10, 4);
         add_action('fluentform/before_insert_submission', [$this, 'before_submission'], 10, 3);
         add_filter('fluentform/validation_message_password', [$this, 'custom_password_messages'], 10, 3);
     }
 
-    /**
-     * Validate password confirmation and user fields
-     */
     public function validate_password_confirmation($errors, $formData, $form, $fields) {
         $password_field = 'password';
         $confirm_password_field = 'confirm_password';
@@ -137,9 +131,6 @@ class RM_Panel_Fluent_Forms_Module {
         return $errors;
     }
 
-    /**
-     * Validate password strength
-     */
     private function validate_password_strength($password) {
         if (strlen($password) < 8) {
             return false;
@@ -160,9 +151,6 @@ class RM_Panel_Fluent_Forms_Module {
         return true;
     }
 
-    /**
-     * Check username availability via AJAX
-     */
     public function check_username_availability() {
         check_ajax_referer('rm_username_check_nonce', 'nonce');
 
@@ -191,9 +179,6 @@ class RM_Panel_Fluent_Forms_Module {
         ]);
     }
 
-    /**
-     * Check email availability via AJAX
-     */
     public function check_email_availability() {
         check_ajax_referer('rm_email_check_nonce', 'nonce');
 
@@ -222,9 +207,6 @@ class RM_Panel_Fluent_Forms_Module {
         ]);
     }
 
-    /**
-     * Check password strength via AJAX
-     */
     public function check_password_strength() {
         check_ajax_referer('rm_password_check_nonce', 'nonce');
 
@@ -284,20 +266,120 @@ class RM_Panel_Fluent_Forms_Module {
     }
 
     /**
-     * Enqueue frontend validation scripts
+     * AJAX handler to get country from IP
      */
+    public function ajax_get_country_from_ip() {
+        check_ajax_referer('rm_country_check_nonce', 'nonce');
+        
+        error_log('RM Panel: Country detection AJAX called');
+        
+        $country = $this->get_user_country_from_ip();
+        
+        if ($country) {
+            error_log('RM Panel: Country detected: ' . $country);
+            wp_send_json_success([
+                'country' => $country,
+                'message' => __('Country detected', 'rm-panel-extensions')
+            ]);
+        } else {
+            error_log('RM Panel: Failed to detect country');
+            wp_send_json_error([
+                'message' => __('Could not detect country', 'rm-panel-extensions')
+            ]);
+        }
+    }
+
+    /**
+     * Get country from IP using IPStack
+     */
+    private function get_user_country_from_ip() {
+        $ip = $this->get_user_ip();
+        $api_key = get_option('rm_panel_ipstack_api_key', '');
+        
+        error_log('RM Panel: Detecting country for IP: ' . $ip);
+        error_log('RM Panel: API Key present: ' . (!empty($api_key) ? 'Yes' : 'No'));
+        
+        if (empty($api_key)) {
+            error_log('RM Panel: IPStack API key is not set');
+            return '';
+        }
+        
+        // Try to get from cache first (5 minutes)
+        $cache_key = 'rm_country_' . md5($ip);
+        $cached_country = get_transient($cache_key);
+        
+        if ($cached_country !== false) {
+            error_log('RM Panel: Using cached country: ' . $cached_country);
+            return $cached_country;
+        }
+        
+        // Call IPStack API
+        $url = "http://api.ipstack.com/{$ip}?access_key={$api_key}";
+        error_log('RM Panel: Calling IPStack API: ' . $url);
+        
+        $response = wp_remote_get($url, [
+            'timeout' => 10,
+            'sslverify' => false
+        ]);
+        
+        if (is_wp_error($response)) {
+            error_log('RM Panel: IPStack API error - ' . $response->get_error_message());
+            return '';
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+        
+        // Log the full response for debugging
+        error_log('RM Panel: IPStack API response: ' . print_r($data, true));
+        
+        if (isset($data['country_name']) && !empty($data['country_name'])) {
+            $country = $data['country_name'];
+            error_log('RM Panel: Country detected successfully: ' . $country);
+            
+            // Cache for 5 minutes
+            set_transient($cache_key, $country, 5 * MINUTE_IN_SECONDS);
+            return $country;
+        }
+        
+        if (isset($data['error'])) {
+            error_log('RM Panel: IPStack API error - ' . print_r($data['error'], true));
+        }
+        
+        return '';
+    }
+
+    /**
+     * Get user IP address
+     */
+    private function get_user_ip() {
+        $ip_keys = ['HTTP_CF_CONNECTING_IP', 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
+        
+        foreach ($ip_keys as $key) {
+            if (array_key_exists($key, $_SERVER)) {
+                $ips = explode(',', $_SERVER[$key]);
+                foreach ($ips as $ip) {
+                    $ip = trim($ip);
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
+                        return $ip;
+                    }
+                }
+            }
+        }
+        
+        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    }
+
     public function enqueue_validation_scripts() {
         if (!function_exists('wpFluentForm')) {
             return;
         }
 
-        // Check if we're on a page with a form that has validation enabled
         global $post;
         if (!is_a($post, 'WP_Post')) {
             return;
         }
 
-        // Get all forms in the content
         preg_match_all('/\[fluentform id="(\d+)"\]/', $post->post_content, $matches);
         
         $load_scripts = false;
@@ -328,6 +410,7 @@ class RM_Panel_Fluent_Forms_Module {
             'username_nonce' => wp_create_nonce('rm_username_check_nonce'),
             'email_nonce' => wp_create_nonce('rm_email_check_nonce'),
             'password_nonce' => wp_create_nonce('rm_password_check_nonce'),
+            'country_nonce' => wp_create_nonce('rm_country_check_nonce'),
             'messages' => [
                 'username_checking' => __('Checking username...', 'rm-panel-extensions'),
                 'username_available' => __('Username is available!', 'rm-panel-extensions'),
@@ -336,7 +419,9 @@ class RM_Panel_Fluent_Forms_Module {
                 'password_checking' => __('Checking password strength...', 'rm-panel-extensions'),
                 'password_strong' => __('Strong password!', 'rm-panel-extensions'),
                 'passwords_match' => __('Passwords match!', 'rm-panel-extensions'),
-                'passwords_no_match' => __('Passwords do not match', 'rm-panel-extensions')
+                'passwords_no_match' => __('Passwords do not match', 'rm-panel-extensions'),
+                'country_detecting' => __('Detecting country...', 'rm-panel-extensions'),
+                'country_detected' => __('Country detected!', 'rm-panel-extensions')
             ]
         ]);
 
@@ -348,9 +433,6 @@ class RM_Panel_Fluent_Forms_Module {
         );
     }
 
-    /**
-     * Add settings submenu
-     */
     public function add_settings_submenu() {
         if (!defined('FLUENTFORM')) {
             return;
@@ -366,28 +448,20 @@ class RM_Panel_Fluent_Forms_Module {
         );
     }
 
-    /**
-     * Register settings
-     */
     public function register_settings() {
         // Settings are stored per form, no need to register
     }
 
-    /**
-     * Render settings page
-     */
     public function render_settings_page() {
         if (!current_user_can('manage_options')) {
             return;
         }
 
-        // Save settings if form submitted
         if (isset($_POST['rm_fluent_validation_nonce']) && 
             wp_verify_nonce($_POST['rm_fluent_validation_nonce'], 'rm_fluent_validation_settings')) {
             $this->save_form_settings();
         }
 
-        // Get all Fluent Forms
         global $wpdb;
         $forms = $wpdb->get_results(
             "SELECT id, title FROM {$wpdb->prefix}fluentform_forms ORDER BY title ASC"
@@ -400,7 +474,7 @@ class RM_Panel_Fluent_Forms_Module {
             <div class="notice notice-info">
                 <p>
                     <strong><?php _e('Enable real-time validation for specific forms:', 'rm-panel-extensions'); ?></strong><br>
-                    <?php _e('This will add instant feedback for username, email, and password fields as users type.', 'rm-panel-extensions'); ?>
+                    <?php _e('This will add instant feedback for username, email, password fields, and auto-detect country.', 'rm-panel-extensions'); ?>
                 </p>
             </div>
 
@@ -452,7 +526,8 @@ class RM_Panel_Fluent_Forms_Module {
                                         <?php _e('✓ Real-time username validation', 'rm-panel-extensions'); ?><br>
                                         <?php _e('✓ Real-time email validation', 'rm-panel-extensions'); ?><br>
                                         <?php _e('✓ Password strength indicator', 'rm-panel-extensions'); ?><br>
-                                        <?php _e('✓ Password match validation', 'rm-panel-extensions'); ?>
+                                        <?php _e('✓ Password match validation', 'rm-panel-extensions'); ?><br>
+                                        <?php _e('✓ Auto-detect country from IP', 'rm-panel-extensions'); ?>
                                     </small>
                                 </td>
                             </tr>
@@ -497,8 +572,38 @@ class RM_Panel_Fluent_Forms_Module {
                         <td><?php _e('Confirm Password', 'rm-panel-extensions'); ?></td>
                         <td><code>confirm_password</code></td>
                     </tr>
+                    <tr>
+                        <td><?php _e('Country (Auto-detect)', 'rm-panel-extensions'); ?></td>
+                        <td><code>country</code></td>
+                    </tr>
                 </tbody>
             </table>
+            
+            <hr>
+            
+            <h2><?php _e('Country Detection Setup', 'rm-panel-extensions'); ?></h2>
+            <p><?php _e('To enable country auto-detection:', 'rm-panel-extensions'); ?></p>
+            <ol>
+                <li><?php _e('Get a free API key from', 'rm-panel-extensions'); ?> <a href="https://ipstack.com" target="_blank">ipstack.com</a></li>
+                <li><?php _e('Go to RM Panel Ext → Settings', 'rm-panel-extensions'); ?></li>
+                <li><?php _e('Enter your IPStack API key', 'rm-panel-extensions'); ?></li>
+                <li><?php _e('Add a field named "country" to your form', 'rm-panel-extensions'); ?></li>
+                <li><?php _e('Enable validation for the form', 'rm-panel-extensions'); ?></li>
+            </ol>
+            
+            <p>
+                <strong><?php _e('Current API Key Status:', 'rm-panel-extensions'); ?></strong>
+                <?php
+                $api_key = get_option('rm_panel_ipstack_api_key', '');
+                if (!empty($api_key)) {
+                    echo '<span style="color: green;">✓ ' . __('API Key is set', 'rm-panel-extensions') . '</span>';
+                    echo ' <a href="' . admin_url('admin.php?page=rm-panel-extensions-settings') . '">' . __('Update', 'rm-panel-extensions') . '</a>';
+                } else {
+                    echo '<span style="color: red;">✗ ' . __('API Key not set', 'rm-panel-extensions') . '</span>';
+                    echo ' <a href="' . admin_url('admin.php?page=rm-panel-extensions-settings') . '">' . __('Set API Key', 'rm-panel-extensions') . '</a>';
+                }
+                ?>
+            </p>
         </div>
 
         <style>
@@ -511,9 +616,6 @@ class RM_Panel_Fluent_Forms_Module {
         <?php
     }
 
-    /**
-     * Save form settings
-     */
     private function save_form_settings() {
         if (!current_user_can('manage_options')) {
             return;
@@ -530,39 +632,24 @@ class RM_Panel_Fluent_Forms_Module {
             ]);
         }
 
-        // Redirect with success message
         wp_redirect(add_query_arg('settings-updated', 'true', $_SERVER['REQUEST_URI']));
         exit;
     }
 
-    /**
-     * Enqueue admin scripts
-     */
     public function enqueue_admin_scripts($hook) {
         if ($hook !== 'fluent_forms_page_rm-fluent-forms-validation') {
             return;
         }
-
-        // Add any admin-specific scripts if needed
     }
 
-    /**
-     * Additional validation before submission
-     */
     public function before_submission($insertData, $formData, $form) {
         // Add any additional pre-submission logic here
     }
 
-    /**
-     * Custom password validation messages
-     */
     public function custom_password_messages($message, $formData, $form) {
         return __('Please enter a valid password.', 'rm-panel-extensions');
     }
 
-    /**
-     * Create WordPress user from form submission
-     */
     private function create_wordpress_user($formData) {
         $username = isset($formData['username']) ? sanitize_user($formData['username']) : '';
         $email = isset($formData['email']) ? sanitize_email($formData['email']) : '';
@@ -600,9 +687,6 @@ class RM_Panel_Fluent_Forms_Module {
         return $user_id;
     }
 
-    /**
-     * Show admin notice if Fluent Forms is not active
-     */
     public function fluent_forms_missing_notice() {
         ?>
         <div class="notice notice-warning">
@@ -617,9 +701,3 @@ class RM_Panel_Fluent_Forms_Module {
         <?php
     }
 }
-
-// Initialize the module if Fluent Forms is active
-/*
-if (defined('FLUENTFORM')) {
-    new RM_Panel_Fluent_Forms_Module();
-}*/

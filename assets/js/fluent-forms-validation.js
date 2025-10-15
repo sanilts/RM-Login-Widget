@@ -1,6 +1,6 @@
 /**
  * Real-time Validation for Fluent Forms
- * Handles username, email, and password validation
+ * Handles username, email, password validation, and country auto-detection
  */
 (function($) {
     'use strict';
@@ -8,7 +8,9 @@
     let usernameCheckTimeout, emailCheckTimeout, passwordCheckTimeout;
 
     $(document).ready(function() {
+        console.log('RM Panel: Initializing validation and country detection...');
         initializeValidation();
+        initializeCountryDetection();
     });
 
     function initializeValidation() {
@@ -58,7 +60,7 @@
             if (username.length < 5) {
                 $feedback.removeClass('checking success')
                     .addClass('error')
-                    .text(rmFluentFormsValidation.messages.username_checking.replace('Checking username...', 'Username must be at least 5 characters'));
+                    .text('Username must be at least 5 characters');
                 return;
             }
 
@@ -294,6 +296,173 @@
                 $feedback.removeClass('checking success warning')
                     .addClass('error')
                     .text('Error checking password strength');
+            }
+        });
+    }
+
+    /**
+     * Initialize Country Detection
+     */
+    function initializeCountryDetection() {
+        console.log('RM Panel: Initializing country detection...');
+        
+        // Try immediately
+        autoFillCountry();
+        
+        // Try again after 1 second (in case Fluent Forms hasn't loaded yet)
+        setTimeout(function() {
+            console.log('RM Panel: Delayed country detection attempt (1s)...');
+            autoFillCountry();
+        }, 1000);
+        
+        // Try again after 2 seconds (backup)
+        setTimeout(function() {
+            console.log('RM Panel: Final country detection attempt (2s)...');
+            autoFillCountry();
+        }, 2000);
+        
+        // Listen for Fluent Forms initialization
+        $(document).on('fluentform_init', function() {
+            console.log('RM Panel: Fluent Forms initialized, detecting country...');
+            setTimeout(autoFillCountry, 500);
+        });
+    }
+
+    /**
+     * Auto-detect and fill country field
+     */
+    function autoFillCountry() {
+        // Look for country field - try multiple selectors
+        const $countryField = $(
+            'select[name="country"], ' +
+            'input[name="country"], ' +
+            'select[data-name="country"], ' +
+            'input[data-name="country"], ' +
+            '.ff-el-form-control[name="country"]'
+        );
+        
+        if ($countryField.length === 0) {
+            console.log('RM Panel: No country field found');
+            return;
+        }
+        
+        console.log('RM Panel: Country field found:', $countryField);
+        
+        // Check if field already has a value
+        const currentValue = $countryField.val();
+        if (currentValue && currentValue !== '' && currentValue !== 'Select Country') {
+            console.log('RM Panel: Country field already has value:', currentValue);
+            return;
+        }
+        
+        console.log('RM Panel: Starting country auto-detection...');
+        
+        // Add/show detecting message
+        let $feedback = $countryField.next('.rm-validation-feedback');
+        if ($feedback.length === 0) {
+            $countryField.after('<div class="rm-validation-feedback"></div>');
+            $feedback = $countryField.next('.rm-validation-feedback');
+        }
+        
+        $feedback.removeClass('success error')
+            .addClass('checking')
+            .html('<span class="spinner"></span> ' + (rmFluentFormsValidation.messages.country_detecting || 'Detecting country...'))
+            .show();
+        
+        // Make AJAX call to detect country
+        $.ajax({
+            url: rmFluentFormsValidation.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'get_country_from_ip',
+                nonce: rmFluentFormsValidation.country_nonce
+            },
+            timeout: 10000, // 10 second timeout
+            success: function(response) {
+                console.log('RM Panel: Country detection response:', response);
+                
+                if (response.success && response.data.country) {
+                    const country = response.data.country;
+                    console.log('RM Panel: Detected country:', country);
+                    
+                    // For select fields, try to find matching option
+                    if ($countryField.is('select')) {
+                        console.log('RM Panel: Country field is a dropdown');
+                        
+                        // Log all available options
+                        const options = [];
+                        $countryField.find('option').each(function() {
+                            options.push({
+                                value: $(this).val(),
+                                text: $(this).text().trim()
+                            });
+                        });
+                        console.log('RM Panel: Available country options:', options);
+                        
+                        // Try to find matching option (case-insensitive)
+                        let $option = $countryField.find('option').filter(function() {
+                            const optionText = $(this).text().trim().toLowerCase();
+                            const optionValue = $(this).val().toLowerCase();
+                            const countryLower = country.toLowerCase();
+                            
+                            return optionText === countryLower || 
+                                   optionValue === countryLower ||
+                                   optionText.indexOf(countryLower) !== -1;
+                        });
+                        
+                        if ($option.length > 0) {
+                            const selectedValue = $option.first().val();
+                            console.log('RM Panel: Matching option found, value:', selectedValue);
+                            $countryField.val(selectedValue).trigger('change');
+                            
+                            // Show success feedback
+                            $feedback.removeClass('checking error')
+                                .addClass('success')
+                                .html('<span class="icon">✓</span> ' + (rmFluentFormsValidation.messages.country_detected || 'Country detected!'));
+                            
+                            // Hide feedback after 3 seconds
+                            setTimeout(function() {
+                                $feedback.fadeOut();
+                            }, 3000);
+                        } else {
+                            console.warn('RM Panel: Country "' + country + '" not found in dropdown options');
+                            $feedback.removeClass('checking success error').fadeOut();
+                        }
+                    } else {
+                        // For text input, set directly
+                        console.log('RM Panel: Country field is a text input');
+                        $countryField.val(country).trigger('change');
+                        
+                        // Show success feedback
+                        $feedback.removeClass('checking error')
+                            .addClass('success')
+                            .html('<span class="icon">✓</span> ' + (rmFluentFormsValidation.messages.country_detected || 'Country detected!'));
+                        
+                        // Hide feedback after 3 seconds
+                        setTimeout(function() {
+                            $feedback.fadeOut();
+                        }, 3000);
+                    }
+                } else {
+                    console.log('RM Panel: Failed to detect country:', response);
+                    $feedback.fadeOut();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('RM Panel: AJAX error detecting country:', {
+                    status: status,
+                    error: error,
+                    response: xhr.responseText
+                });
+                $feedback.removeClass('checking success')
+                    .addClass('error')
+                    .text('Could not detect country')
+                    .show();
+                
+                // Hide error after 3 seconds
+                setTimeout(function() {
+                    $feedback.fadeOut();
+                }, 3000);
             }
         });
     }

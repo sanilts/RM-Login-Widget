@@ -137,9 +137,10 @@ class RM_Panel_Extensions {
         }
 
         // Initialize Fluent Forms module if Fluent Forms is active
+        // FIXED: Use singleton pattern instead of direct instantiation
         if (defined('FLUENTFORM') || function_exists('wpFluentForm')) {
-            if (isset($this->modules['fluent-forms']) && class_exists($this->modules['fluent-forms'])) {
-                new $this->modules['fluent-forms']();
+            if (class_exists('RM_Panel_Fluent_Forms_Module')) {
+                RM_Panel_Fluent_Forms_Module::get_instance();
             }
         }
 
@@ -705,6 +706,10 @@ class RM_Panel_Extensions {
     /**
      * Save settings
      */
+
+    /**
+     * Save settings
+     */
     private function save_settings() {
         if (!current_user_can('manage_options')) {
             return;
@@ -720,6 +725,12 @@ class RM_Panel_Extensions {
         $sanitized['custom_widget_category'] = sanitize_text_field($settings['custom_widget_category']);
 
         update_option('rm_panel_extensions_settings', $sanitized);
+
+        // Save IPStack API key separately (ADD THIS CODE)
+        if (isset($settings['ipstack_api_key'])) {
+            $api_key = sanitize_text_field($settings['ipstack_api_key']);
+            update_option('rm_panel_ipstack_api_key', $api_key);
+        }
 
         add_settings_error(
                 'rm_panel_settings',
@@ -941,7 +952,7 @@ class RM_Panel_Extensions {
             <h2><?php _e('Recent Responses', 'rm-panel-extensions'); ?></h2>
             <?php if (empty($recent_responses)) : ?>
                 <p><?php _e('No survey responses found.', 'rm-panel-extensions'); ?></p>
-        <?php else : ?>
+            <?php else : ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <tr>
@@ -953,26 +964,26 @@ class RM_Panel_Extensions {
                         </tr>
                     </thead>
                     <tbody>
-            <?php foreach ($recent_responses as $response) : ?>
+                        <?php foreach ($recent_responses as $response) : ?>
                             <tr>
                                 <td><?php echo esc_html($response->display_name); ?></td>
                                 <td><?php echo esc_html($response->survey_title); ?></td>
                                 <td><?php echo $response->start_time ? date_i18n('Y-m-d H:i', strtotime($response->start_time)) : '—'; ?></td>
                                 <td><?php echo esc_html(ucfirst($response->status)); ?></td>
                                 <td>
-                                        <?php if ($response->completion_status) : ?>
+                                    <?php if ($response->completion_status) : ?>
                                         <span class="status-badge status-<?php echo esc_attr($response->completion_status); ?>">
-                                        <?php echo esc_html(str_replace('_', ' ', ucfirst($response->completion_status))); ?>
+                                            <?php echo esc_html(str_replace('_', ' ', ucfirst($response->completion_status))); ?>
                                         </span>
                                     <?php else : ?>
                                         —
-                <?php endif; ?>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
-            <?php endforeach; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
-        <?php endif; ?>
+            <?php endif; ?>
         </div>
 
         <style>
