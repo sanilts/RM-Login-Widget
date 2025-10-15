@@ -1,107 +1,301 @@
-jQuery(document).ready(function($) {
-    let usernameCheckTimeout;
-    let lastCheckedUsername = '';
-    
-    // Find the username field - adjust selector if needed
-    const $usernameField = $('input[name="username"]');
-    
-    if ($usernameField.length === 0) {
-        return; // No username field found
+/**
+ * Real-time Validation for Fluent Forms
+ * Handles username, email, and password validation
+ */
+(function($) {
+    'use strict';
+
+    let usernameCheckTimeout, emailCheckTimeout, passwordCheckTimeout;
+
+    $(document).ready(function() {
+        initializeValidation();
+    });
+
+    function initializeValidation() {
+        // Username validation
+        const $usernameField = $('input[name="username"]');
+        if ($usernameField.length) {
+            setupUsernameValidation($usernameField);
+        }
+
+        // Email validation
+        const $emailField = $('input[name="email"]');
+        if ($emailField.length) {
+            setupEmailValidation($emailField);
+        }
+
+        // Password validation
+        const $passwordField = $('input[name="password"]');
+        const $confirmPasswordField = $('input[name="confirm_password"]');
+        if ($passwordField.length) {
+            setupPasswordValidation($passwordField, $confirmPasswordField);
+        }
     }
-    
-    // Create validation message container
-    const $messageContainer = $('<div class="rm-username-validation-message"></div>');
-    $usernameField.after($messageContainer);
-    
-    // Validate username format
-    function isValidUsernameFormat(username) {
-        // Only letters, numbers, and underscores
-        return /^[a-zA-Z0-9_]+$/.test(username);
-    }
-    
-    // Show message
-    function showMessage(message, type) {
-        $messageContainer
-            .removeClass('rm-validation-error rm-validation-success rm-validation-checking')
-            .addClass('rm-validation-' + type)
-            .html('<span class="rm-validation-icon"></span>' + message)
-            .slideDown(200);
-    }
-    
-    // Hide message
-    function hideMessage() {
-        $messageContainer.slideUp(200);
-    }
-    
-    // Check username availability
-    function checkUsername(username) {
-        // Validate length
-        if (username.length < 5) {
-            if (username.length > 0) {
-                showMessage(rmFluentFormsValidation.messages.too_short, 'error');
-            } else {
-                hideMessage();
+
+    /**
+     * Setup Username Validation
+     */
+    function setupUsernameValidation($field) {
+        // Create feedback element
+        if (!$field.next('.rm-validation-feedback').length) {
+            $field.after('<div class="rm-validation-feedback"></div>');
+        }
+        const $feedback = $field.next('.rm-validation-feedback');
+
+        $field.on('input', function() {
+            const username = $(this).val().trim();
+            
+            // Clear existing timeout
+            clearTimeout(usernameCheckTimeout);
+
+            // Clear feedback if empty
+            if (username.length === 0) {
+                $feedback.removeClass('checking success error').text('');
+                return;
             }
-            return;
-        }
-        
-        // Validate format
-        if (!isValidUsernameFormat(username)) {
-            showMessage(rmFluentFormsValidation.messages.invalid, 'error');
-            return;
-        }
-        
-        // Don't check if same as last checked
-        if (username === lastCheckedUsername) {
-            return;
-        }
-        
-        // Show checking message
-        showMessage(rmFluentFormsValidation.messages.checking, 'checking');
-        
-        // AJAX check
+
+            // Check minimum length
+            if (username.length < 5) {
+                $feedback.removeClass('checking success')
+                    .addClass('error')
+                    .text(rmFluentFormsValidation.messages.username_checking.replace('Checking username...', 'Username must be at least 5 characters'));
+                return;
+            }
+
+            // Check format
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                $feedback.removeClass('checking success')
+                    .addClass('error')
+                    .text('Username can only contain letters, numbers, and underscores');
+                return;
+            }
+
+            // Show checking state
+            $feedback.removeClass('success error')
+                .addClass('checking')
+                .html('<span class="spinner"></span>' + rmFluentFormsValidation.messages.username_checking);
+
+            // Debounce AJAX call
+            usernameCheckTimeout = setTimeout(function() {
+                checkUsernameAvailability(username, $feedback);
+            }, 500);
+        });
+    }
+
+    /**
+     * Check username availability via AJAX
+     */
+    function checkUsernameAvailability(username, $feedback) {
         $.ajax({
             url: rmFluentFormsValidation.ajax_url,
             type: 'POST',
             data: {
                 action: 'check_username_availability',
                 username: username,
-                nonce: rmFluentFormsValidation.nonce
+                nonce: rmFluentFormsValidation.username_nonce
             },
             success: function(response) {
-                lastCheckedUsername = username;
-                
                 if (response.success) {
-                    showMessage(response.data.message, 'success');
+                    $feedback.removeClass('checking error')
+                        .addClass('success')
+                        .html('<span class="icon">✓</span>' + response.data.message);
                 } else {
-                    showMessage(response.data.message, 'error');
+                    $feedback.removeClass('checking success')
+                        .addClass('error')
+                        .html('<span class="icon">✗</span>' + response.data.message);
                 }
             },
             error: function() {
-                showMessage('Error checking username. Please try again.', 'error');
+                $feedback.removeClass('checking success')
+                    .addClass('error')
+                    .text('Error checking username availability');
             }
         });
     }
-    
-    // Real-time validation on input
-    $usernameField.on('input', function() {
-        const username = $(this).val().trim();
-        
-        // Clear previous timeout
-        clearTimeout(usernameCheckTimeout);
-        
-        // Debounce: wait 500ms after user stops typing
-        usernameCheckTimeout = setTimeout(function() {
-            checkUsername(username);
-        }, 500);
-    });
-    
-    // Also validate on blur (when field loses focus)
-    $usernameField.on('blur', function() {
-        const username = $(this).val().trim();
-        if (username.length > 0) {
-            clearTimeout(usernameCheckTimeout);
-            checkUsername(username);
+
+    /**
+     * Setup Email Validation
+     */
+    function setupEmailValidation($field) {
+        // Create feedback element
+        if (!$field.next('.rm-validation-feedback').length) {
+            $field.after('<div class="rm-validation-feedback"></div>');
         }
-    });
-});
+        const $feedback = $field.next('.rm-validation-feedback');
+
+        $field.on('input', function() {
+            const email = $(this).val().trim();
+            
+            // Clear existing timeout
+            clearTimeout(emailCheckTimeout);
+
+            // Clear feedback if empty
+            if (email.length === 0) {
+                $feedback.removeClass('checking success error').text('');
+                return;
+            }
+
+            // Basic email format check
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                $feedback.removeClass('checking success')
+                    .addClass('error')
+                    .text('Please enter a valid email address');
+                return;
+            }
+
+            // Show checking state
+            $feedback.removeClass('success error')
+                .addClass('checking')
+                .html('<span class="spinner"></span>' + rmFluentFormsValidation.messages.email_checking);
+
+            // Debounce AJAX call
+            emailCheckTimeout = setTimeout(function() {
+                checkEmailAvailability(email, $feedback);
+            }, 500);
+        });
+    }
+
+    /**
+     * Check email availability via AJAX
+     */
+    function checkEmailAvailability(email, $feedback) {
+        $.ajax({
+            url: rmFluentFormsValidation.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'check_email_availability',
+                email: email,
+                nonce: rmFluentFormsValidation.email_nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    $feedback.removeClass('checking error')
+                        .addClass('success')
+                        .html('<span class="icon">✓</span>' + response.data.message);
+                } else {
+                    $feedback.removeClass('checking success')
+                        .addClass('error')
+                        .html('<span class="icon">✗</span>' + response.data.message);
+                }
+            },
+            error: function() {
+                $feedback.removeClass('checking success')
+                    .addClass('error')
+                    .text('Error checking email availability');
+            }
+        });
+    }
+
+    /**
+     * Setup Password Validation
+     */
+    function setupPasswordValidation($passwordField, $confirmPasswordField) {
+        // Create feedback element for password
+        if (!$passwordField.next('.rm-validation-feedback').length) {
+            $passwordField.after('<div class="rm-validation-feedback"></div>');
+        }
+        const $passwordFeedback = $passwordField.next('.rm-validation-feedback');
+
+        // Create feedback element for confirm password
+        if ($confirmPasswordField.length && !$confirmPasswordField.next('.rm-validation-feedback').length) {
+            $confirmPasswordField.after('<div class="rm-validation-feedback"></div>');
+        }
+        const $confirmFeedback = $confirmPasswordField.next('.rm-validation-feedback');
+
+        // Password strength indicator
+        $passwordField.on('input', function() {
+            const password = $(this).val();
+            const confirmPassword = $confirmPasswordField.val();
+            
+            clearTimeout(passwordCheckTimeout);
+
+            if (password.length === 0) {
+                $passwordFeedback.removeClass('checking success error warning').text('');
+                return;
+            }
+
+            // Show checking state
+            $passwordFeedback.removeClass('success error warning')
+                .addClass('checking')
+                .html('<span class="spinner"></span>Checking password strength...');
+
+            passwordCheckTimeout = setTimeout(function() {
+                checkPasswordStrength(password, confirmPassword, $passwordFeedback);
+            }, 300);
+        });
+
+        // Confirm password match check
+        if ($confirmPasswordField.length) {
+            $confirmPasswordField.on('input', function() {
+                const password = $passwordField.val();
+                const confirmPassword = $(this).val();
+
+                if (confirmPassword.length === 0) {
+                    $confirmFeedback.removeClass('checking success error').text('');
+                    return;
+                }
+
+                if (password === confirmPassword) {
+                    $confirmFeedback.removeClass('checking error')
+                        .addClass('success')
+                        .html('<span class="icon">✓</span>' + rmFluentFormsValidation.messages.passwords_match);
+                } else {
+                    $confirmFeedback.removeClass('checking success')
+                        .addClass('error')
+                        .html('<span class="icon">✗</span>' + rmFluentFormsValidation.messages.passwords_no_match);
+                }
+            });
+
+            // Also check when main password changes
+            $passwordField.on('input', function() {
+                const confirmPassword = $confirmPasswordField.val();
+                if (confirmPassword.length > 0) {
+                    $confirmPasswordField.trigger('input');
+                }
+            });
+        }
+    }
+
+    /**
+     * Check password strength via AJAX
+     */
+    function checkPasswordStrength(password, confirmPassword, $feedback) {
+        $.ajax({
+            url: rmFluentFormsValidation.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'check_password_strength',
+                password: password,
+                confirm_password: confirmPassword,
+                nonce: rmFluentFormsValidation.password_nonce
+            },
+            success: function(response) {
+                const strength = response.data.strength;
+                let icon = '';
+                let strengthClass = '';
+
+                if (strength === 'strong') {
+                    icon = '✓';
+                    strengthClass = 'success';
+                } else if (strength === 'medium') {
+                    icon = '⚠';
+                    strengthClass = 'warning';
+                } else {
+                    icon = '✗';
+                    strengthClass = 'error';
+                }
+
+                $feedback.removeClass('checking success error warning')
+                    .addClass(strengthClass)
+                    .html('<span class="icon">' + icon + '</span>' + response.data.message);
+            },
+            error: function() {
+                $feedback.removeClass('checking success warning')
+                    .addClass('error')
+                    .text('Error checking password strength');
+            }
+        });
+    }
+
+})(jQuery);
