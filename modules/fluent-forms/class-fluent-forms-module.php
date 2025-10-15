@@ -371,67 +371,69 @@ class RM_Panel_Fluent_Forms_Module {
     }
 
     public function enqueue_validation_scripts() {
-        if (!function_exists('wpFluentForm')) {
-            return;
-        }
+    if (!function_exists('wpFluentForm')) {
+        return;
+    }
 
-        global $post;
-        if (!is_a($post, 'WP_Post')) {
-            return;
-        }
+    global $post;
+    if (!is_a($post, 'WP_Post')) {
+        return;
+    }
 
-        preg_match_all('/\[fluentform id="(\d+)"\]/', $post->post_content, $matches);
-        
-        $load_scripts = false;
-        if (!empty($matches[1])) {
-            foreach ($matches[1] as $form_id) {
-                $settings = get_option('rm_fluent_form_validation_' . $form_id, []);
-                if (!empty($settings['enable_realtime_validation'])) {
-                    $load_scripts = true;
-                    break;
-                }
+    preg_match_all('/\[fluentform id="(\d+)"\]/', $post->post_content, $matches);
+    
+    $load_scripts = false;
+    if (!empty($matches[1])) {
+        foreach ($matches[1] as $form_id) {
+            $settings = get_option('rm_fluent_form_validation_' . $form_id, []);
+            if (!empty($settings['enable_realtime_validation'])) {
+                $load_scripts = true;
+                break;
             }
         }
-
-        if (!$load_scripts) {
-            return;
-        }
-
-        wp_enqueue_script(
-            'rm-fluent-forms-validation',
-            RM_PANEL_EXT_PLUGIN_URL . 'assets/js/fluent-forms-validation.js',
-            ['jquery'],
-            RM_PANEL_EXT_VERSION,
-            true
-        );
-
-        wp_localize_script('rm-fluent-forms-validation', 'rmFluentFormsValidation', [
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'username_nonce' => wp_create_nonce('rm_username_check_nonce'),
-            'email_nonce' => wp_create_nonce('rm_email_check_nonce'),
-            'password_nonce' => wp_create_nonce('rm_password_check_nonce'),
-            'country_nonce' => wp_create_nonce('rm_country_check_nonce'),
-            'messages' => [
-                'username_checking' => __('Checking username...', 'rm-panel-extensions'),
-                'username_available' => __('Username is available!', 'rm-panel-extensions'),
-                'email_checking' => __('Checking email...', 'rm-panel-extensions'),
-                'email_available' => __('Email is available!', 'rm-panel-extensions'),
-                'password_checking' => __('Checking password strength...', 'rm-panel-extensions'),
-                'password_strong' => __('Strong password!', 'rm-panel-extensions'),
-                'passwords_match' => __('Passwords match!', 'rm-panel-extensions'),
-                'passwords_no_match' => __('Passwords do not match', 'rm-panel-extensions'),
-                'country_detecting' => __('Detecting country...', 'rm-panel-extensions'),
-                'country_detected' => __('Country detected!', 'rm-panel-extensions')
-            ]
-        ]);
-
-        wp_enqueue_style(
-            'rm-fluent-forms-validation',
-            RM_PANEL_EXT_PLUGIN_URL . 'assets/css/fluent-forms-validation.css',
-            [],
-            RM_PANEL_EXT_VERSION
-        );
     }
+
+    if (!$load_scripts) {
+        return;
+    }
+
+    wp_enqueue_script(
+        'rm-fluent-forms-validation',
+        RM_PANEL_EXT_PLUGIN_URL . 'assets/js/fluent-forms-validation.js',
+        ['jquery'],
+        RM_PANEL_EXT_VERSION,
+        true
+    );
+
+    wp_localize_script('rm-fluent-forms-validation', 'rmFluentFormsValidation', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'username_nonce' => wp_create_nonce('rm_username_check_nonce'),
+        'email_nonce' => wp_create_nonce('rm_email_check_nonce'),
+        'password_nonce' => wp_create_nonce('rm_password_check_nonce'),
+        'country_nonce' => wp_create_nonce('rm_country_check_nonce'),
+        'messages' => [
+            'username_checking' => __('Checking username...', 'rm-panel-extensions'),
+            'username_available' => __('Username is available!', 'rm-panel-extensions'),
+            'email_checking' => __('Checking email...', 'rm-panel-extensions'),
+            'email_available' => __('Email is available!', 'rm-panel-extensions'),
+            'password_checking' => __('Checking password strength...', 'rm-panel-extensions'),
+            'password_strong' => __('Strong password!', 'rm-panel-extensions'),
+            'passwords_match' => __('Passwords match!', 'rm-panel-extensions'),
+            'passwords_no_match' => __('Passwords do not match', 'rm-panel-extensions'),
+            'country_detecting' => __('Detecting country...', 'rm-panel-extensions'),
+            'country_detected' => __('Country detected!', 'rm-panel-extensions'),
+            // NEW MESSAGE
+            'country_mismatch' => __('Please select your actual country. Changing your country is not allowed.', 'rm-panel-extensions')
+        ]
+    ]);
+
+    wp_enqueue_style(
+        'rm-fluent-forms-validation',
+        RM_PANEL_EXT_PLUGIN_URL . 'assets/css/fluent-forms-validation.css',
+        [],
+        RM_PANEL_EXT_VERSION
+    );
+}
 
     public function add_settings_submenu() {
         if (!defined('FLUENTFORM')) {

@@ -647,3 +647,33 @@
         transform: scale(1.02);
     }
 }
+
+/* Country Mismatch Error Styling */
+.ff-el-form-control.rm-country-mismatch {
+    border-color: #cf222e !important;
+    box-shadow: 0 0 0 0.2rem rgba(207, 34, 46, 0.15) !important;
+}
+
+.ff-el-form-control.rm-country-mismatch:focus {
+    border-color: #cf222e !important;
+    box-shadow: 0 0 0 0.2rem rgba(207, 34, 46, 0.25) !important;
+}
+
+/* Shake animation for country mismatch */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.rm-country-mismatch {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Enhanced error feedback for country */
+.rm-validation-feedback.error.country-error {
+    background-color: #ffebe9;
+    border: 2px solid #cf222e;
+    font-weight: 500;
+    padding: 10px 12px;
+}

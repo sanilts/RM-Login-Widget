@@ -1,16 +1,19 @@
 /**
  * Real-time Validation for Fluent Forms
- * Handles username, email, password validation, and country auto-detection
+ * WITH COUNTRY MISMATCH VALIDATION
  */
 (function($) {
     'use strict';
 
     let usernameCheckTimeout, emailCheckTimeout, passwordCheckTimeout;
+    let detectedCountry = null; // Store the detected country
+    let detectedCountryValue = null; // Store the detected country value
 
     $(document).ready(function() {
         console.log('RM Panel: Initializing validation and country detection...');
         initializeValidation();
         initializeCountryDetection();
+        initializeCountryValidation(); // NEW: Initialize country change validation
     });
 
     function initializeValidation() {
@@ -38,7 +41,6 @@
      * Setup Username Validation
      */
     function setupUsernameValidation($field) {
-        // Create feedback element
         if (!$field.next('.rm-validation-feedback').length) {
             $field.after('<div class="rm-validation-feedback"></div>');
         }
@@ -47,16 +49,13 @@
         $field.on('input', function() {
             const username = $(this).val().trim();
             
-            // Clear existing timeout
             clearTimeout(usernameCheckTimeout);
 
-            // Clear feedback if empty
             if (username.length === 0) {
                 $feedback.removeClass('checking success error').text('');
                 return;
             }
 
-            // Check minimum length
             if (username.length < 5) {
                 $feedback.removeClass('checking success')
                     .addClass('error')
@@ -64,7 +63,6 @@
                 return;
             }
 
-            // Check format
             if (!/^[a-zA-Z0-9_]+$/.test(username)) {
                 $feedback.removeClass('checking success')
                     .addClass('error')
@@ -72,21 +70,16 @@
                 return;
             }
 
-            // Show checking state
             $feedback.removeClass('success error')
                 .addClass('checking')
                 .html('<span class="spinner"></span>' + rmFluentFormsValidation.messages.username_checking);
 
-            // Debounce AJAX call
             usernameCheckTimeout = setTimeout(function() {
                 checkUsernameAvailability(username, $feedback);
             }, 500);
         });
     }
 
-    /**
-     * Check username availability via AJAX
-     */
     function checkUsernameAvailability(username, $feedback) {
         $.ajax({
             url: rmFluentFormsValidation.ajax_url,
@@ -119,7 +112,6 @@
      * Setup Email Validation
      */
     function setupEmailValidation($field) {
-        // Create feedback element
         if (!$field.next('.rm-validation-feedback').length) {
             $field.after('<div class="rm-validation-feedback"></div>');
         }
@@ -128,16 +120,13 @@
         $field.on('input', function() {
             const email = $(this).val().trim();
             
-            // Clear existing timeout
             clearTimeout(emailCheckTimeout);
 
-            // Clear feedback if empty
             if (email.length === 0) {
                 $feedback.removeClass('checking success error').text('');
                 return;
             }
 
-            // Basic email format check
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 $feedback.removeClass('checking success')
@@ -146,21 +135,16 @@
                 return;
             }
 
-            // Show checking state
             $feedback.removeClass('success error')
                 .addClass('checking')
                 .html('<span class="spinner"></span>' + rmFluentFormsValidation.messages.email_checking);
 
-            // Debounce AJAX call
             emailCheckTimeout = setTimeout(function() {
                 checkEmailAvailability(email, $feedback);
             }, 500);
         });
     }
 
-    /**
-     * Check email availability via AJAX
-     */
     function checkEmailAvailability(email, $feedback) {
         $.ajax({
             url: rmFluentFormsValidation.ajax_url,
@@ -193,19 +177,16 @@
      * Setup Password Validation
      */
     function setupPasswordValidation($passwordField, $confirmPasswordField) {
-        // Create feedback element for password
         if (!$passwordField.next('.rm-validation-feedback').length) {
             $passwordField.after('<div class="rm-validation-feedback"></div>');
         }
         const $passwordFeedback = $passwordField.next('.rm-validation-feedback');
 
-        // Create feedback element for confirm password
         if ($confirmPasswordField.length && !$confirmPasswordField.next('.rm-validation-feedback').length) {
             $confirmPasswordField.after('<div class="rm-validation-feedback"></div>');
         }
         const $confirmFeedback = $confirmPasswordField.next('.rm-validation-feedback');
 
-        // Password strength indicator
         $passwordField.on('input', function() {
             const password = $(this).val();
             const confirmPassword = $confirmPasswordField.val();
@@ -217,7 +198,6 @@
                 return;
             }
 
-            // Show checking state
             $passwordFeedback.removeClass('success error warning')
                 .addClass('checking')
                 .html('<span class="spinner"></span>Checking password strength...');
@@ -227,7 +207,6 @@
             }, 300);
         });
 
-        // Confirm password match check
         if ($confirmPasswordField.length) {
             $confirmPasswordField.on('input', function() {
                 const password = $passwordField.val();
@@ -249,7 +228,6 @@
                 }
             });
 
-            // Also check when main password changes
             $passwordField.on('input', function() {
                 const confirmPassword = $confirmPasswordField.val();
                 if (confirmPassword.length > 0) {
@@ -259,9 +237,6 @@
         }
     }
 
-    /**
-     * Check password strength via AJAX
-     */
     function checkPasswordStrength(password, confirmPassword, $feedback) {
         $.ajax({
             url: rmFluentFormsValidation.ajax_url,
@@ -306,22 +281,18 @@
     function initializeCountryDetection() {
         console.log('RM Panel: Initializing country detection...');
         
-        // Try immediately
         autoFillCountry();
         
-        // Try again after 1 second (in case Fluent Forms hasn't loaded yet)
         setTimeout(function() {
             console.log('RM Panel: Delayed country detection attempt (1s)...');
             autoFillCountry();
         }, 1000);
         
-        // Try again after 2 seconds (backup)
         setTimeout(function() {
             console.log('RM Panel: Final country detection attempt (2s)...');
             autoFillCountry();
         }, 2000);
         
-        // Listen for Fluent Forms initialization
         $(document).on('fluentform_init', function() {
             console.log('RM Panel: Fluent Forms initialized, detecting country...');
             setTimeout(autoFillCountry, 500);
@@ -332,7 +303,6 @@
      * Auto-detect and fill country field
      */
     function autoFillCountry() {
-        // Look for country field - try multiple selectors
         const $countryField = $(
             'select[name="country"], ' +
             'input[name="country"], ' +
@@ -348,7 +318,6 @@
         
         console.log('RM Panel: Country field found:', $countryField);
         
-        // Check if field already has a value
         const currentValue = $countryField.val();
         if (currentValue && currentValue !== '' && currentValue !== 'Select Country') {
             console.log('RM Panel: Country field already has value:', currentValue);
@@ -357,7 +326,6 @@
         
         console.log('RM Panel: Starting country auto-detection...');
         
-        // Add/show detecting message
         let $feedback = $countryField.next('.rm-validation-feedback');
         if ($feedback.length === 0) {
             $countryField.after('<div class="rm-validation-feedback"></div>');
@@ -369,7 +337,6 @@
             .html('<span class="spinner"></span> ' + (rmFluentFormsValidation.messages.country_detecting || 'Detecting country...'))
             .show();
         
-        // Make AJAX call to detect country
         $.ajax({
             url: rmFluentFormsValidation.ajax_url,
             type: 'POST',
@@ -377,7 +344,7 @@
                 action: 'get_country_from_ip',
                 nonce: rmFluentFormsValidation.country_nonce
             },
-            timeout: 10000, // 10 second timeout
+            timeout: 10000,
             success: function(response) {
                 console.log('RM Panel: Country detection response:', response);
                 
@@ -385,11 +352,12 @@
                     const country = response.data.country;
                     console.log('RM Panel: Detected country:', country);
                     
-                    // For select fields, try to find matching option
+                    // Store detected country for validation
+                    detectedCountry = country;
+                    
                     if ($countryField.is('select')) {
                         console.log('RM Panel: Country field is a dropdown');
                         
-                        // Log all available options
                         const options = [];
                         $countryField.find('option').each(function() {
                             options.push({
@@ -399,28 +367,56 @@
                         });
                         console.log('RM Panel: Available country options:', options);
                         
-                        // Try to find matching option (case-insensitive)
-                        let $option = $countryField.find('option').filter(function() {
-                            const optionText = $(this).text().trim().toLowerCase();
-                            const optionValue = $(this).val().toLowerCase();
-                            const countryLower = country.toLowerCase();
-                            
-                            return optionText === countryLower || 
-                                   optionValue === countryLower ||
-                                   optionText.indexOf(countryLower) !== -1;
+                        let $option = null;
+                        const countryLower = country.toLowerCase();
+                        
+                        // Exact text match
+                        $option = $countryField.find('option').filter(function() {
+                            return $(this).text().trim().toLowerCase() === countryLower;
                         });
+                        
+                        // Exact value match
+                        if ($option.length === 0) {
+                            $option = $countryField.find('option').filter(function() {
+                                return $(this).val().toLowerCase() === countryLower;
+                            });
+                        }
+                        
+                        // Common aliases
+                        if ($option.length === 0) {
+                            const aliases = {
+                                'india': ['in'],
+                                'united states': ['usa', 'us', 'united states of america'],
+                                'united kingdom': ['uk', 'great britain', 'gb'],
+                                'china': ['cn', 'people\'s republic of china'],
+                                'south korea': ['korea, republic of', 'republic of korea'],
+                                'north korea': ['korea, democratic people\'s republic of']
+                            };
+                            
+                            if (aliases[countryLower]) {
+                                $option = $countryField.find('option').filter(function() {
+                                    const optionText = $(this).text().trim().toLowerCase();
+                                    const optionValue = $(this).val().toLowerCase();
+                                    return aliases[countryLower].includes(optionText) || 
+                                           aliases[countryLower].includes(optionValue);
+                                });
+                            }
+                        }
                         
                         if ($option.length > 0) {
                             const selectedValue = $option.first().val();
+                            detectedCountryValue = selectedValue; // Store detected value
                             console.log('RM Panel: Matching option found, value:', selectedValue);
                             $countryField.val(selectedValue).trigger('change');
                             
-                            // Show success feedback
+                            // Mark field as auto-detected
+                            $countryField.attr('data-country-detected', country);
+                            $countryField.attr('data-detected-value', selectedValue);
+                            
                             $feedback.removeClass('checking error')
                                 .addClass('success')
                                 .html('<span class="icon">✓</span> ' + (rmFluentFormsValidation.messages.country_detected || 'Country detected!'));
                             
-                            // Hide feedback after 3 seconds
                             setTimeout(function() {
                                 $feedback.fadeOut();
                             }, 3000);
@@ -429,16 +425,15 @@
                             $feedback.removeClass('checking success error').fadeOut();
                         }
                     } else {
-                        // For text input, set directly
                         console.log('RM Panel: Country field is a text input');
+                        detectedCountryValue = country;
                         $countryField.val(country).trigger('change');
+                        $countryField.attr('data-country-detected', country);
                         
-                        // Show success feedback
                         $feedback.removeClass('checking error')
                             .addClass('success')
                             .html('<span class="icon">✓</span> ' + (rmFluentFormsValidation.messages.country_detected || 'Country detected!'));
                         
-                        // Hide feedback after 3 seconds
                         setTimeout(function() {
                             $feedback.fadeOut();
                         }, 3000);
@@ -459,12 +454,104 @@
                     .text('Could not detect country')
                     .show();
                 
-                // Hide error after 3 seconds
                 setTimeout(function() {
                     $feedback.fadeOut();
                 }, 3000);
             }
         });
+    }
+
+    /**
+     * NEW: Initialize Country Change Validation
+     */
+    function initializeCountryValidation() {
+        console.log('RM Panel: Initializing country change validation...');
+        
+        // Wait a bit for country detection to complete
+        setTimeout(function() {
+            const $countryField = $(
+                'select[name="country"], ' +
+                'input[name="country"], ' +
+                'select[data-name="country"], ' +
+                'input[data-name="country"], ' +
+                '.ff-el-form-control[name="country"]'
+            );
+            
+            if ($countryField.length === 0) {
+                return;
+            }
+            
+            // Monitor country field changes
+            $countryField.on('change', function() {
+                validateCountrySelection($(this));
+            });
+            
+            // Add form submit validation
+            $countryField.closest('form').on('submit', function(e) {
+                if (!validateCountrySelection($countryField)) {
+                    e.preventDefault();
+                    console.log('RM Panel: Form submission blocked due to country mismatch');
+                    
+                    // Scroll to country field
+                    $('html, body').animate({
+                        scrollTop: $countryField.offset().top - 100
+                    }, 500);
+                    
+                    return false;
+                }
+            });
+        }, 3000); // Wait 3 seconds for country detection
+    }
+
+    /**
+     * NEW: Validate Country Selection
+     */
+    function validateCountrySelection($countryField) {
+        const detectedValue = $countryField.attr('data-detected-value');
+        const selectedValue = $countryField.val();
+        
+        // If no country was detected, allow any selection
+        if (!detectedValue || detectedValue === '') {
+            console.log('RM Panel: No detected country, allowing selection');
+            return true;
+        }
+        
+        // Check if user changed the country
+        if (selectedValue !== detectedValue) {
+            console.log('RM Panel: Country mismatch detected!', {
+                detected: detectedValue,
+                selected: selectedValue
+            });
+            
+            let $feedback = $countryField.next('.rm-validation-feedback');
+            if ($feedback.length === 0) {
+                $countryField.after('<div class="rm-validation-feedback"></div>');
+                $feedback = $countryField.next('.rm-validation-feedback');
+            }
+            
+            const detectedCountryName = $countryField.attr('data-country-detected') || 'detected country';
+            
+            $feedback.removeClass('checking success')
+                .addClass('error')
+                .html('<span class="icon">✗</span> ' + 
+                      (rmFluentFormsValidation.messages.country_mismatch || 
+                       'Please select your actual country: ' + detectedCountryName))
+                .show();
+            
+            // Add error class to field
+            $countryField.addClass('rm-country-mismatch');
+            
+            return false;
+        } else {
+            // Clear any existing error
+            let $feedback = $countryField.next('.rm-validation-feedback');
+            if ($feedback.length > 0) {
+                $feedback.removeClass('error').fadeOut();
+            }
+            $countryField.removeClass('rm-country-mismatch');
+            
+            return true;
+        }
     }
 
 })(jQuery);
