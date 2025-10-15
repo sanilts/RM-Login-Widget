@@ -35,8 +35,12 @@ rm-panel-extensions.php (Main plugin file)
 │   └── fluent-forms/
 │       └── class-fluent-forms-module.php (Fluent Forms integration & validation)
 └── assets/
-    ├── css/ (All stylesheets)
-    └── js/ (All JavaScript files)
+    ├── css/
+    │   ├── All stylesheets
+    │   └── fluent-forms-validation.css (Real-time validation styles)
+    └── js/
+        ├── All JavaScript files
+        └── fluent-forms-validation.js (Real-time username validation)
 ```
 
 ---
@@ -154,49 +158,97 @@ $token = hash('sha256', 'survey_' . $survey_id . '_callback_' . wp_salt('auth'))
 ---
 
 ### 5. **RM_Panel_Fluent_Forms_Module** (class-fluent-forms-module.php)
-**Purpose:** Integrates Fluent Forms with password validation and user registration
+**Purpose:** Integrates Fluent Forms with password validation, username validation, and user registration
 
 **Key Methods:**
 - `validate_password_confirmation($errors, $formData, $form, $fields)` - Main validation method
 - `validate_password_strength($password)` - Checks password complexity
+- `check_username_availability()` - AJAX handler for real-time username validation
+- `enqueue_validation_scripts()` - Loads real-time validation JS/CSS
 - `before_submission($insertData, $formData, $form)` - Pre-submission processing
 - `create_wordpress_user($formData)` - Creates WordPress user from form data
 - `custom_password_messages($message, $formData, $form)` - Custom error messages
 
 **Required Field Names (Default):**
 ```php
+'username'          // Username field (min 5 chars, alphanumeric + underscore only)
 'password'          // Password field
 'confirm_password'  // Confirm password field
 ```
 
-**Validation Rules:**
-- Minimum 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- Passwords must match
+**Username Validation Rules:**
+- ✅ Minimum 5 characters
+- ✅ Only letters, numbers, and underscores allowed
+- ✅ Must be unique (not already taken)
+- ✅ Real-time AJAX validation as user types
+- ✅ Server-side validation on form submission
+
+**Password Validation Rules:**
+- ✅ Minimum 8 characters
+- ✅ At least one uppercase letter
+- ✅ At least one lowercase letter
+- ✅ At least one number
+- ✅ Passwords must match
 
 **User Registration Fields:**
 ```php
-'username'     // WordPress username
-'email'        // User email
-'password'     // User password
+'username'     // WordPress username (required, min 5 chars)
+'email'        // User email (required)
+'password'     // User password (required)
 'first_name'   // First name (optional)
 'last_name'    // Last name (optional)
 'gender'       // Gender (optional)
 'country'      // Country (optional)
 ```
 
+**AJAX Endpoints:**
+```php
+// For logged-in users
+add_action('wp_ajax_check_username_availability', 'check_username_availability');
+
+// For non-logged-in users (registration forms)
+add_action('wp_ajax_nopriv_check_username_availability', 'check_username_availability');
+```
+
+**Real-time Validation Response:**
+```javascript
+// Success response
+{
+    success: true,
+    data: {
+        message: "Username is available!"
+    }
+}
+
+// Error response
+{
+    success: false,
+    data: {
+        message: "This username is already taken. Please choose another."
+    }
+}
+```
+
 **Hooks Used:**
 - `fluentform/validation_errors` - Main validation filter
 - `fluentform/before_insert_submission` - Pre-submission action
 - `fluentform/validation_message_password` - Custom messages
+- `wp_enqueue_scripts` - Load validation scripts
+- `wp_ajax_check_username_availability` - AJAX username check
 
 **Error Messages:**
 ```php
+// Username errors
+'Username must be at least 5 characters long.'
+'Username can only contain letters, numbers, and underscores.'
+'This username is already taken. Please choose another.'
+
+// Password errors
 'Passwords do not match. Please ensure both password fields are identical.'
 'Password must be at least 8 characters long.'
 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.'
+
+// Registration errors
 'Username or email already exists.'
 ```
 
@@ -205,6 +257,14 @@ $token = hash('sha256', 'survey_' . $survey_id . '_callback_' . wp_salt('auth'))
 // Check if Fluent Forms is active
 defined('FLUENTFORM') || function_exists('wpFluentForm')
 ```
+
+**Frontend Validation Features:**
+- 🔄 Real-time username checking (500ms debounce)
+- 🎨 Visual feedback with color-coded messages
+- ⏳ Loading state while checking availability
+- ✅ Success state when username is available
+- ❌ Error state for invalid/taken usernames
+- 📱 Mobile-friendly validation UI
 
 ---
 
@@ -260,22 +320,58 @@ defined('FLUENTFORM') || function_exists('wpFluentForm')
 ### Fluent Forms Registration Flow
 ```
 1. User fills registration form
-   → Form includes password + confirm_password fields
+   → Form includes username, password + confirm_password fields
 
-2. Form submission triggers validation
+2. Real-time validation triggers
+   → As user types username (500ms debounce):
+      - JavaScript checks minimum 5 characters
+      - JavaScript validates format (alphanumeric + underscore)
+      - AJAX call to check_username_availability()
+      - Server verifies username not taken
+      - Visual feedback shown (checking → success/error)
+
+3. Form submission triggers server-side validation
    → validate_password_confirmation() checks:
+      - Username: min 5 chars, valid format, not taken
       - Passwords match
       - Minimum length (8 chars)
       - Password strength (uppercase, lowercase, numbers)
 
-3. If validation passes
+4. If validation passes
    → before_submission() is called
    → Optional: create_wordpress_user() creates WP user
 
-4. User created successfully
+5. User created successfully
    → User meta saved (first_name, last_name, gender, country)
    → Optional: Welcome email sent
    → User can now access surveys
+```
+
+### Username Validation Flow (Real-time)
+```
+1. User types in username field
+   → JavaScript listens to input event
+
+2. After 500ms of inactivity (debounce)
+   → Check minimum 5 characters
+   → Validate format: /^[a-zA-Z0-9_]+$/
+   → If valid format, send AJAX request
+
+3. AJAX request to server
+   → wp_ajax_check_username_availability
+   → Verify nonce for security
+   → sanitize_user() on input
+   → Check username_exists()
+
+4. Server response
+   → Success: Show green "Username is available!"
+   → Error: Show red error message
+   → Update UI with appropriate styling
+
+5. On form submit
+   → Server-side validation runs again
+   → Double-checks all username rules
+   → Prevents bypassing client-side validation
 ```
 
 ### Parameter Building Flow
@@ -388,6 +484,27 @@ CREATE TABLE wp_rm_referrals (
 **Cause:** Fluent Forms not detected as active  
 **Solution:** Check that `defined('FLUENTFORM')` returns true, and integration code is added to main plugin file
 
+### Issue 7: Username Validation Not Showing
+**Problem:** Real-time username validation doesn't appear  
+**Cause:** JavaScript not loaded or field selector incorrect  
+**Solution:** 
+- Verify `fluent-forms-validation.js` is enqueued
+- Check browser console for errors
+- Ensure username field is named `username` or update selector in JS line 6
+
+### Issue 8: Username Validation Shows "Checking..." Forever
+**Problem:** AJAX request not completing  
+**Cause:** AJAX endpoint not registered or nonce verification failing  
+**Solution:**
+- Verify both `wp_ajax_` and `wp_ajax_nopriv_` hooks are registered
+- Check that nonce is generated: `wp_create_nonce('rm_username_check_nonce')`
+- Verify AJAX URL is correct in localized script
+
+### Issue 9: Username Validation Bypassed on Form Submit
+**Problem:** Invalid username accepted despite client-side validation  
+**Cause:** Server-side validation not implemented  
+**Solution:** Ensure `validate_password_confirmation()` includes username validation logic
+
 ---
 
 ## 🎯 Quick Reference Commands
@@ -429,6 +546,45 @@ $is_valid = $fluent_forms->validate_password_strength($password);
 // Returns: bool
 ```
 
+### Check Username Availability (AJAX)
+```javascript
+// Client-side AJAX call
+jQuery.ajax({
+    url: rmFluentFormsValidation.ajax_url,
+    type: 'POST',
+    data: {
+        action: 'check_username_availability',
+        username: username,
+        nonce: rmFluentFormsValidation.nonce
+    },
+    success: function(response) {
+        if (response.success) {
+            // Username available
+        } else {
+            // Username taken or invalid
+        }
+    }
+});
+```
+
+### Server-side Username Check
+```php
+// Check if username exists
+if (username_exists($username)) {
+    // Username is taken
+}
+
+// Validate username format
+if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+    // Invalid format
+}
+
+// Check minimum length
+if (strlen($username) < 5) {
+    // Too short
+}
+```
+
 ---
 
 ## 📝 Shortcodes
@@ -459,6 +615,9 @@ $is_valid = $fluent_forms->validate_password_strength($password);
 5. **Password Security:** Fluent Forms module never stores raw passwords
 6. **User Registration:** Passwords automatically hashed by `wp_create_user()`
 7. **Input Sanitization:** All form inputs sanitized using WordPress functions
+8. **Username Sanitization:** All usernames sanitized with `sanitize_user()`
+9. **AJAX Security:** Real-time validation uses nonce verification
+10. **Double Validation:** Client-side validation backed by server-side checks
 
 ---
 
@@ -516,22 +675,54 @@ if (defined('FLUENTFORM') || function_exists('wpFluentForm')) {
 ### Registration Form Field Names
 Use these exact field names in your Fluent Forms for automatic validation:
 
-| Field Purpose | Field Name | Type | Required |
-|--------------|------------|------|----------|
-| First Name | `first_name` | Text | Yes |
-| Last Name | `last_name` | Text | Yes |
-| Username | `username` | Text | Yes |
-| Email | `email` | Email | Yes |
-| Password | `password` | Password | Yes |
-| Confirm Password | `confirm_password` | Password | Yes |
-| Gender | `gender` | Select/Radio | Optional |
-| Country | `country` | Select | Optional |
+| Field Purpose | Field Name | Type | Required | Validation |
+|--------------|------------|------|----------|------------|
+| First Name | `first_name` | Text | Yes | - |
+| Last Name | `last_name` | Text | Yes | - |
+| Username | `username` | Text | Yes | Min 5 chars, alphanumeric + underscore, unique |
+| Email | `email` | Email | Yes | Valid email format, unique |
+| Password | `password` | Password | Yes | Min 8 chars, complexity rules |
+| Confirm Password | `confirm_password` | Password | Yes | Must match password |
+| Gender | `gender` | Select/Radio | Optional | - |
+| Country | `country` | Select | Optional | - |
 
 ### Custom Field Names
-To use different field names, edit `class-fluent-forms-module.php` line ~42:
+To use different field names, edit `class-fluent-forms-module.php`:
+
+**For passwords (line ~42):**
 ```php
 $password_field = 'your_custom_password_field';
 $confirm_password_field = 'your_custom_confirm_field';
+```
+
+**For username (line ~6):**
+```php
+$username_field = 'your_custom_username_field';
+```
+
+**Update JavaScript selector (fluent-forms-validation.js line ~6):**
+```javascript
+const $usernameField = $('input[name="your_custom_username_field"]');
+```
+
+### Real-time Validation Configuration
+
+**Debounce Timing (JavaScript line ~70):**
+```javascript
+usernameCheckTimeout = setTimeout(function() {
+    checkUsername(username);
+}, 500); // 500ms delay - adjust as needed
+```
+
+**Validation Messages (Localized Script):**
+```php
+'messages' => [
+    'checking' => __('Checking availability...', 'rm-panel-extensions'),
+    'too_short' => __('Username must be at least 5 characters.', 'rm-panel-extensions'),
+    'available' => __('Username is available!', 'rm-panel-extensions'),
+    'taken' => __('Username is already taken.', 'rm-panel-extensions'),
+    'invalid' => __('Username can only contain letters, numbers, and underscores.', 'rm-panel-extensions')
+]
 ```
 
 ---
@@ -544,6 +735,8 @@ $confirm_password_field = 'your_custom_confirm_field';
 - "See 'Issue 1: Survey ID is Wrong' in Common Issues"
 - "Check Fluent Forms Registration Flow"
 - "Reference: RM_Panel_Fluent_Forms_Module::validate_password_confirmation()"
+- "Check Username Validation Flow (Real-time)"
+- "Reference: RM_Panel_Fluent_Forms_Module::check_username_availability()"
 
 ---
 
@@ -560,6 +753,55 @@ Check module status at: **RM Panel Ext** → **Modules**
 
 ---
 
+## 🎬 Frontend Assets Loading
+
+### Fluent Forms Validation Scripts
+**Loaded on:** All pages (checks for Fluent Forms presence)
+
+**CSS File:** `assets/css/fluent-forms-validation.css`
+- Validation message styles
+- Color-coded feedback (checking, success, error)
+- Mobile-responsive design
+
+**JavaScript File:** `assets/js/fluent-forms-validation.js`
+- Real-time username validation
+- 500ms debounce for AJAX calls
+- Format and length validation
+- Visual feedback handling
+
+**Localized Data:**
+```javascript
+rmFluentFormsValidation = {
+    ajax_url: 'https://site.com/wp-admin/admin-ajax.php',
+    nonce: 'abc123...',
+    messages: {
+        checking: 'Checking availability...',
+        too_short: 'Username must be at least 5 characters.',
+        available: 'Username is available!',
+        taken: 'Username is already taken.',
+        invalid: 'Username can only contain letters, numbers, and underscores.'
+    }
+}
+```
+
+---
+
+## 🧪 Testing Checklist
+
+### Username Validation Testing
+- [ ] Type username with less than 5 characters → Shows error
+- [ ] Type username with 5+ characters → Sends AJAX request
+- [ ] Type existing username → Shows "already taken" error
+- [ ] Type valid new username → Shows "available" message
+- [ ] Type special characters → Shows format error
+- [ ] Submit form with invalid username → Server blocks submission
+- [ ] Disable JavaScript → Server-side validation still works
+- [ ] Test on mobile devices → UI is responsive
+- [ ] Check browser console → No JavaScript errors
+- [ ] Verify network tab → AJAX requests complete successfully
+
+---
+
 **Last Updated:** October 2025  
 **Project Version:** 1.0.0  
-**New in this version:** Fluent Forms integration with password validation and user registration
+**Latest Feature:** Real-time username validation with minimum 5 character requirement and AJAX availability checking

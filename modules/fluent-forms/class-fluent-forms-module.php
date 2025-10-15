@@ -6,7 +6,6 @@
  * 
  * Handles Fluent Forms integration including password confirmation validation
  */
-
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -16,12 +15,21 @@ class RM_Panel_Fluent_Forms_Module {
     /**
      * Constructor
      */
+
     public function __construct() {
         // Check if Fluent Forms is active
         if (!$this->is_fluent_forms_active()) {
             add_action('admin_notices', [$this, 'fluent_forms_missing_notice']);
             return;
         }
+        
+        add_filter('fluentform/validation_errors', [$this, 'validate_password_confirmation'], 10, 4);
+        add_action('fluentform/before_insert_submission', [$this, 'before_submission'], 10, 3);
+
+        // NEW: Add username validation hooks
+        add_action('wp_ajax_check_username_availability', [$this, 'check_username_availability']);
+        add_action('wp_ajax_nopriv_check_username_availability', [$this, 'check_username_availability']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_validation_scripts']);
 
         $this->init_hooks();
     }
@@ -32,6 +40,7 @@ class RM_Panel_Fluent_Forms_Module {
     private function is_fluent_forms_active() {
         return defined('FLUENTFORM') || function_exists('wpFluentForm');
     }
+    
 
     /**
      * Initialize hooks
@@ -60,14 +69,13 @@ class RM_Panel_Fluent_Forms_Module {
         // Define the field names you're using in your form
         $password_field = 'password';           // Adjust to your password field name
         $confirm_password_field = 'confirm_password'; // Adjust to your confirm password field name
-
         // Check if both fields exist in the submitted data
         $password = isset($formData[$password_field]) ? $formData[$password_field] : '';
         $confirm_password = isset($formData[$confirm_password_field]) ? $formData[$confirm_password_field] : '';
 
         // Check if password fields are present and not empty
         if (!empty($password) || !empty($confirm_password)) {
-            
+
             // Validate password strength (optional)
             if (!empty($password) && strlen($password) < 8) {
                 $errors[$password_field] = [
@@ -86,6 +94,32 @@ class RM_Panel_Fluent_Forms_Module {
             if (!empty($password) && !$this->validate_password_strength($password)) {
                 $errors[$password_field] = [
                     __('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 'rm-panel-extensions')
+                ];
+            }
+        }
+        
+        // Add username validation
+        $username = isset($formData['username']) ? sanitize_user($formData['username']) : '';
+
+        if (!empty($username)) {
+            // Check minimum length
+            if (strlen($username) < 5) {
+                $errors['username'] = [
+                    __('Username must be at least 5 characters long.', 'rm-panel-extensions')
+                ];
+            }
+
+            // Check format
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+                $errors['username'] = [
+                    __('Username can only contain letters, numbers, and underscores.', 'rm-panel-extensions')
+                ];
+            }
+
+            // Check if username exists
+            if (username_exists($username)) {
+                $errors['username'] = [
+                    __('This username is already taken. Please choose another.', 'rm-panel-extensions')
                 ];
             }
         }
@@ -138,12 +172,10 @@ class RM_Panel_Fluent_Forms_Module {
     public function before_submission($insertData, $formData, $form) {
         // Add any additional pre-submission logic here
         // For example, hash the password before storing
-        
         // This is just an example - adjust based on your needs
         if (isset($formData['password'])) {
             // Don't store raw passwords in Fluent Forms submissions
             // If you need to create a WordPress user, do it here
-            
             // Example: Create WordPress user
             // $this->create_wordpress_user($formData);
         }
@@ -218,45 +250,110 @@ class RM_Panel_Fluent_Forms_Module {
         <div class="notice notice-warning">
             <p>
                 <strong><?php _e('RM Panel Extensions:', 'rm-panel-extensions'); ?></strong>
-                <?php _e('Fluent Forms Integrations module requires Fluent Forms to be installed and activated.', 'rm-panel-extensions'); ?>
+        <?php _e('Fluent Forms Integrations module requires Fluent Forms to be installed and activated.', 'rm-panel-extensions'); ?>
                 <a href="<?php echo admin_url('plugin-install.php?s=fluent+forms&tab=search&type=term'); ?>">
-                    <?php _e('Install Fluent Forms', 'rm-panel-extensions'); ?>
+        <?php _e('Install Fluent Forms', 'rm-panel-extensions'); ?>
                 </a>
             </p>
         </div>
-        <?php
-    }
+                    <?php
+                }
 
-    /**
-     * Validate specific field types (alternative approach)
-     * 
-     * Use this filter for field-specific validation:
-     * fluentform/validate_input_item_{field_name}
-     */
-    public function validate_password_field($errorMessage, $field, $formData, $fields, $form) {
-        $fieldName = $field['name'];
-        $password = \FluentForm\Framework\Helpers\ArrayHelper::get($formData, $fieldName);
+                /**
+                 * Validate specific field types (alternative approach)
+                 * 
+                 * Use this filter for field-specific validation:
+                 * fluentform/validate_input_item_{field_name}
+                 */
+                public function validate_password_field($errorMessage, $field, $formData, $fields, $form) {
+                    $fieldName = $field['name'];
+                    $password = \FluentForm\Framework\Helpers\ArrayHelper::get($formData, $fieldName);
 
-        if (!empty($password) && strlen($password) < 8) {
-            return [__('Password must be at least 8 characters long.', 'rm-panel-extensions')];
-        }
+                    if (!empty($password) && strlen($password) < 8) {
+                        return [__('Password must be at least 8 characters long.', 'rm-panel-extensions')];
+                    }
 
-        return $errorMessage;
-    }
+                    return $errorMessage;
+                }
 
-    /**
-     * Add validation for confirm password field
-     */
-    public function validate_confirm_password_field($errorMessage, $field, $formData, $fields, $form) {
-        $fieldName = $field['name'];
-        $confirmPassword = \FluentForm\Framework\Helpers\ArrayHelper::get($formData, $fieldName);
-        $password = \FluentForm\Framework\Helpers\ArrayHelper::get($formData, 'password');
+                /**
+                 * Add validation for confirm password field
+                 */
+                public function validate_confirm_password_field($errorMessage, $field, $formData, $fields, $form) {
+                    $fieldName = $field['name'];
+                    $confirmPassword = \FluentForm\Framework\Helpers\ArrayHelper::get($formData, $fieldName);
+                    $password = \FluentForm\Framework\Helpers\ArrayHelper::get($formData, 'password');
 
-        if ($password !== $confirmPassword) {
-            return [__('Passwords do not match.', 'rm-panel-extensions')];
-        }
+                    if ($password !== $confirmPassword) {
+                        return [__('Passwords do not match.', 'rm-panel-extensions')];
+                    }
 
-        return $errorMessage;
+                    return $errorMessage;
+                }
+
+                /**
+                 * Check username availability via AJAX
+                 */
+                public function check_username_availability() {
+                    check_ajax_referer('rm_username_check_nonce', 'nonce');
+
+                    $username = isset($_POST['username']) ? sanitize_user($_POST['username']) : '';
+
+                    // Validate minimum length
+                    if (strlen($username) < 5) {
+                        wp_send_json_error([
+                            'message' => __('Username must be at least 5 characters long.', 'rm-panel-extensions')
+                        ]);
+                    }
+
+                    // Check if username exists
+                    if (username_exists($username)) {
+                        wp_send_json_error([
+                            'message' => __('This username is already taken. Please choose another.', 'rm-panel-extensions')
+                        ]);
+                    }
+
+                    // Username is available
+                    wp_send_json_success([
+                        'message' => __('Username is available!', 'rm-panel-extensions')
+                    ]);
+                }
+
+                /**
+                 * Enqueue frontend scripts for real-time validation
+                 */
+                public function enqueue_validation_scripts() {
+                    // Only load on pages with Fluent Forms
+                    if (!function_exists('wpFluentForm')) {
+                        return;
+                    }
+
+                    wp_enqueue_script(
+                            'rm-fluent-forms-validation',
+                            RM_PANEL_EXT_PLUGIN_URL . 'assets/js/fluent-forms-validation.js',
+                            ['jquery'],
+                            RM_PANEL_EXT_VERSION,
+                            true
+                    );
+
+                    wp_localize_script('rm-fluent-forms-validation', 'rmFluentFormsValidation', [
+                        'ajax_url' => admin_url('admin-ajax.php'),
+                        'nonce' => wp_create_nonce('rm_username_check_nonce'),
+                        'messages' => [
+                            'checking' => __('Checking availability...', 'rm-panel-extensions'),
+                            'too_short' => __('Username must be at least 5 characters.', 'rm-panel-extensions'),
+                            'available' => __('Username is available!', 'rm-panel-extensions'),
+                            'taken' => __('Username is already taken.', 'rm-panel-extensions'),
+                            'invalid' => __('Username can only contain letters, numbers, and underscores.', 'rm-panel-extensions')
+                        ]
+                    ]);
+
+                    wp_enqueue_style(
+                            'rm-fluent-forms-validation',
+                            RM_PANEL_EXT_PLUGIN_URL . 'assets/css/fluent-forms-validation.css',
+                            [],
+                            RM_PANEL_EXT_VERSION
+                    );
     }
 }
 
