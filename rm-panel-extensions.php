@@ -186,6 +186,14 @@ class RM_Panel_Extensions {
                 $core_modules['elementor-widgets'] = 'RM_Panel_Elementor_Module';
             }
         }
+        
+        // Load FluentCRM helper if FluentCRM is active
+        if (defined('FLUENTCRM') || function_exists('FluentCrmApi')) {
+            $fluent_crm_helper_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/fluent-crm/class-fluent-crm-helper.php';
+            if (file_exists($fluent_crm_helper_file)) {
+                require_once $fluent_crm_helper_file;
+            }
+        }
 
         // Load Survey Callbacks module
         $survey_callbacks_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-callbacks.php';
@@ -1151,3 +1159,137 @@ function rm_panel_check_db_update() {
 }
 
 add_action('plugins_loaded', 'rm_panel_check_db_update');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Add to functions.php temporarily for debugging
+function rm_debug_survey_targeting() {
+    if (!is_user_logged_in()) {
+        echo "Please log in first";
+        return;
+    }
+    
+    $user_id = get_current_user_id();
+    
+    echo "<h2>Survey Targeting Debug</h2>";
+    
+    // Check if FluentCRM is active
+    echo "<h3>1. FluentCRM Status</h3>";
+    if (defined('FLUENTCRM')) {
+        echo "✅ FluentCRM is active<br>";
+    } else {
+        echo "❌ FluentCRM is NOT active<br>";
+        return;
+    }
+    
+    // Check if helper class exists
+    echo "<h3>2. Helper Class Status</h3>";
+    if (class_exists('RM_Panel_FluentCRM_Helper')) {
+        echo "✅ RM_Panel_FluentCRM_Helper class exists<br>";
+    } else {
+        echo "❌ RM_Panel_FluentCRM_Helper class NOT found<br>";
+        return;
+    }
+    
+    // Get user's country from FluentCRM
+    echo "<h3>3. User's Country from FluentCRM</h3>";
+    $user_country = RM_Panel_FluentCRM_Helper::get_contact_country($user_id);
+    echo "User ID: $user_id<br>";
+    echo "Country: " . ($user_country ?: '<strong>NOT SET</strong>') . "<br>";
+    
+    // Get contact data
+    $contact_data = RM_Panel_FluentCRM_Helper::get_contact_data($user_id);
+    if ($contact_data) {
+        echo "<pre>";
+        print_r($contact_data);
+        echo "</pre>";
+    } else {
+        echo "❌ No contact data found for this user<br>";
+    }
+    
+    // Get all surveys
+    echo "<h3>4. Survey Targeting Settings</h3>";
+    $surveys = get_posts([
+        'post_type' => 'rm_survey',
+        'post_status' => 'publish',
+        'posts_per_page' => -1
+    ]);
+    
+    echo "<table border='1' cellpadding='10'>";
+    echo "<tr><th>Survey ID</th><th>Title</th><th>Location Type</th><th>Target Countries</th><th>Should Show?</th></tr>";
+    
+    foreach ($surveys as $survey) {
+        $location_type = get_post_meta($survey->ID, '_rm_survey_location_type', true);
+        $target_countries = get_post_meta($survey->ID, '_rm_survey_countries', true);
+        $matches = RM_Panel_FluentCRM_Helper::matches_survey_location($user_id, $survey->ID);
+        
+        echo "<tr>";
+        echo "<td>{$survey->ID}</td>";
+        echo "<td>{$survey->post_title}</td>";
+        echo "<td>" . ($location_type ?: 'all') . "</td>";
+        echo "<td>";
+        if (is_array($target_countries)) {
+            echo implode(', ', $target_countries);
+        } else {
+            echo "None";
+        }
+        echo "</td>";
+        echo "<td style='background: " . ($matches ? '#d4edda' : '#f8d7da') . ";'>";
+        echo $matches ? '✅ YES' : '❌ NO';
+        echo "</td>";
+        echo "</tr>";
+    }
+    echo "</table>";
+    
+    // Test matching logic
+    echo "<h3>5. Detailed Matching Logic</h3>";
+    foreach ($surveys as $survey) {
+        echo "<strong>Survey: {$survey->post_title}</strong><br>";
+        
+        $location_type = get_post_meta($survey->ID, '_rm_survey_location_type', true);
+        echo "Location Type: " . ($location_type ?: 'all') . "<br>";
+        
+        if ($location_type === 'specific') {
+            $target_countries = get_post_meta($survey->ID, '_rm_survey_countries', true);
+            echo "Target Countries (raw): ";
+            var_dump($target_countries);
+            echo "<br>";
+            
+            echo "User Country: " . ($user_country ?: 'NOT SET') . "<br>";
+            
+            if (!empty($user_country) && is_array($target_countries)) {
+                if (in_array($user_country, $target_countries)) {
+                    echo "✅ Match: User country IS in target countries<br>";
+                } else {
+                    echo "❌ No Match: User country NOT in target countries<br>";
+                }
+            }
+        } else {
+            echo "✅ Showing to all countries<br>";
+        }
+        echo "<hr>";
+    }
+}
+
+// Access at: yoursite.com/?debug_surveys=1
+add_action('wp', function() {
+    if (isset($_GET['debug_surveys'])) {
+        rm_debug_survey_targeting();
+        exit;
+    }
+});

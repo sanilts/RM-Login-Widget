@@ -220,17 +220,15 @@ class RM_Panel_Survey_Module {
      * Add Admin Columns - FIXED METHOD
      */
     public function add_admin_columns($columns) {
-        // Remove the date column temporarily
         $date = $columns['date'];
         unset($columns['date']);
 
-        // Add custom columns
         $columns['survey_type'] = __('Type', 'rm-panel-extensions');
         $columns['survey_status'] = __('Status', 'rm-panel-extensions');
         $columns['duration'] = __('Duration', 'rm-panel-extensions');
         $columns['amount'] = __('Amount', 'rm-panel-extensions');
+        $columns['target_countries'] = __('Target Countries', 'rm-panel-extensions'); // NEW
 
-        // Re-add the date column at the end
         $columns['date'] = $date;
 
         return $columns;
@@ -279,7 +277,185 @@ class RM_Panel_Survey_Module {
                     echo '—';
                 }
                 break;
+
+            case 'target_countries':
+                $location_type = get_post_meta($post_id, '_rm_survey_location_type', true);
+
+                if ($location_type === 'specific') {
+                    $countries = get_post_meta($post_id, '_rm_survey_countries', true);
+                    if (!empty($countries) && is_array($countries)) {
+                        $country_names = array_map(function ($code) {
+                            return $this->get_country_name_by_code($code);
+                        }, array_slice($countries, 0, 3)); // Show first 3
+
+                        echo implode(', ', $country_names);
+
+                        if (count($countries) > 3) {
+                            echo ' <span style="color: #666;">+' . (count($countries) - 3) . ' more</span>';
+                        }
+                    } else {
+                        echo '<span style="color: #999;">' . __('None selected', 'rm-panel-extensions') . '</span>';
+                    }
+                } else {
+                    echo '<span style="color: #0073aa;">' . __('All Countries', 'rm-panel-extensions') . '</span>';
+                }
+                break;
         }
+    }
+
+    /**
+     * Get country name by code
+     */
+    private function get_country_name_by_code($code) {
+        if (class_exists('RM_Panel_FluentCRM_Helper')) {
+            return RM_Panel_FluentCRM_Helper::get_country_name($code);
+        }
+        return $code;
+    }
+
+    /**
+     * Add Survey Location/Country Metabox
+     */
+    public function add_location_metabox() {
+        add_meta_box(
+                'rm_survey_location',
+                __('Survey Location Targeting', 'rm-panel-extensions'),
+                [$this, 'render_survey_location_metabox'],
+                self::POST_TYPE,
+                'side',
+                'high'
+        );
+    }
+
+    /**
+     * Render Survey Location Metabox
+     */
+    public function render_survey_location_metabox($post) {
+        $survey_countries = get_post_meta($post->ID, '_rm_survey_countries', true);
+        $location_type = get_post_meta($post->ID, '_rm_survey_location_type', true) ?: 'all';
+
+        // Get list of countries
+        $countries = $this->get_countries_list();
+        ?>
+        <div class="survey-location-settings">
+            <div class="survey-meta-field">
+                <label for="rm_survey_location_type"><?php _e('Location Targeting', 'rm-panel-extensions'); ?></label>
+                <select id="rm_survey_location_type" name="rm_survey_location_type" style="width: 100%;">
+                    <option value="all" <?php selected($location_type, 'all'); ?>><?php _e('All Countries', 'rm-panel-extensions'); ?></option>
+                    <option value="specific" <?php selected($location_type, 'specific'); ?>><?php _e('Specific Countries', 'rm-panel-extensions'); ?></option>
+                </select>
+                <p class="description"><?php _e('Choose whether to target all countries or specific ones', 'rm-panel-extensions'); ?></p>
+            </div>
+
+            <div class="survey-meta-field" id="country-selector" style="display: <?php echo $location_type === 'specific' ? 'block' : 'none'; ?>;">
+                <label for="rm_survey_countries"><?php _e('Target Countries', 'rm-panel-extensions'); ?></label>
+                <select id="rm_survey_countries" name="rm_survey_countries[]" multiple style="width: 100%; height: 150px;">
+                    <?php foreach ($countries as $code => $name) : ?>
+                        <option value="<?php echo esc_attr($code); ?>" <?php echo is_array($survey_countries) && in_array($code, $survey_countries) ? 'selected' : ''; ?>>
+                            <?php echo esc_html($name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="description"><?php _e('Hold Ctrl/Cmd to select multiple countries', 'rm-panel-extensions'); ?></p>
+                <p class="description"><strong><?php _e('Note:', 'rm-panel-extensions'); ?></strong> <?php _e('Survey will only show to FluentCRM contacts from selected countries', 'rm-panel-extensions'); ?></p>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            jQuery(document).ready(function ($) {
+                $('#rm_survey_location_type').on('change', function () {
+                    if ($(this).val() === 'specific') {
+                        $('#country-selector').slideDown();
+                    } else {
+                        $('#country-selector').slideUp();
+                    }
+                });
+            });
+        </script>
+
+        <style>
+            .survey-location-settings .survey-meta-field {
+                margin-bottom: 15px;
+            }
+            .survey-location-settings label {
+                display: block;
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+            #rm_survey_countries {
+                border: 1px solid #ddd;
+                padding: 5px;
+            }
+        </style>
+        <?php
+    }
+
+    /**
+     * Get list of countries
+     */
+    private function get_countries_list() {
+        return [
+            'AF' => 'Afghanistan',
+            'AL' => 'Albania',
+            'DZ' => 'Algeria',
+            'AR' => 'Argentina',
+            'AU' => 'Australia',
+            'AT' => 'Austria',
+            'BD' => 'Bangladesh',
+            'BE' => 'Belgium',
+            'BR' => 'Brazil',
+            'BG' => 'Bulgaria',
+            'CA' => 'Canada',
+            'CL' => 'Chile',
+            'CN' => 'China',
+            'CO' => 'Colombia',
+            'CR' => 'Costa Rica',
+            'HR' => 'Croatia',
+            'CZ' => 'Czech Republic',
+            'DK' => 'Denmark',
+            'EG' => 'Egypt',
+            'FI' => 'Finland',
+            'FR' => 'France',
+            'DE' => 'Germany',
+            'GR' => 'Greece',
+            'HK' => 'Hong Kong',
+            'HU' => 'Hungary',
+            'IN' => 'India',
+            'ID' => 'Indonesia',
+            'IE' => 'Ireland',
+            'IL' => 'Israel',
+            'IT' => 'Italy',
+            'JP' => 'Japan',
+            'KE' => 'Kenya',
+            'MY' => 'Malaysia',
+            'MX' => 'Mexico',
+            'NL' => 'Netherlands',
+            'NZ' => 'New Zealand',
+            'NG' => 'Nigeria',
+            'NO' => 'Norway',
+            'PK' => 'Pakistan',
+            'PE' => 'Peru',
+            'PH' => 'Philippines',
+            'PL' => 'Poland',
+            'PT' => 'Portugal',
+            'RO' => 'Romania',
+            'RU' => 'Russia',
+            'SA' => 'Saudi Arabia',
+            'SG' => 'Singapore',
+            'ZA' => 'South Africa',
+            'KR' => 'South Korea',
+            'ES' => 'Spain',
+            'SE' => 'Sweden',
+            'CH' => 'Switzerland',
+            'TW' => 'Taiwan',
+            'TH' => 'Thailand',
+            'TR' => 'Turkey',
+            'UA' => 'Ukraine',
+            'AE' => 'United Arab Emirates',
+            'GB' => 'United Kingdom',
+            'US' => 'United States',
+            'VN' => 'Vietnam',
+        ];
     }
 
     /**
@@ -682,6 +858,9 @@ class RM_Panel_Survey_Module {
                 'side',
                 'default'
         );
+
+        // Add Location Targeting metabox
+        $this->add_location_metabox();
     }
 
     // Include all the render_* methods exactly as they are in your original file
@@ -1204,6 +1383,18 @@ class RM_Panel_Survey_Module {
         // Log for debugging (remove in production)
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Survey ' . $post_id . ' parameters saved: ' . print_r($parameters ?? [], true));
+        }
+
+        // Save location targeting
+        if (isset($_POST['rm_survey_location_type'])) {
+            update_post_meta($post_id, '_rm_survey_location_type', sanitize_text_field($_POST['rm_survey_location_type']));
+        }
+
+        if (isset($_POST['rm_survey_countries']) && is_array($_POST['rm_survey_countries'])) {
+            $countries = array_map('sanitize_text_field', $_POST['rm_survey_countries']);
+            update_post_meta($post_id, '_rm_survey_countries', $countries);
+        } else {
+            delete_post_meta($post_id, '_rm_survey_countries');
         }
     }
 
