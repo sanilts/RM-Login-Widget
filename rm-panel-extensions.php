@@ -186,7 +186,7 @@ class RM_Panel_Extensions {
                 $core_modules['elementor-widgets'] = 'RM_Panel_Elementor_Module';
             }
         }
-        
+
         // Load FluentCRM helper if FluentCRM is active
         if (defined('FLUENTCRM') || function_exists('FluentCrmApi')) {
             $fluent_crm_helper_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/fluent-crm/class-fluent-crm-helper.php';
@@ -201,6 +201,12 @@ class RM_Panel_Extensions {
             require_once $survey_callbacks_file;
             // Initialize immediately (doesn't need to be in modules array)
             new RM_Survey_Callbacks();
+        }
+
+        // Load Profile Picture Handler
+        $profile_picture_handler_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/profile-picture/class-profile-picture-handler.php';
+        if (file_exists($profile_picture_handler_file)) {
+            require_once $profile_picture_handler_file;
         }
 
         // Allow filtering of modules
@@ -250,6 +256,16 @@ class RM_Panel_Extensions {
     /**
      * Enqueue frontend scripts
      */
+    /**
+     * CORRECT ENQUEUE CODE FOR PROFILE PICTURE WIDGET
+     * 
+     * Copy this code into your rm-panel-extensions.php file
+     * Replace or update your existing enqueue_frontend_scripts() method
+     */
+
+    /**
+     * Enqueue frontend scripts
+     */
     public function enqueue_frontend_scripts() {
         // Check if we need to load survey tracking scripts
         $should_load = false;
@@ -269,7 +285,6 @@ class RM_Panel_Extensions {
 
         // Only load scripts if needed
         if ($should_load) {
-
             // Check if the JavaScript file exists before enqueuing
             $tracking_js_file = RM_PANEL_EXT_PLUGIN_DIR . 'assets/js/survey-tracking.js';
             if (file_exists($tracking_js_file)) {
@@ -305,6 +320,61 @@ class RM_Panel_Extensions {
             }
         }
 
+        // ================================================================
+        // PROFILE PICTURE WIDGET - ADD THIS CODE
+        // ================================================================
+        // Only load profile picture scripts for logged-in users
+        if (is_user_logged_in()) {
+
+            // Enqueue Profile Picture CSS
+            $profile_css_file = RM_PANEL_EXT_PLUGIN_DIR . 'assets/css/profile-picture-widget.css';
+            if (file_exists($profile_css_file)) {
+                wp_enqueue_style(
+                        'rm-profile-picture-widget',
+                        RM_PANEL_EXT_PLUGIN_URL . 'assets/css/profile-picture-widget.css',
+                        [],
+                        RM_PANEL_EXT_VERSION
+                );
+            }
+
+            // Enqueue Profile Picture JavaScript
+            $profile_js_file = RM_PANEL_EXT_PLUGIN_DIR . 'assets/js/profile-picture-widget.js';
+            if (file_exists($profile_js_file)) {
+
+                // CRITICAL: Enqueue script with jQuery dependency
+                wp_enqueue_script(
+                        'rm-profile-picture-widget',
+                        RM_PANEL_EXT_PLUGIN_URL . 'assets/js/profile-picture-widget.js',
+                        ['jquery'], // ← jQuery is REQUIRED
+                        RM_PANEL_EXT_VERSION,
+                        true // Load in footer
+                );
+
+                // CRITICAL: Localize script with AJAX configuration
+                // This MUST come AFTER wp_enqueue_script
+                wp_localize_script('rm-profile-picture-widget', 'rmProfilePicture', [
+                    'ajax_url' => admin_url('admin-ajax.php'),
+                    'nonce' => wp_create_nonce('rm_profile_picture_nonce')
+                ]);
+
+                // Optional: Add inline script for debugging (remove in production)
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    wp_add_inline_script('rm-profile-picture-widget',
+                            'console.log("RM Profile Picture: Script enqueued successfully");',
+                            'before'
+                    );
+                }
+            } else {
+                // Log error if file not found
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('RM Panel: profile-picture-widget.js not found at: ' . $profile_js_file);
+                }
+            }
+        }
+
+        // ================================================================
+        // END PROFILE PICTURE WIDGET CODE
+        // ================================================================
         // Enqueue survey accordion tabs CSS
         wp_enqueue_style(
                 'rm-survey-accordion-tabs',
@@ -313,7 +383,7 @@ class RM_Panel_Extensions {
                 RM_PANEL_EXT_VERSION
         );
 
-// Load Font Awesome for social icons
+        // Load Font Awesome for social icons
         wp_enqueue_style(
                 'font-awesome',
                 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
@@ -690,6 +760,23 @@ class RM_Panel_Extensions {
                             </p>
                         </td>
                     </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="enable_profile_picture_widget">
+                                <?php _e('Enable Profile Picture Widget', 'rm-panel-extensions'); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" 
+                                   name="rm_panel_settings[enable_profile_picture_widget]" 
+                                   id="enable_profile_picture_widget" 
+                                   value="1" 
+                                   <?php checked(isset($settings['enable_profile_picture_widget']) ? $settings['enable_profile_picture_widget'] : 1); ?>>
+                            <p class="description">
+                                <?php _e('Enable the profile picture upload widget for Elementor', 'rm-panel-extensions'); ?>
+                            </p>
+                        </td>
+                    </tr>
                 </table>
 
                 <?php submit_button(); ?>
@@ -731,6 +818,7 @@ class RM_Panel_Extensions {
         $sanitized['enable_survey_widget'] = isset($settings['enable_survey_widget']) ? 1 : 0;
         $sanitized['enable_wpml_support'] = isset($settings['enable_wpml_support']) ? 1 : 0;
         $sanitized['custom_widget_category'] = sanitize_text_field($settings['custom_widget_category']);
+        $sanitized['enable_profile_picture_widget'] = isset($settings['enable_profile_picture_widget']) ? 1 : 0;
 
         update_option('rm_panel_extensions_settings', $sanitized);
 
@@ -1160,34 +1248,17 @@ function rm_panel_check_db_update() {
 
 add_action('plugins_loaded', 'rm_panel_check_db_update');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Add to functions.php temporarily for debugging
 function rm_debug_survey_targeting() {
     if (!is_user_logged_in()) {
         echo "Please log in first";
         return;
     }
-    
+
     $user_id = get_current_user_id();
-    
+
     echo "<h2>Survey Targeting Debug</h2>";
-    
+
     // Check if FluentCRM is active
     echo "<h3>1. FluentCRM Status</h3>";
     if (defined('FLUENTCRM')) {
@@ -1196,7 +1267,7 @@ function rm_debug_survey_targeting() {
         echo "❌ FluentCRM is NOT active<br>";
         return;
     }
-    
+
     // Check if helper class exists
     echo "<h3>2. Helper Class Status</h3>";
     if (class_exists('RM_Panel_FluentCRM_Helper')) {
@@ -1205,13 +1276,13 @@ function rm_debug_survey_targeting() {
         echo "❌ RM_Panel_FluentCRM_Helper class NOT found<br>";
         return;
     }
-    
+
     // Get user's country from FluentCRM
     echo "<h3>3. User's Country from FluentCRM</h3>";
     $user_country = RM_Panel_FluentCRM_Helper::get_contact_country($user_id);
     echo "User ID: $user_id<br>";
     echo "Country: " . ($user_country ?: '<strong>NOT SET</strong>') . "<br>";
-    
+
     // Get contact data
     $contact_data = RM_Panel_FluentCRM_Helper::get_contact_data($user_id);
     if ($contact_data) {
@@ -1221,7 +1292,7 @@ function rm_debug_survey_targeting() {
     } else {
         echo "❌ No contact data found for this user<br>";
     }
-    
+
     // Get all surveys
     echo "<h3>4. Survey Targeting Settings</h3>";
     $surveys = get_posts([
@@ -1229,15 +1300,15 @@ function rm_debug_survey_targeting() {
         'post_status' => 'publish',
         'posts_per_page' => -1
     ]);
-    
+
     echo "<table border='1' cellpadding='10'>";
     echo "<tr><th>Survey ID</th><th>Title</th><th>Location Type</th><th>Target Countries</th><th>Should Show?</th></tr>";
-    
+
     foreach ($surveys as $survey) {
         $location_type = get_post_meta($survey->ID, '_rm_survey_location_type', true);
         $target_countries = get_post_meta($survey->ID, '_rm_survey_countries', true);
         $matches = RM_Panel_FluentCRM_Helper::matches_survey_location($user_id, $survey->ID);
-        
+
         echo "<tr>";
         echo "<td>{$survey->ID}</td>";
         echo "<td>{$survey->post_title}</td>";
@@ -1255,23 +1326,23 @@ function rm_debug_survey_targeting() {
         echo "</tr>";
     }
     echo "</table>";
-    
+
     // Test matching logic
     echo "<h3>5. Detailed Matching Logic</h3>";
     foreach ($surveys as $survey) {
         echo "<strong>Survey: {$survey->post_title}</strong><br>";
-        
+
         $location_type = get_post_meta($survey->ID, '_rm_survey_location_type', true);
         echo "Location Type: " . ($location_type ?: 'all') . "<br>";
-        
+
         if ($location_type === 'specific') {
             $target_countries = get_post_meta($survey->ID, '_rm_survey_countries', true);
             echo "Target Countries (raw): ";
             var_dump($target_countries);
             echo "<br>";
-            
+
             echo "User Country: " . ($user_country ?: 'NOT SET') . "<br>";
-            
+
             if (!empty($user_country) && is_array($target_countries)) {
                 if (in_array($user_country, $target_countries)) {
                     echo "✅ Match: User country IS in target countries<br>";
@@ -1287,7 +1358,7 @@ function rm_debug_survey_targeting() {
 }
 
 // Access at: yoursite.com/?debug_surveys=1
-add_action('wp', function() {
+add_action('wp', function () {
     if (isset($_GET['debug_surveys'])) {
         rm_debug_survey_targeting();
         exit;

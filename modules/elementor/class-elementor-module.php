@@ -103,7 +103,7 @@ class RM_Panel_Elementor_Module {
                 require_once $survey_widget_file;
                 $widgets_manager->register(new \RM_Panel_Survey_Listing_Widget());
             }
-            
+
             // Include survey accordion widget file
             $survey_accordion_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/survey-accordion-widget.php';
             if (file_exists($survey_accordion_file)) {
@@ -112,13 +112,17 @@ class RM_Panel_Elementor_Module {
             }
         }
         
-        
+        // Register Profile Picture Widget
+        require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/profile-picture-widget.php';
+        $widgets_manager->register(new \RMPanelExtensions\Modules\Elementor\Widgets\Profile_Picture_Widget());
+
+
         // Include survey accordion tabs widget
-$survey_accordion_tabs_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/survey-accordion-tabs-widget.php';
-if (file_exists($survey_accordion_tabs_file)) {
-    require_once $survey_accordion_tabs_file;
-    $widgets_manager->register(new \RM_Panel_Survey_Accordion_Tabs_Widget());
-}
+        $survey_accordion_tabs_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/survey-accordion-tabs-widget.php';
+        if (file_exists($survey_accordion_tabs_file)) {
+            require_once $survey_accordion_tabs_file;
+            $widgets_manager->register(new \RM_Panel_Survey_Accordion_Tabs_Widget());
+        }
 
         // Hook for additional widgets
         do_action('rm_panel_register_elementor_widgets', $widgets_manager);
@@ -155,7 +159,7 @@ if (file_exists($survey_accordion_tabs_file)) {
                     [],
                     RM_PANEL_EXT_VERSION
             );
-            
+
             // Enqueue survey accordion styles
             wp_enqueue_style(
                     'rm-panel-survey-accordion',
