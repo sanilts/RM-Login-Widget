@@ -251,6 +251,12 @@ class RM_Panel_Extensions {
         if (file_exists($referral_system_file)) {
             require_once $referral_system_file;
         }
+
+        // Load Admin Bar Manager
+        $admin_bar_manager_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/admin-bar/class-admin-bar-manager.php';
+        if (file_exists($admin_bar_manager_file)) {
+            require_once $admin_bar_manager_file;
+        }
     }
 
     /**
@@ -779,6 +785,87 @@ class RM_Panel_Extensions {
                     </tr>
                 </table>
 
+                <!-- ADMIN BAR MANAGEMENT SECTION - NEW -->
+                <h2><?php _e('Admin Bar Visibility', 'rm-panel-extensions'); ?></h2>
+                <p class="description">
+                    <?php _e('Control which user roles can see the WordPress admin bar on the frontend and backend.', 'rm-panel-extensions'); ?>
+                </p>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row" colspan="2">
+                            <h3><?php _e('Show Admin Bar for These Roles', 'rm-panel-extensions'); ?></h3>
+                            <p class="description">
+                                <?php _e('Check the roles that should see the WordPress admin bar. Unchecked roles will not see the admin bar.', 'rm-panel-extensions'); ?>
+                            </p>
+                        </th>
+                    </tr>
+
+                    <?php
+                    // Get admin bar settings
+                    $admin_bar_settings = get_option('rm_panel_admin_bar_settings', RM_Panel_Admin_Bar_Manager::get_default_settings());
+
+                    // Get all WordPress roles
+                    $all_roles = RM_Panel_Admin_Bar_Manager::get_all_roles();
+
+                    foreach ($all_roles as $role_key => $role_data) :
+                        $is_checked = isset($admin_bar_settings[$role_key]) && $admin_bar_settings[$role_key] === '1';
+                        ?>
+                        <tr>
+                            <th scope="row">
+                                <label for="admin_bar_<?php echo esc_attr($role_key); ?>">
+                                    <?php echo esc_html($role_data['display_name']); ?>
+                                </label>
+                            </th>
+                            <td>
+                                <input type="checkbox" 
+                                       name="rm_panel_admin_bar[<?php echo esc_attr($role_key); ?>]" 
+                                       id="admin_bar_<?php echo esc_attr($role_key); ?>" 
+                                       value="1" 
+                                       <?php checked($is_checked); ?>>
+                                <p class="description">
+                                    <?php
+                                    if ($role_key === 'administrator') {
+                                        _e('Recommended: Keep enabled for administrators', 'rm-panel-extensions');
+                                    } else {
+                                        printf(__('Allow %s to see the admin bar', 'rm-panel-extensions'), esc_html($role_data['display_name']));
+                                    }
+                                    ?>
+                                </p>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+
+                    <tr>
+                        <th scope="row" colspan="2">
+                            <button type="button" id="rm-admin-bar-reset" class="button">
+                                <?php _e('Reset to Defaults', 'rm-panel-extensions'); ?>
+                            </button>
+                            <p class="description">
+                                <?php _e('Reset admin bar visibility to default settings (only administrators can see admin bar)', 'rm-panel-extensions'); ?>
+                            </p>
+                        </th>
+                    </tr>
+                </table>
+
+                <script type="text/javascript">
+                    jQuery(document).ready(function ($) {
+                        // Reset to defaults button
+                        $('#rm-admin-bar-reset').on('click', function () {
+                            if (confirm('<?php _e('Are you sure you want to reset admin bar settings to defaults?', 'rm-panel-extensions'); ?>')) {
+                                // Uncheck all checkboxes
+                                $('input[name^="rm_panel_admin_bar"]').prop('checked', false);
+
+                                // Check only administrator
+                                $('#admin_bar_administrator').prop('checked', true);
+
+                                alert('<?php _e('Settings reset to defaults. Click "Save Changes" to apply.', 'rm-panel-extensions'); ?>');
+                            }
+                        });
+                    });
+                </script>
+                <!-- END ADMIN BAR MANAGEMENT SECTION -->
+
                 <?php submit_button(); ?>
             </form>
         </div>
@@ -822,10 +909,18 @@ class RM_Panel_Extensions {
 
         update_option('rm_panel_extensions_settings', $sanitized);
 
-        // Save IPStack API key separately (ADD THIS CODE)
+        // Save IPStack API key separately
         if (isset($settings['ipstack_api_key'])) {
             $api_key = sanitize_text_field($settings['ipstack_api_key']);
             update_option('rm_panel_ipstack_api_key', $api_key);
+        }
+
+        // Save Admin Bar settings (NEW)
+        if (isset($_POST['rm_panel_admin_bar'])) {
+            RM_Panel_Admin_Bar_Manager::save_settings($_POST['rm_panel_admin_bar']);
+        } else {
+            // If no admin bar settings submitted, save empty (hide for all roles)
+            RM_Panel_Admin_Bar_Manager::save_settings([]);
         }
 
         add_settings_error(

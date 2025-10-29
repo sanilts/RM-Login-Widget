@@ -1,0 +1,338 @@
+/**
+ * Admin Bar Management - Enhanced Styling (Optional)
+ * 
+ * Add this CSS to your admin.css file or create a new admin-bar-settings.css
+ * This enhances the appearance of the admin bar settings section
+ * 
+ * Location: /assets/css/admin-bar-settings.css
+ */
+
+/* ============================================
+   Admin Bar Settings Section
+   ============================================ */
+
+/* Section Header */
+.rm-panel-settings-page h2 {
+    margin-top: 30px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #0073aa;
+    color: #23282d;
+}
+
+/* Section Description */
+.rm-panel-settings-page > p.description {
+    font-size: 14px;
+    color: #666;
+    margin: 10px 0 20px 0;
+    padding: 12px;
+    background: #f5f5f5;
+    border-left: 4px solid #0073aa;
+    border-radius: 3px;
+}
+
+/* Form Table Enhancements */
+.rm-admin-bar-settings-table {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 3px;
+}
+
+.rm-admin-bar-settings-table th {
+    font-weight: 600;
+    color: #23282d;
+}
+
+.rm-admin-bar-settings-table h3 {
+    margin-top: 0;
+    color: #0073aa;
+    font-size: 16px;
+}
+
+/* Role Checkboxes */
+.rm-admin-bar-role-item {
+    padding: 15px;
+    border-bottom: 1px solid #e5e5e5;
+    transition: background-color 0.2s ease;
+}
+
+.rm-admin-bar-role-item:hover {
+    background-color: #f9f9f9;
+}
+
+.rm-admin-bar-role-item:last-child {
+    border-bottom: none;
+}
+
+/* Checkbox Styling */
+.rm-admin-bar-settings-table input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.rm-admin-bar-settings-table label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Role Labels with Icons */
+.rm-admin-bar-role-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rm-admin-bar-role-label::before {
+    content: "👤";
+    font-size: 16px;
+}
+
+/* Special styling for administrator */
+input#admin_bar_administrator:checked + label .rm-admin-bar-role-label::before {
+    content: "👑";
+}
+
+/* Description Text */
+.rm-admin-bar-settings-table .description {
+    margin-top: 5px;
+    margin-left: 28px;
+    color: #666;
+    font-size: 13px;
+}
+
+/* Recommended Tag */
+.rm-admin-bar-recommended {
+    display: inline-block;
+    background: #00a32a;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: 8px;
+}
+
+/* Reset Button */
+#rm-admin-bar-reset {
+    background: #f0f0f1;
+    border-color: #0073aa;
+    color: #0073aa;
+    font-weight: 600;
+    padding: 8px 20px;
+    transition: all 0.2s ease;
+}
+
+#rm-admin-bar-reset:hover {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+}
+
+#rm-admin-bar-reset:active {
+    transform: translateY(1px);
+}
+
+/* Reset Button Container */
+.rm-admin-bar-reset-container {
+    padding: 20px;
+    background: #fef7f1;
+    border: 1px solid #f0b849;
+    border-radius: 3px;
+    margin-top: 15px;
+}
+
+.rm-admin-bar-reset-container .description {
+    margin: 8px 0 0 0;
+    color: #996800;
+}
+
+/* Status Indicators */
+.rm-admin-bar-status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.rm-admin-bar-status.enabled {
+    background: #00a32a;
+    box-shadow: 0 0 5px rgba(0, 163, 42, 0.5);
+}
+
+.rm-admin-bar-status.disabled {
+    background: #d63638;
+    box-shadow: 0 0 5px rgba(214, 54, 56, 0.5);
+}
+
+/* Info Box */
+.rm-admin-bar-info-box {
+    background: #e7f7ff;
+    border-left: 4px solid #0073aa;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 3px;
+}
+
+.rm-admin-bar-info-box h4 {
+    margin-top: 0;
+    color: #0073aa;
+    font-size: 14px;
+}
+
+.rm-admin-bar-info-box ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.rm-admin-bar-info-box li {
+    margin: 5px 0;
+    color: #2c3338;
+}
+
+/* Warning Box */
+.rm-admin-bar-warning-box {
+    background: #fff8e5;
+    border-left: 4px solid #f0b849;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 3px;
+}
+
+.rm-admin-bar-warning-box strong {
+    color: #996800;
+}
+
+/* Success Message Enhancement */
+.settings-error.updated {
+    border-left-color: #00a32a;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 782px) {
+    .rm-admin-bar-settings-table th,
+    .rm-admin-bar-settings-table td {
+        display: block;
+        width: 100%;
+        padding: 10px;
+    }
+    
+    .rm-admin-bar-settings-table th {
+        border-bottom: 1px solid #e5e5e5;
+    }
+    
+    .rm-admin-bar-role-item {
+        padding: 10px;
+    }
+    
+    #rm-admin-bar-reset {
+        width: 100%;
+    }
+}
+
+/* Animation for checkbox change */
+@keyframes checkboxPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.rm-admin-bar-settings-table input[type="checkbox"]:checked {
+    animation: checkboxPulse 0.3s ease;
+}
+
+/* Hover effect for rows */
+.rm-admin-bar-settings-table tr:hover td {
+    background-color: #f9f9f9;
+}
+
+/* Better spacing for form table */
+.rm-admin-bar-settings-table {
+    margin-top: 20px;
+}
+
+.rm-admin-bar-settings-table tr:first-child th {
+    padding-top: 20px;
+}
+
+/* ============================================
+   Optional: Add role icons
+   ============================================ */
+
+/* If you want to add custom icons for each role */
+.rm-role-administrator .rm-admin-bar-role-label::before { content: "👑"; }
+.rm-role-editor .rm-admin-bar-role-label::before { content: "✏️"; }
+.rm-role-author .rm-admin-bar-role-label::before { content: "📝"; }
+.rm-role-contributor .rm-admin-bar-role-label::before { content: "📄"; }
+.rm-role-subscriber .rm-admin-bar-role-label::before { content: "👤"; }
+
+/* ============================================
+   Accessibility Improvements
+   ============================================ */
+
+/* Focus styles */
+.rm-admin-bar-settings-table input[type="checkbox"]:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+#rm-admin-bar-reset:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+/* Screen reader text */
+.rm-admin-bar-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+}
+
+/* ============================================
+   Dark Mode Support (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .rm-admin-bar-settings-table {
+        background: #1e1e1e;
+    }
+    
+    .rm-admin-bar-role-item:hover {
+        background-color: #2a2a2a;
+    }
+    
+    .rm-panel-settings-page > p.description {
+        background: #2a2a2a;
+        color: #b0b0b0;
+    }
+    
+    .rm-admin-bar-info-box {
+        background: #1a3a4a;
+        border-left-color: #4a9eff;
+    }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+    .rm-admin-bar-settings-table input[type="checkbox"] {
+        -webkit-appearance: checkbox;
+        appearance: checkbox;
+    }
+    
+    #rm-admin-bar-reset {
+        display: none;
+    }
+}
