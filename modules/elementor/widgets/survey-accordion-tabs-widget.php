@@ -1,6 +1,6 @@
 <?php
 /**
- * RM Panel Survey Accordion Tabs Widget for Elementor
+ * RM Panel Survey Accordion Tabs Widget for Elementor (FULL CONTROL VERSION)
  * 
  * File: modules/elementor/widgets/survey-accordion-tabs-widget.php
  * 
@@ -52,11 +52,16 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
      * Register widget controls
      */
     protected function register_controls() {
-        // Content Section
+        
+        // ============================================
+        // CONTENT TAB
+        // ============================================
+        
+        // Layout Section
         $this->start_controls_section(
-            'content_section',
+            'layout_section',
             [
-                'label' => __('Content', 'rm-panel-extensions'),
+                'label' => __('Layout', 'rm-panel-extensions'),
                 'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -76,6 +81,176 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        $this->end_controls_section();
+
+        // Content Display Section
+        $this->start_controls_section(
+            'content_display_section',
+            [
+                'label' => __('Content Display', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'show_description',
+            [
+                'label' => __('Show Description', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show survey description/excerpt', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'show_survey_type',
+            [
+                'label' => __('Show Survey Type', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show if survey is paid or standard', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'show_amount',
+            [
+                'label' => __('Show Amount', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show earning amount for paid surveys', 'rm-panel-extensions'),
+                'condition' => [
+                    'show_survey_type' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'show_duration',
+            [
+                'label' => __('Show Duration', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show survey duration (date range or never ending)', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'show_days_remaining',
+            [
+                'label' => __('Show Days Remaining', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show countdown for surveys with end dates', 'rm-panel-extensions'),
+                'condition' => [
+                    'show_duration' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'show_questions_count',
+            [
+                'label' => __('Show Questions Count', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show number of questions in survey', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'show_estimated_time',
+            [
+                'label' => __('Show Estimated Time', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show estimated completion time', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'show_target_audience',
+            [
+                'label' => __('Show Target Audience', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show target audience description', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Header Meta Section
+        $this->start_controls_section(
+            'header_meta_section',
+            [
+                'label' => __('Header Meta', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'header_show_amount',
+            [
+                'label' => __('Show Amount in Header', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show earning amount in accordion header', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'header_show_questions',
+            [
+                'label' => __('Show Questions in Header', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show questions count in accordion header', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'header_show_time',
+            [
+                'label' => __('Show Time in Header', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+                'description' => __('Show estimated time in accordion header', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Button Section
+        $this->start_controls_section(
+            'button_section',
+            [
+                'label' => __('Buttons', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'show_start_button',
+            [
+                'label' => __('Show Start Survey Button', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'default' => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'start_button_text',
+            [
+                'label' => __('Start Button Text', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => __('Start Survey', 'rm-panel-extensions'),
+                'condition' => [
+                    'show_start_button' => 'yes',
+                ],
+            ]
+        );
+
         $this->add_control(
             'show_referral_button',
             [
@@ -85,9 +260,54 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             ]
         );
 
+        $this->add_control(
+            'invite_button_text',
+            [
+                'label' => __('Invite Button Text', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => __('Invite Friends', 'rm-panel-extensions'),
+                'condition' => [
+                    'show_referral_button' => 'yes',
+                ],
+            ]
+        );
+
         $this->end_controls_section();
 
-        // Style Controls
+        // Messages Section
+        $this->start_controls_section(
+            'messages_section',
+            [
+                'label' => __('Messages', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'no_available_message',
+            [
+                'label' => __('No Available Surveys Message', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => __('No available surveys at the moment. Check back later!', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'no_completed_message',
+            [
+                'label' => __('No Completed Surveys Message', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => __('You haven\'t completed any surveys yet.', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // ============================================
+        // STYLE TAB
+        // ============================================
+        
+        // Register style controls
         $this->register_style_controls();
     }
 
@@ -95,6 +315,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
      * Register style controls
      */
     private function register_style_controls() {
+        
         // Tab Navigation Style
         $this->start_controls_section(
             'tab_nav_style',
@@ -109,7 +330,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             [
                 'label' => __('Background Color', 'rm-panel-extensions'),
                 'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#f8f9fa',
+                'default' => '#f9fafb',
                 'selectors' => [
                     '{{WRAPPER}} .rm-accordion-tab-btn' => 'background-color: {{VALUE}};',
                 ],
@@ -121,12 +342,201 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             [
                 'label' => __('Active Background Color', 'rm-panel-extensions'),
                 'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#007cba',
+                'default' => '#ffffff',
                 'selectors' => [
                     '{{WRAPPER}} .rm-accordion-tab-btn.active' => 'background-color: {{VALUE}};',
                 ],
             ]
         );
+
+        $this->add_control(
+            'tab_text_color',
+            [
+                'label' => __('Text Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#6b7280',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-accordion-tab-btn' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'tab_active_text_color',
+            [
+                'label' => __('Active Text Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#1f2937',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-accordion-tab-btn.active' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Accordion Item Style
+        $this->start_controls_section(
+            'accordion_item_style',
+            [
+                'label' => __('Accordion Item', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_control(
+            'item_background',
+            [
+                'label' => __('Background Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-item' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Border::get_type(),
+            [
+                'name' => 'item_border',
+                'selector' => '{{WRAPPER}} .rm-survey-accordion-item',
+            ]
+        );
+
+        $this->add_control(
+            'item_border_radius',
+            [
+                'label' => __('Border Radius', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::DIMENSIONS,
+                'size_units' => ['px', '%'],
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-item' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Box_Shadow::get_type(),
+            [
+                'name' => 'item_box_shadow',
+                'selector' => '{{WRAPPER}} .rm-survey-accordion-item',
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Title Style
+        $this->start_controls_section(
+            'title_style',
+            [
+                'label' => __('Title', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'title_typography',
+                'selector' => '{{WRAPPER}} .rm-survey-accordion-title',
+            ]
+        );
+
+        $this->add_control(
+            'title_color',
+            [
+                'label' => __('Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#1f2937',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-accordion-title' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // Button Style
+        $this->start_controls_section(
+            'button_style',
+            [
+                'label' => __('Buttons', 'rm-panel-extensions'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+            ]
+        );
+
+        $this->start_controls_tabs('button_tabs');
+
+        // Start Survey Button
+        $this->start_controls_tab(
+            'start_button_tab',
+            [
+                'label' => __('Start Button', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'start_button_bg',
+            [
+                'label' => __('Background Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#3b82f6',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'start_button_color',
+            [
+                'label' => __('Text Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-survey-button' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        // Invite Button
+        $this->start_controls_tab(
+            'invite_button_tab',
+            [
+                'label' => __('Invite Button', 'rm-panel-extensions'),
+            ]
+        );
+
+        $this->add_control(
+            'invite_button_bg',
+            [
+                'label' => __('Background Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#10b981',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-invite-button' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'invite_button_color',
+            [
+                'label' => __('Text Color', 'rm-panel-extensions'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#ffffff',
+                'selectors' => [
+                    '{{WRAPPER}} .rm-invite-button' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
 
         $this->end_controls_section();
     }
@@ -154,6 +564,23 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
         // Get available surveys
         $available_surveys = $tracker->get_available_surveys($user_id);
         
+        // Filter by date range
+        $current_date = current_time('Y-m-d');
+        $available_surveys = array_filter($available_surveys, function($survey) use ($current_date) {
+            $start_date = get_post_meta($survey->ID, '_rm_survey_start_date', true);
+            $end_date = get_post_meta($survey->ID, '_rm_survey_end_date', true);
+            
+            if (!empty($start_date) && $start_date > $current_date) {
+                return false;
+            }
+            
+            if (!empty($end_date) && $end_date < $current_date) {
+                return false;
+            }
+            
+            return true;
+        });
+        
         // Get completed surveys
         $completed_surveys = $tracker->get_user_survey_history($user_id, [
             'status' => 'completed',
@@ -180,7 +607,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             <div class="rm-accordion-tab-content active" id="available-tab">
                 <?php if (empty($available_surveys)) : ?>
                     <div class="no-surveys-message">
-                        <p><?php _e('No available surveys at the moment. Check back later!', 'rm-panel-extensions'); ?></p>
+                        <p><?php echo esc_html($settings['no_available_message']); ?></p>
                     </div>
                 <?php else : ?>
                     <div class="rm-survey-accordion">
@@ -195,7 +622,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             <div class="rm-accordion-tab-content" id="completed-tab">
                 <?php if (empty($completed_surveys)) : ?>
                     <div class="no-surveys-message">
-                        <p><?php _e('You haven\'t completed any surveys yet.', 'rm-panel-extensions'); ?></p>
+                        <p><?php echo esc_html($settings['no_completed_message']); ?></p>
                     </div>
                 <?php else : ?>
                     <div class="rm-survey-accordion">
@@ -209,7 +636,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
 
         <!-- Invite Modal (if enabled) -->
         <?php if ($settings['show_referral_button'] === 'yes') : ?>
-            <?php $this->render_invite_modal(); ?>
+            <?php $this->render_invite_modal($settings); ?>
         <?php endif; ?>
 
         <script>
@@ -276,26 +703,43 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
         $questions_count = get_post_meta($survey_id, '_rm_survey_questions_count', true);
         $survey_url = get_post_meta($survey_id, '_rm_survey_url', true);
         $parameters = get_post_meta($survey_id, '_rm_survey_parameters', true);
+        $duration_type = get_post_meta($survey_id, '_rm_survey_duration_type', true);
+        $start_date = get_post_meta($survey_id, '_rm_survey_start_date', true);
+        $end_date = get_post_meta($survey_id, '_rm_survey_end_date', true);
+        $target_audience = get_post_meta($survey_id, '_rm_survey_target_audience', true);
 
         // Build survey URL
         $final_url = $this->build_survey_url($survey_id, $survey_url, $parameters);
+        
+        // Calculate if survey is expired
+        $is_expired = false;
+        $days_remaining = null;
+        if ($duration_type === 'date_range' && !empty($end_date)) {
+            $current_date = current_time('timestamp');
+            $end_timestamp = strtotime($end_date);
+            $is_expired = $end_timestamp < $current_date;
+            
+            if (!$is_expired) {
+                $days_remaining = ceil(($end_timestamp - $current_date) / DAY_IN_SECONDS);
+            }
+        }
         ?>
         <div class="rm-survey-accordion-item">
             <div class="rm-survey-accordion-header">
                 <div class="rm-survey-accordion-header-content">
                     <h3 class="rm-survey-accordion-title"><?php echo esc_html($survey->post_title); ?></h3>
                     <div class="rm-survey-accordion-meta">
-                        <?php if ($survey_type === 'paid' && $survey_amount) : ?>
+                        <?php if ($settings['header_show_amount'] === 'yes' && $survey_type === 'paid' && $survey_amount) : ?>
                             <span class="rm-survey-meta-item">
                                 💰 $<?php echo number_format($survey_amount, 2); ?>
                             </span>
                         <?php endif; ?>
-                        <?php if ($questions_count) : ?>
+                        <?php if ($settings['header_show_questions'] === 'yes' && $questions_count) : ?>
                             <span class="rm-survey-meta-item">
                                 📝 <?php echo $questions_count; ?> <?php _e('Questions', 'rm-panel-extensions'); ?>
                             </span>
                         <?php endif; ?>
-                        <?php if ($estimated_time) : ?>
+                        <?php if ($settings['header_show_time'] === 'yes' && $estimated_time) : ?>
                             <span class="rm-survey-meta-item">
                                 ⏱️ <?php echo $estimated_time; ?> <?php _e('min', 'rm-panel-extensions'); ?>
                             </span>
@@ -307,24 +751,140 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
 
             <div class="rm-survey-accordion-content">
                 <div class="rm-survey-content-wrapper">
-                    <?php if ($survey->post_excerpt) : ?>
-                        <p><?php echo esc_html($survey->post_excerpt); ?></p>
+                    
+                    <!-- About This Survey -->
+                    <?php if ($settings['show_description'] === 'yes' && ($survey->post_excerpt || $survey->post_content)) : ?>
+                        <div class="rm-survey-description">
+                            <h4 class="rm-survey-section-title">About This Survey</h4>
+                            <?php 
+                            if (!empty($survey->post_excerpt)) {
+                                echo '<p>' . esc_html($survey->post_excerpt) . '</p>';
+                            } elseif (!empty($survey->post_content)) {
+                                echo wpautop(wp_trim_words($survey->post_content, 50));
+                            }
+                            ?>
+                        </div>
                     <?php endif; ?>
 
-                    <div class="rm-survey-action">
-                        <a href="<?php echo esc_url($final_url); ?>" 
-                           class="rm-survey-button" 
-                           target="_blank">
-                            <?php _e('Start Survey', 'rm-panel-extensions'); ?>
-                        </a>
+                    <div class="rm-survey-details-grid">
                         
-                        <?php if ($settings['show_referral_button'] === 'yes') : ?>
-                            <button class="rm-invite-button" data-survey-id="<?php echo $survey_id; ?>">
-                                <span class="dashicons dashicons-share"></span>
-                                <?php _e('Invite Friends', 'rm-panel-extensions'); ?>
-                            </button>
+                        <!-- Survey Type -->
+                        <?php if ($settings['show_survey_type'] === 'yes') : ?>
+                            <div class="rm-survey-detail-box">
+                                <span class="rm-detail-icon">💳</span>
+                                <div class="rm-detail-content">
+                                    <h5 class="rm-detail-title">Survey Type</h5>
+                                    <p class="rm-detail-value">
+                                        <?php if ($survey_type === 'paid' && $survey_amount && $settings['show_amount'] === 'yes') : ?>
+                                            <strong>💰 Paid Survey</strong>
+                                            <span class="rm-amount-highlight">Earn: $<?php echo number_format($survey_amount, 2); ?></span>
+                                        <?php elseif ($survey_type === 'paid') : ?>
+                                            <strong>💰 Paid Survey</strong>
+                                        <?php else : ?>
+                                            <strong>📋 Standard Survey</strong>
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Duration -->
+                        <?php if ($settings['show_duration'] === 'yes') : ?>
+                            <div class="rm-survey-detail-box">
+                                <span class="rm-detail-icon">📅</span>
+                                <div class="rm-detail-content">
+                                    <h5 class="rm-detail-title">Duration</h5>
+                                    <p class="rm-detail-value">
+                                        <?php if ($duration_type === 'never_ending') : ?>
+                                            <strong>♾️ Never Ending</strong>
+                                            <span class="rm-detail-subtitle">Available anytime</span>
+                                        <?php elseif ($duration_type === 'date_range') : ?>
+                                            <?php if ($is_expired) : ?>
+                                                <strong class="rm-expired">❌ Expired</strong>
+                                                <?php if ($end_date) : ?>
+                                                    <span class="rm-detail-subtitle">Ended: <?php echo date_i18n('M j, Y', strtotime($end_date)); ?></span>
+                                                <?php endif; ?>
+                                            <?php else : ?>
+                                                <?php if ($start_date && $end_date) : ?>
+                                                    <strong><?php echo date_i18n('M j', strtotime($start_date)); ?> - <?php echo date_i18n('M j, Y', strtotime($end_date)); ?></strong>
+                                                    <?php if ($settings['show_days_remaining'] === 'yes' && $days_remaining !== null) : ?>
+                                                        <span class="rm-detail-subtitle rm-days-remaining">
+                                                            <?php if ($days_remaining <= 3) echo '⚠️ '; ?>
+                                                            <?php echo sprintf(_n('%s day remaining', '%s days remaining', $days_remaining, 'rm-panel-extensions'), $days_remaining); ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                <?php elseif ($start_date) : ?>
+                                                    <strong>Starts: <?php echo date_i18n('M j, Y', strtotime($start_date)); ?></strong>
+                                                <?php elseif ($end_date) : ?>
+                                                    <strong>Ends: <?php echo date_i18n('M j, Y', strtotime($end_date)); ?></strong>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        <?php else : ?>
+                                            <span class="rm-detail-subtitle">No duration set</span>
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Survey Length -->
+                        <?php if ($settings['show_questions_count'] === 'yes' || $settings['show_estimated_time'] === 'yes') : ?>
+                            <div class="rm-survey-detail-box">
+                                <span class="rm-detail-icon">📝</span>
+                                <div class="rm-detail-content">
+                                    <h5 class="rm-detail-title">Survey Length</h5>
+                                    <p class="rm-detail-value">
+                                        <?php if ($settings['show_questions_count'] === 'yes' && $questions_count) : ?>
+                                            <strong><?php echo $questions_count; ?> Questions</strong>
+                                        <?php endif; ?>
+                                        <?php if ($settings['show_estimated_time'] === 'yes' && $estimated_time) : ?>
+                                            <span class="rm-detail-subtitle">⏱️ ~<?php echo $estimated_time; ?> minutes to complete</span>
+                                        <?php endif; ?>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Target Audience -->
+                        <?php if ($settings['show_target_audience'] === 'yes' && !empty($target_audience)) : ?>
+                            <div class="rm-survey-detail-box rm-survey-detail-full">
+                                <span class="rm-detail-icon">👥</span>
+                                <div class="rm-detail-content">
+                                    <h5 class="rm-detail-title">Target Audience</h5>
+                                    <p class="rm-detail-value">
+                                        <?php echo wp_kses_post(wpautop($target_audience)); ?>
+                                    </p>
+                                </div>
+                            </div>
                         <?php endif; ?>
                     </div>
+
+                    <!-- Action Buttons -->
+                    <?php if ($settings['show_start_button'] === 'yes' || $settings['show_referral_button'] === 'yes') : ?>
+                        <div class="rm-survey-action">
+                            <?php if ($settings['show_start_button'] === 'yes') : ?>
+                                <?php if (!$is_expired) : ?>
+                                    <a href="<?php echo esc_url($final_url); ?>" 
+                                       class="rm-survey-button" 
+                                       target="_blank"
+                                       data-survey-id="<?php echo esc_attr($survey_id); ?>">
+                                        <?php echo esc_html($settings['start_button_text']); ?>
+                                    </a>
+                                <?php else : ?>
+                                    <button class="rm-survey-button rm-button-disabled" disabled>
+                                        Survey Expired
+                                    </button>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                            
+                            <?php if ($settings['show_referral_button'] === 'yes' && !$is_expired) : ?>
+                                <button class="rm-invite-button" data-survey-id="<?php echo esc_attr($survey_id); ?>">
+                                    <span class="dashicons dashicons-share"></span>
+                                    <?php echo esc_html($settings['invite_button_text']); ?>
+                                </button>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -406,7 +966,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
     /**
      * Render invite modal
      */
-    private function render_invite_modal() {
+    private function render_invite_modal($settings) {
         $user_id = get_current_user_id();
         $registration_url = get_option('rm_referral_registration_url', wp_registration_url());
         $referral_link = add_query_arg('ref', $user_id, $registration_url);
@@ -449,7 +1009,6 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
                 </div>
 
                 <?php
-                // Get referral stats if referral system exists
                 if (class_exists('RM_Referral_System')) {
                     global $wpdb;
                     $table_name = $wpdb->prefix . 'rm_referrals';

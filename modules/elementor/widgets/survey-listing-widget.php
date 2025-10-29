@@ -702,6 +702,9 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
             $args['orderby'] = 'meta_value';
         }
 
+        // Initialize meta_query array with AND relation
+        $meta_query = ['relation' => 'AND'];
+
         // Category filter
         if (!empty($settings['categories'])) {
             $args['tax_query'] = [
@@ -715,18 +718,21 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
 
         // Status filter
         if (!empty($settings['survey_status_filter'])) {
-            $args['meta_query'][] = [
+            $meta_query[] = [
                 'key' => '_rm_survey_status',
                 'value' => $settings['survey_status_filter'],
                 'compare' => 'IN',
             ];
         }
 
-        // Show only available surveys
+        // Show only available surveys (within date range)
         if ($settings['show_only_available'] === 'yes') {
             $current_date = current_time('Y-m-d');
-            $args['meta_query'][] = [
+
+            // Add date range filter
+            $meta_query[] = [
                 'relation' => 'AND',
+                // Start date condition: survey has started OR no start date set
                 [
                     'relation' => 'OR',
                     [
@@ -739,7 +745,13 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
                         'key' => '_rm_survey_start_date',
                         'compare' => 'NOT EXISTS',
                     ],
+                    [
+                        'key' => '_rm_survey_start_date',
+                        'value' => '',
+                        'compare' => '=',
+                    ],
                 ],
+                // End date condition: survey hasn't ended OR no end date set
                 [
                     'relation' => 'OR',
                     [
@@ -752,8 +764,18 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
                         'key' => '_rm_survey_end_date',
                         'compare' => 'NOT EXISTS',
                     ],
+                    [
+                        'key' => '_rm_survey_end_date',
+                        'value' => '',
+                        'compare' => '=',
+                    ],
                 ],
             ];
+        }
+
+        // Only add meta_query to args if we have conditions
+        if (count($meta_query) > 1) { // More than just 'relation'
+            $args['meta_query'] = $meta_query;
         }
 
         return $args;
@@ -967,7 +989,7 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
                         Query Params: <pre><?php print_r($query_params ?? []); ?></pre>
                         Final URL: <?php echo esc_html($final_survey_url); ?>
                     </div>
-            <?php endif; ?>
+                <?php endif; ?>
             </article>
             <?php
         }
@@ -990,14 +1012,14 @@ class RM_Panel_Survey_Listing_Widget extends \Elementor\Widget_Base {
                 ?>
                 <div class="survey-pagination prev-next">
                     <?php previous_posts_link(__('&laquo; Previous', 'rm-panel-extensions')); ?>
-                <?php next_posts_link(__('Next &raquo;', 'rm-panel-extensions'), $surveys->max_num_pages); ?>
+                    <?php next_posts_link(__('Next &raquo;', 'rm-panel-extensions'), $surveys->max_num_pages); ?>
                 </div>
                 <?php
             } elseif ($settings['pagination_type'] === 'load_more') {
                 ?>
                 <div class="survey-load-more">
                     <button class="load-more-button" data-page="1" data-max="<?php echo $surveys->max_num_pages; ?>">
-            <?php _e('Load More', 'rm-panel-extensions'); ?>
+                        <?php _e('Load More', 'rm-panel-extensions'); ?>
                     </button>
                 </div>
                 <?php

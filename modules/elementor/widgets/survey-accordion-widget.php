@@ -118,6 +118,17 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                 ]
         );
 
+        // Add this after the 'survey_status_filter' control in query_section
+        $this->add_control(
+                'show_only_available',
+                [
+                    'label' => __('Show Only Available Surveys', 'rm-panel-extensions'),
+                    'type' => \Elementor\Controls_Manager::SWITCHER,
+                    'default' => 'yes',
+                    'description' => __('Show only surveys within their date range', 'rm-panel-extensions'),
+                ]
+        );
+
         // Get survey categories
         $categories = get_terms([
             'taxonomy' => 'survey_category',
@@ -691,6 +702,10 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
     /**
      * Build query arguments
      */
+
+    /**
+     * Build query arguments
+     */
     private function build_query_args($settings) {
         $args = [
             'post_type' => 'rm_survey',
@@ -706,6 +721,9 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
             $args['orderby'] = 'meta_value';
         }
 
+        // Initialize meta_query array with AND relation
+        $meta_query = ['relation' => 'AND'];
+
         // Category filter
         if (!empty($settings['categories'])) {
             $args['tax_query'] = [
@@ -719,11 +737,64 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
 
         // Status filter
         if (!empty($settings['survey_status_filter'])) {
-            $args['meta_query'][] = [
+            $meta_query[] = [
                 'key' => '_rm_survey_status',
                 'value' => $settings['survey_status_filter'],
                 'compare' => 'IN',
             ];
+        }
+
+        // Show only available surveys (within date range)
+        if (isset($settings['show_only_available']) && $settings['show_only_available'] === 'yes') {
+            $current_date = current_time('Y-m-d');
+
+            // Add date range filter
+            $meta_query[] = [
+                'relation' => 'AND',
+                // Start date condition: survey has started OR no start date set
+                [
+                    'relation' => 'OR',
+                    [
+                        'key' => '_rm_survey_start_date',
+                        'value' => $current_date,
+                        'compare' => '<=',
+                        'type' => 'DATE',
+                    ],
+                    [
+                        'key' => '_rm_survey_start_date',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                    [
+                        'key' => '_rm_survey_start_date',
+                        'value' => '',
+                        'compare' => '=',
+                    ],
+                ],
+                // End date condition: survey hasn't ended OR no end date set
+                [
+                    'relation' => 'OR',
+                    [
+                        'key' => '_rm_survey_end_date',
+                        'value' => $current_date,
+                        'compare' => '>=',
+                        'type' => 'DATE',
+                    ],
+                    [
+                        'key' => '_rm_survey_end_date',
+                        'compare' => 'NOT EXISTS',
+                    ],
+                    [
+                        'key' => '_rm_survey_end_date',
+                        'value' => '',
+                        'compare' => '=',
+                    ],
+                ],
+            ];
+        }
+
+        // Only add meta_query to args if we have conditions
+        if (count($meta_query) > 1) { // More than just 'relation'
+            $args['meta_query'] = $meta_query;
         }
 
         return $args;
@@ -732,9 +803,12 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
     /**
      * Render single accordion item
      */
-
     /**
      * Render single accordion item
+     */
+
+    /**
+     * Render single accordion item (ENHANCED VERSION)
      */
     private function render_survey_accordion_item($settings, $index, $widget_id) {
         $post_id = get_the_ID();
@@ -752,8 +826,8 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
         $estimated_time = get_post_meta($post_id, '_rm_survey_estimated_time', true);
         $target_audience = get_post_meta($post_id, '_rm_survey_target_audience', true);
 
-        $is_active = ( $settings['first_item_expanded'] === 'yes' && $index === 0 ) ? 'active' : '';
-        $display = ( $settings['first_item_expanded'] === 'yes' && $index === 0 ) ? 'block' : 'none';
+        $is_active = ($settings['first_item_expanded'] === 'yes' && $index === 0) ? 'active' : '';
+        $display = ($settings['first_item_expanded'] === 'yes' && $index === 0) ? 'block' : 'none';
 
         // Build survey URL with parameters
         $final_survey_url = $survey_url;
@@ -764,7 +838,7 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                 $parameters = [];
             }
 
-            // If parameters array is empty or doesn't have required defaults, add them
+            // Check for required defaults
             $has_survey_id = false;
             $has_user_id = false;
 
@@ -789,7 +863,6 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
             }
 
             if (!$has_user_id) {
-                // Insert after survey_id
                 array_splice($parameters, 1, 0, [[
                 'field' => 'user_id',
                 'variable' => 'uid',
@@ -797,11 +870,10 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                 ]]);
             }
 
-            // Now process all parameters
+            // Process all parameters
             $query_params = [];
 
             foreach ($parameters as $param) {
-                // Skip if no variable name defined
                 if (empty($param['variable'])) {
                     continue;
                 }
@@ -810,7 +882,6 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
 
                 switch ($param['field']) {
                     case 'survey_id':
-                        // ALWAYS use the current survey's ID
                         $value = $post_id;
                         break;
                     case 'timestamp':
@@ -819,7 +890,6 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                     case 'custom':
                         $value = isset($param['custom_value']) ? $param['custom_value'] : '';
                         break;
-                    // User-specific parameters (only if logged in)
                     case 'user_id':
                         if (is_user_logged_in()) {
                             $value = get_current_user_id();
@@ -863,8 +933,6 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                         break;
                 }
 
-                // Add parameter if we have a value
-                // Note: survey_id should always have a value
                 if (!empty($value) && !empty($param['variable'])) {
                     $query_params[$param['variable']] = $value;
                 }
@@ -875,6 +943,19 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                 $final_survey_url = add_query_arg($query_params, $survey_url);
             }
         }
+
+        // Calculate if survey is expired
+        $is_expired = false;
+        $days_remaining = null;
+        if ($duration_type === 'date_range' && !empty($end_date)) {
+            $current_date = current_time('timestamp');
+            $end_timestamp = strtotime($end_date);
+            $is_expired = $end_timestamp < $current_date;
+
+            if (!$is_expired) {
+                $days_remaining = ceil(($end_timestamp - $current_date) / DAY_IN_SECONDS);
+            }
+        }
         ?>
         <div class="rm-survey-accordion-item <?php echo esc_attr($is_active); ?>">
             <div class="rm-survey-accordion-header">
@@ -882,31 +963,29 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
                     <h3 class="rm-survey-accordion-title"><?php the_title(); ?></h3>
 
                     <div class="rm-survey-accordion-meta">
-                        <?php if ($settings['show_status_badge'] === 'yes' && $status) : ?>
+                            <?php if ($settings['show_status_badge'] === 'yes' && $status) : ?>
                             <span class="rm-survey-status-badge status-<?php echo esc_attr($status); ?>">
-                                <?php echo esc_html(ucfirst($status)); ?>
+                            <?php echo esc_html(ucfirst($status)); ?>
                             </span>
                         <?php endif; ?>
 
-                        <?php if ($survey_type === 'paid' && $survey_amount && $settings['show_payment_info'] === 'yes') : ?>
+        <?php if ($survey_type === 'paid' && $survey_amount && $settings['show_payment_info'] === 'yes') : ?>
                             <span class="rm-survey-amount-badge">
-                                $<?php echo number_format($survey_amount, 2); ?>
+                                💰 $<?php echo number_format($survey_amount, 2); ?>
                             </span>
                         <?php endif; ?>
 
-                        <?php if ($settings['show_questions_count'] === 'yes' && $questions_count) : ?>
+        <?php if ($settings['show_questions_count'] === 'yes' && $questions_count) : ?>
                             <span class="rm-survey-meta-item">
-                                <i class="eicon-editor-list-ul"></i>
-                                <?php echo sprintf(_n('%s Question', '%s Questions', $questions_count, 'rm-panel-extensions'), $questions_count); ?>
+                                📝 <?php echo sprintf(_n('%s Question', '%s Questions', $questions_count, 'rm-panel-extensions'), $questions_count); ?>
                             </span>
                         <?php endif; ?>
 
-                        <?php if ($settings['show_estimated_time'] === 'yes' && $estimated_time) : ?>
+        <?php if ($settings['show_estimated_time'] === 'yes' && $estimated_time) : ?>
                             <span class="rm-survey-meta-item">
-                                <i class="eicon-clock"></i>
-                                <?php echo sprintf(_n('%s Min', '%s Mins', $estimated_time, 'rm-panel-extensions'), $estimated_time); ?>
+                                ⏱️ <?php echo sprintf(_n('%s Min', '%s Mins', $estimated_time, 'rm-panel-extensions'), $estimated_time); ?>
                             </span>
-                        <?php endif; ?>
+        <?php endif; ?>
                     </div>
                 </div>
 
@@ -915,69 +994,161 @@ class RM_Panel_Survey_Accordion_Widget extends \Elementor\Widget_Base {
 
             <div class="rm-survey-accordion-content" style="display: <?php echo $display; ?>;">
                 <div class="rm-survey-content-wrapper">
-                    <?php if ($settings['show_thumbnail'] === 'yes' && has_post_thumbnail()) : ?>
+
+                        <?php if ($settings['show_thumbnail'] === 'yes' && has_post_thumbnail()) : ?>
                         <div class="rm-survey-thumbnail">
-                            <?php the_post_thumbnail('medium'); ?>
+                        <?php the_post_thumbnail('medium'); ?>
                         </div>
                     <?php endif; ?>
 
                     <?php if ($settings['show_category'] === 'yes') : ?>
                         <?php $categories = get_the_terms($post_id, 'survey_category'); ?>
-                        <?php if ($categories && !is_wp_error($categories)) : ?>
+                            <?php if ($categories && !is_wp_error($categories)) : ?>
                             <div class="rm-survey-categories">
-                                <?php foreach ($categories as $category) : ?>
+                <?php foreach ($categories as $category) : ?>
                                     <span class="rm-survey-category">
-                                        <?php echo esc_html($category->name); ?>
+                                        🏷️ <?php echo esc_html($category->name); ?>
                                     </span>
-                                <?php endforeach; ?>
+                            <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
-                    <?php endif; ?>
+        <?php endif; ?>
 
+                    <!-- Survey Description -->
                     <div class="rm-survey-description">
-                        <?php the_excerpt(); ?>
+                        <h4 class="rm-survey-section-title">
+                        <?php _e('About This Survey', 'rm-panel-extensions'); ?>
+                        </h4>
+                        <?php
+                        // Show excerpt if available, otherwise show content
+                        if (has_excerpt()) {
+                            the_excerpt();
+                        } else {
+                            the_content();
+                        }
+                        ?>
                     </div>
 
-                    <div class="rm-survey-info-grid">
-                        <?php if ($settings['show_dates'] === 'yes' && $duration_type === 'date_range') : ?>
-                            <?php if ($start_date || $end_date) : ?>
-                                <div class="rm-survey-info-item">
-                                    <strong><?php _e('Duration:', 'rm-panel-extensions'); ?></strong>
+                    <!-- Detailed Information Grid -->
+                    <div class="rm-survey-details-grid">
+
+                        <!-- Survey Type & Payment -->
+                        <div class="rm-survey-detail-box">
+                            <div class="rm-detail-icon">💳</div>
+                            <div class="rm-detail-content">
+                                <h5 class="rm-detail-title"><?php _e('Survey Type', 'rm-panel-extensions'); ?></h5>
+                                <p class="rm-detail-value">
                                     <?php
-                                    if ($start_date && $end_date) {
-                                        echo date('M j', strtotime($start_date)) . ' - ' . date('M j, Y', strtotime($end_date));
-                                    } elseif ($start_date) {
-                                        echo __('Starts:', 'rm-panel-extensions') . ' ' . date('M j, Y', strtotime($start_date));
-                                    } elseif ($end_date) {
-                                        echo __('Ends:', 'rm-panel-extensions') . ' ' . date('M j, Y', strtotime($end_date));
+                                    if ($survey_type === 'paid' && $survey_amount) {
+                                        echo '<strong>💰 Paid Survey</strong><br>';
+                                        echo '<span class="rm-amount-highlight">Earn: $' . number_format($survey_amount, 2) . '</span>';
+                                    } else {
+                                        echo '<strong>📋 ' . __('Standard Survey', 'rm-panel-extensions') . '</strong>';
                                     }
                                     ?>
-                                </div>
-                            <?php endif; ?>
-                        <?php endif; ?>
-
-                        <?php if ($settings['show_target_audience'] === 'yes' && $target_audience) : ?>
-                            <div class="rm-survey-info-item">
-                                <strong><?php _e('Target Audience:', 'rm-panel-extensions'); ?></strong>
-                                <?php echo esc_html($target_audience); ?>
+                                </p>
                             </div>
-                        <?php endif; ?>
+                        </div>
+
+                        <!-- Duration Information -->
+                        <div class="rm-survey-detail-box">
+                            <div class="rm-detail-icon">📅</div>
+                            <div class="rm-detail-content">
+                                <h5 class="rm-detail-title"><?php _e('Duration', 'rm-panel-extensions'); ?></h5>
+                                <p class="rm-detail-value">
+                                    <?php
+                                    if ($duration_type === 'never_ending') {
+                                        echo '<strong>♾️ ' . __('Never Ending', 'rm-panel-extensions') . '</strong><br>';
+                                        echo '<span class="rm-detail-subtitle">' . __('Available anytime', 'rm-panel-extensions') . '</span>';
+                                    } elseif ($duration_type === 'date_range') {
+                                        if ($is_expired) {
+                                            echo '<strong class="rm-expired">❌ ' . __('Expired', 'rm-panel-extensions') . '</strong><br>';
+                                            if ($end_date) {
+                                                echo '<span class="rm-detail-subtitle">' . __('Ended:', 'rm-panel-extensions') . ' ' . date_i18n(get_option('date_format'), strtotime($end_date)) . '</span>';
+                                            }
+                                        } else {
+                                            if ($start_date && $end_date) {
+                                                echo '<strong>' . date_i18n('M j', strtotime($start_date)) . ' - ' . date_i18n('M j, Y', strtotime($end_date)) . '</strong><br>';
+                                                if ($days_remaining !== null) {
+                                                    echo '<span class="rm-detail-subtitle rm-days-remaining">';
+                                                    if ($days_remaining <= 3) {
+                                                        echo '⚠️ ';
+                                                    }
+                                                    echo sprintf(_n('%s day remaining', '%s days remaining', $days_remaining, 'rm-panel-extensions'), $days_remaining);
+                                                    echo '</span>';
+                                                }
+                                            } elseif ($start_date) {
+                                                echo '<strong>' . __('Starts:', 'rm-panel-extensions') . ' ' . date_i18n('M j, Y', strtotime($start_date)) . '</strong>';
+                                            } elseif ($end_date) {
+                                                echo '<strong>' . __('Ends:', 'rm-panel-extensions') . ' ' . date_i18n('M j, Y', strtotime($end_date)) . '</strong>';
+                                            }
+                                        }
+                                    } else {
+                                        echo '<span class="rm-detail-subtitle">' . __('No duration set', 'rm-panel-extensions') . '</span>';
+                                    }
+                                    ?>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Questions & Time -->
+                        <div class="rm-survey-detail-box">
+                            <div class="rm-detail-icon">📝</div>
+                            <div class="rm-detail-content">
+                                <h5 class="rm-detail-title"><?php _e('Survey Length', 'rm-panel-extensions'); ?></h5>
+                                <p class="rm-detail-value">
+                                    <?php if ($questions_count) : ?>
+                                        <strong><?php echo $questions_count; ?> <?php _e('Questions', 'rm-panel-extensions'); ?></strong><br>
+                                    <?php endif; ?>
+        <?php if ($estimated_time) : ?>
+                                        <span class="rm-detail-subtitle">
+                                            ⏱️ <?php echo sprintf(__('~%s minutes to complete', 'rm-panel-extensions'), $estimated_time); ?>
+                                        </span>
+        <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Target Audience -->
+        <?php if ($settings['show_target_audience'] === 'yes' && $target_audience) : ?>
+                            <div class="rm-survey-detail-box rm-survey-detail-full">
+                                <div class="rm-detail-icon">👥</div>
+                                <div class="rm-detail-content">
+                                    <h5 class="rm-detail-title"><?php _e('Target Audience', 'rm-panel-extensions'); ?></h5>
+                                    <p class="rm-detail-value">
+            <?php echo wp_kses_post(wpautop($target_audience)); ?>
+                                    </p>
+                                </div>
+                            </div>
+        <?php endif; ?>
                     </div>
 
-                    <?php if ($settings['show_take_survey_button'] === 'yes' && $final_survey_url) : ?>
+                        <?php if ($settings['show_take_survey_button'] === 'yes') : ?>
                         <div class="rm-survey-action">
-                            <a href="<?php echo esc_url($final_survey_url); ?>" class="rm-survey-button" target="_blank">
-                                <?php echo esc_html($settings['button_text']); ?>
-                                <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
-                            </a>
+                            <?php if (!$is_expired) : ?>
+                <?php if ($final_survey_url) : ?>
+                                    <a href="<?php echo esc_url($final_survey_url); ?>" 
+                                       class="rm-survey-button" 
+                                       target="_blank"
+                                       data-survey-id="<?php echo esc_attr($post_id); ?>">
+                    <?php echo esc_html($settings['button_text']); ?>
+                                        <i class="fas fa-external-link-alt" style="margin-left: 5px;"></i>
+                                    </a>
+                <?php else : ?>
+                                    <a href="<?php the_permalink(); ?>" 
+                                       class="rm-survey-button"
+                                       data-survey-id="<?php echo esc_attr($post_id); ?>">
+                                    <?php echo esc_html($settings['button_text']); ?>
+                                    </a>
+                                <?php endif; ?>
+            <?php else : ?>
+                                <button class="rm-survey-button rm-button-disabled" disabled>
+                                    ❌ <?php _e('Survey Expired', 'rm-panel-extensions'); ?>
+                                </button>
+                        <?php endif; ?>
                         </div>
-                    <?php elseif ($settings['show_take_survey_button'] === 'yes') : ?>
-                        <div class="rm-survey-action">
-                            <a href="<?php the_permalink(); ?>" class="rm-survey-button">
-                                <?php echo esc_html($settings['button_text']); ?>
-                            </a>
-                        </div>
-                    <?php endif; ?>                  
+        <?php endif; ?>
+
                 </div>
             </div>
         </div>
