@@ -846,6 +846,29 @@ class RM_Panel_Extensions {
                             </p>
                         </th>
                     </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <label for="sync_profile_to_fluentcrm">
+                                <?php _e('Sync Profile Pictures to FluentCRM', 'rm-panel-extensions'); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="checkbox" 
+                                   name="rm_panel_settings[sync_profile_to_fluentcrm]" 
+                                   id="sync_profile_to_fluentcrm" 
+                                   value="1" 
+                                   <?php checked(isset($settings['sync_profile_to_fluentcrm']) ? $settings['sync_profile_to_fluentcrm'] : 1); ?>>
+                            <p class="description">
+                                <?php _e('Automatically sync uploaded profile pictures to FluentCRM contact avatars', 'rm-panel-extensions'); ?>
+                            </p>
+                            <?php if (!defined('FLUENTCRM')) : ?>
+                                <p class="description" style="color: #d63638;">
+                                    <?php _e('⚠️ FluentCRM is not active. This feature requires FluentCRM.', 'rm-panel-extensions'); ?>
+                                </p>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
                 </table>
 
                 <script type="text/javascript">

@@ -3,6 +3,8 @@
  * Profile Picture Widget
  * 
  * Displays user profile picture, name, email, and country with upload/edit functionality
+ * 
+ * @version 1.0.4 (Fixed namespace issue with FluentCRM Helper)
  */
 
 namespace RMPanelExtensions\Modules\Elementor\Widgets;
@@ -60,7 +62,7 @@ class Profile_Picture_Widget extends Widget_Base {
      * Register widget controls
      */
     protected function register_controls() {
-        
+
         // Content Section
         $this->start_controls_section(
             'content_section',
@@ -371,26 +373,39 @@ class Profile_Picture_Widget extends Widget_Base {
         // Get user data
         $full_name = $current_user->display_name;
         $email = $current_user->user_email;
-        
+
+        // ✅ FIXED: Add leading backslash for global namespace
         // Get country from FluentCRM if available, otherwise from user meta
         $country = '';
-        if (class_exists('RM_Panel_FluentCRM_Helper')) {
+        if (class_exists('\RM_Panel_FluentCRM_Helper')) {
             $country = \RM_Panel_FluentCRM_Helper::get_contact_country($user_id);
         }
         if (empty($country)) {
             $country = get_user_meta($user_id, 'country', true);
         }
 
-        // Get profile picture URL
-        $profile_picture_id = get_user_meta($user_id, 'rm_profile_picture', true);
-        if ($profile_picture_id) {
-            $profile_picture_url = wp_get_attachment_image_url($profile_picture_id, 'medium');
-        } else {
-            $profile_picture_url = !empty($settings['default_avatar']['url']) ? 
-                $settings['default_avatar']['url'] : 
-                get_avatar_url($user_id, ['size' => 150]);
+        // ✅ FIXED: Get profile picture URL with FluentCRM priority
+        $profile_picture_url = null;
+
+        // Priority 1: FluentCRM contact avatar
+        if (class_exists('\RM_Panel_FluentCRM_Helper')) {
+            $profile_picture_url = \RM_Panel_FluentCRM_Helper::get_contact_avatar($user_id);
         }
 
+        // Priority 2: WordPress user meta
+        if (empty($profile_picture_url)) {
+            $profile_picture_id = get_user_meta($user_id, 'rm_profile_picture', true);
+            if ($profile_picture_id) {
+                $profile_picture_url = wp_get_attachment_image_url($profile_picture_id, 'medium');
+            }
+        }
+
+        // Priority 3: Default avatar from settings
+        if (empty($profile_picture_url)) {
+            $profile_picture_url = !empty($settings['default_avatar']['url']) ?
+                $settings['default_avatar']['url'] :
+                get_avatar_url($user_id, ['size' => 150]);
+        }
         ?>
         <div class="rm-profile-picture-container">
             <div class="rm-profile-picture-wrapper">

@@ -9,7 +9,7 @@
  * - Simplified modal lifecycle
  */
 
-(function($) {
+(function ($) {
     'use strict';
 
     // Global flags for state management
@@ -18,7 +18,7 @@
     var fileInputExists = false;
 
     // Wait for DOM to be ready
-    $(document).ready(function() {
+    $(document).ready(function () {
         initProfilePictureWidget();
     });
 
@@ -27,49 +27,50 @@
      */
     function initProfilePictureWidget() {
         // Open modal when clicking on profile picture
-        $(document).on('click', '.rm-profile-picture-image-wrapper', function(e) {
+        $(document).on('click', '.rm-profile-picture-image-wrapper', function (e) {
             e.preventDefault();
-            if (modalIsOpen) return;
+            if (modalIsOpen)
+                return;
             openModal();
         });
 
         // Close modal buttons
-        $(document).on('click', '.rm-modal-close, .rm-modal-cancel', function() {
+        $(document).on('click', '.rm-modal-close, .rm-modal-cancel', function () {
             if (!uploadInProgress) {
                 closeModal();
             }
         });
 
         // Close modal when clicking outside
-        $(document).on('click', '.rm-profile-picture-modal', function(e) {
+        $(document).on('click', '.rm-profile-picture-modal', function (e) {
             if ($(e.target).is('.rm-profile-picture-modal') && !uploadInProgress) {
                 closeModal();
             }
         });
 
         // Close modal on ESC key
-        $(document).on('keydown', function(e) {
+        $(document).on('keydown', function (e) {
             if (e.key === 'Escape' && modalIsOpen && !uploadInProgress) {
                 closeModal();
             }
         });
 
         // Upload area click
-        $(document).on('click', '#rm-upload-area', function() {
+        $(document).on('click', '#rm-upload-area', function () {
             if (!uploadInProgress) {
                 $('#rm-profile-picture-input').trigger('click');
             }
         });
 
         // Change image button
-        $(document).on('click', '#rm-change-image', function() {
+        $(document).on('click', '#rm-change-image', function () {
             if (!uploadInProgress) {
                 $('#rm-profile-picture-input').trigger('click');
             }
         });
 
         // Save button
-        $(document).on('click', '#rm-save-profile-picture', function() {
+        $(document).on('click', '#rm-save-profile-picture', function () {
             if (!uploadInProgress) {
                 saveProfilePicture();
             }
@@ -86,12 +87,12 @@
         modalIsOpen = true;
         $('#rm-profile-picture-modal').addClass('active');
         $('body').css('overflow', 'hidden');
-        
+
         // Initialize file input if it doesn't exist
         if (!fileInputExists) {
             createFileInput();
         }
-        
+
         // Reset modal state
         resetModalState();
     }
@@ -102,19 +103,19 @@
     function createFileInput() {
         // Remove any existing input first
         $('#rm-profile-picture-input').remove();
-        
+
         // Create new input using vanilla JS
         var input = document.createElement('input');
         input.type = 'file';
         input.id = 'rm-profile-picture-input';
         input.accept = 'image/*';
         input.style.display = 'none';
-        
+
         // Append to modal body
         $('.rm-modal-body').append(input);
-        
+
         // Bind change event DIRECTLY to the element (not delegated)
-        $(input).on('change', function(e) {
+        $(input).on('change', function (e) {
             if (!uploadInProgress) {
                 var files = e.target.files;
                 if (files && files.length > 0) {
@@ -122,9 +123,9 @@
                 }
             }
         });
-        
+
         fileInputExists = true;
-        
+
         console.log('RM Panel: File input created');
     }
 
@@ -145,9 +146,9 @@
         modalIsOpen = false;
         $('#rm-profile-picture-modal').removeClass('active');
         $('body').css('overflow', '');
-        
+
         // Wait for animation
-        setTimeout(function() {
+        setTimeout(function () {
             resetModalState();
             destroyFileInput();
         }, 300);
@@ -159,15 +160,15 @@
     function destroyFileInput() {
         if (fileInputExists) {
             var $input = $('#rm-profile-picture-input');
-            
+
             // Unbind all events
             $input.off('change');
-            
+
             // Remove from DOM
             $input.remove();
-            
+
             fileInputExists = false;
-            
+
             console.log('RM Panel: File input destroyed');
         }
     }
@@ -177,7 +178,8 @@
      */
     function setupDragAndDrop() {
         var uploadArea = document.getElementById('rm-upload-area');
-        if (!uploadArea) return;
+        if (!uploadArea)
+            return;
 
         // Prevent default drag behaviors
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -187,19 +189,19 @@
 
         // Highlight drop area
         ['dragenter', 'dragover'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, function() {
+            uploadArea.addEventListener(eventName, function () {
                 uploadArea.classList.add('dragover');
             }, false);
         });
 
         ['dragleave', 'drop'].forEach(eventName => {
-            uploadArea.addEventListener(eventName, function() {
+            uploadArea.addEventListener(eventName, function () {
                 uploadArea.classList.remove('dragover');
             }, false);
         });
 
         // Handle dropped files
-        uploadArea.addEventListener('drop', function(e) {
+        uploadArea.addEventListener('drop', function (e) {
             if (!uploadInProgress) {
                 var files = e.dataTransfer.files;
                 handleFileSelect(files);
@@ -238,12 +240,12 @@
 
         // Show preview
         var reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             $('#rm-preview-image').attr('src', e.target.result);
             $('#rm-upload-area').hide();
             $('#rm-preview-area').show();
         };
-        reader.onerror = function() {
+        reader.onerror = function () {
             showMessage('error', 'Failed to read file');
         };
         reader.readAsDataURL(file);
@@ -254,7 +256,7 @@
      */
     function saveProfilePicture() {
         var fileInput = document.getElementById('rm-profile-picture-input');
-        
+
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
             showMessage('error', 'Please select an image first');
             return;
@@ -292,9 +294,9 @@
             processData: false,
             contentType: false,
             timeout: 30000, // 30 second timeout
-            success: function(response) {
+            success: function (response) {
                 console.log('RM Panel: Upload response:', response);
-                
+
                 uploadInProgress = false;
                 $saveButton.removeClass('loading').prop('disabled', false);
                 $('.rm-modal-cancel').prop('disabled', false);
@@ -302,28 +304,37 @@
                 if (response.success) {
                     // Update profile picture on page
                     $('.rm-profile-picture-image').attr('src', response.data.url);
-                    
-                    // Show success message
-                    showMessage('success', response.data.message || 'Profile picture updated successfully!');
+
+                    // Show success message with FluentCRM sync status
+                    var message = response.data.message || 'Profile picture updated successfully!';
+
+                    // ✨ NEW: Add FluentCRM sync indicator
+                    if (response.data.fluentcrm_synced) {
+                        message += ' (Synced to FluentCRM)';
+                    }
+
+                    showMessage('success', message);
 
                     // Close modal after delay
-                    setTimeout(function() {
+                    setTimeout(function () {
                         closeModal();
                     }, 1500);
                 } else {
                     showMessage('error', response.data.message || 'Failed to upload profile picture');
                 }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('RM Panel: Upload error:', status, error);
-                
+
                 uploadInProgress = false;
                 $saveButton.removeClass('loading').prop('disabled', false);
                 $('.rm-modal-cancel').prop('disabled', false);
-                
+
                 showMessage('error', 'An error occurred while uploading. Please try again.');
             }
         });
+
+
     }
 
     /**
@@ -331,17 +342,17 @@
      */
     function showMessage(type, message) {
         var $message = $('.rm-message');
-        
+
         if ($message.length === 0) {
             $message = $('<div class="rm-message"></div>');
             $('.rm-modal-body').prepend($message);
         }
 
         $message
-            .removeClass('success error')
-            .addClass(type + ' show')
-            .text(message);
-            
+                .removeClass('success error')
+                .addClass(type + ' show')
+                .text(message);
+
         console.log('RM Panel: Message -', type, ':', message);
     }
 
@@ -351,5 +362,7 @@
     function hideMessage() {
         $('.rm-message').removeClass('show');
     }
+
+
 
 })(jQuery);
