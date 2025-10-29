@@ -752,111 +752,118 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             <div class="rm-survey-accordion-content">
                 <div class="rm-survey-content-wrapper">
                     
-                    <!-- About This Survey -->
-                    <?php if ($settings['show_description'] === 'yes' && ($survey->post_excerpt || $survey->post_content)) : ?>
-                        <div class="rm-survey-description">
-                            <h4 class="rm-survey-section-title">About This Survey</h4>
-                            <?php 
-                            if (!empty($survey->post_excerpt)) {
-                                echo '<p>' . esc_html($survey->post_excerpt) . '</p>';
-                            } elseif (!empty($survey->post_content)) {
-                                echo wpautop(wp_trim_words($survey->post_content, 50));
-                            }
-                            ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="rm-survey-details-grid">
+                    <!-- About This Survey Section -->
+                    <div class="rm-about-survey-section">
+                        <h4 class="rm-section-heading">📋 About This Survey</h4>
                         
-                        <!-- Survey Type -->
-                        <?php if ($settings['show_survey_type'] === 'yes') : ?>
-                            <div class="rm-survey-detail-box">
-                                <span class="rm-detail-icon">💳</span>
-                                <div class="rm-detail-content">
-                                    <h5 class="rm-detail-title">Survey Type</h5>
-                                    <p class="rm-detail-value">
-                                        <?php if ($survey_type === 'paid' && $survey_amount && $settings['show_amount'] === 'yes') : ?>
-                                            <strong>💰 Paid Survey</strong>
-                                            <span class="rm-amount-highlight">Earn: $<?php echo number_format($survey_amount, 2); ?></span>
-                                        <?php elseif ($survey_type === 'paid') : ?>
-                                            <strong>💰 Paid Survey</strong>
-                                        <?php else : ?>
-                                            <strong>📋 Standard Survey</strong>
-                                        <?php endif; ?>
-                                    </p>
-                                </div>
+                        <!-- Description -->
+                        <?php if ($settings['show_description'] === 'yes' && ($survey->post_excerpt || $survey->post_content)) : ?>
+                            <div class="rm-survey-description-text">
+                                <?php 
+                                if (!empty($survey->post_excerpt)) {
+                                    echo '<p>' . esc_html($survey->post_excerpt) . '</p>';
+                                } elseif (!empty($survey->post_content)) {
+                                    echo wpautop(wp_trim_words($survey->post_content, 50));
+                                }
+                                ?>
                             </div>
                         <?php endif; ?>
 
-                        <!-- Duration -->
-                        <?php if ($settings['show_duration'] === 'yes') : ?>
-                            <div class="rm-survey-detail-box">
-                                <span class="rm-detail-icon">📅</span>
-                                <div class="rm-detail-content">
-                                    <h5 class="rm-detail-title">Duration</h5>
-                                    <p class="rm-detail-value">
-                                        <?php if ($duration_type === 'never_ending') : ?>
-                                            <strong>♾️ Never Ending</strong>
-                                            <span class="rm-detail-subtitle">Available anytime</span>
-                                        <?php elseif ($duration_type === 'date_range') : ?>
-                                            <?php if ($is_expired) : ?>
-                                                <strong class="rm-expired">❌ Expired</strong>
-                                                <?php if ($end_date) : ?>
-                                                    <span class="rm-detail-subtitle">Ended: <?php echo date_i18n('M j, Y', strtotime($end_date)); ?></span>
+                        <!-- Info Cards Grid -->
+                        <div class="rm-info-cards-grid">
+                            
+                            <!-- Survey Type Card -->
+                            <?php if ($settings['show_survey_type'] === 'yes') : ?>
+                                <div class="rm-info-card rm-type-card">
+                                    <div class="rm-card-icon">💳</div>
+                                    <div class="rm-card-content">
+                                        <div class="rm-card-label">SURVEY TYPE</div>
+                                        <div class="rm-card-value">
+                                            <?php if ($survey_type === 'paid') : ?>
+                                                Paid Survey
+                                            <?php else : ?>
+                                                Standard Survey
+                                            <?php endif; ?>
+                                        </div>
+                                        <?php if ($survey_type === 'paid' && $survey_amount && $settings['show_amount'] === 'yes') : ?>
+                                            <div class="rm-earn-amount">Earn: $<?php echo number_format($survey_amount, 2); ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Duration Card -->
+                            <?php if ($settings['show_duration'] === 'yes') : ?>
+                                <div class="rm-info-card rm-duration-card">
+                                    <div class="rm-card-icon">🔄</div>
+                                    <div class="rm-card-content">
+                                        <div class="rm-card-label">DURATION</div>
+                                        <div class="rm-card-value">
+                                            <?php if ($duration_type === 'never_ending') : ?>
+                                                Never Ending
+                                            <?php elseif ($duration_type === 'date_range') : ?>
+                                                <?php if ($is_expired) : ?>
+                                                    <span class="rm-expired-text">Expired</span>
+                                                <?php else : ?>
+                                                    <?php if ($start_date && $end_date) : ?>
+                                                        <?php echo date_i18n('M j', strtotime($start_date)); ?> - <?php echo date_i18n('M j, Y', strtotime($end_date)); ?>
+                                                    <?php elseif ($end_date) : ?>
+                                                        Until <?php echo date_i18n('M j, Y', strtotime($end_date)); ?>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             <?php else : ?>
-                                                <?php if ($start_date && $end_date) : ?>
-                                                    <strong><?php echo date_i18n('M j', strtotime($start_date)); ?> - <?php echo date_i18n('M j, Y', strtotime($end_date)); ?></strong>
-                                                    <?php if ($settings['show_days_remaining'] === 'yes' && $days_remaining !== null) : ?>
-                                                        <span class="rm-detail-subtitle rm-days-remaining">
-                                                            <?php if ($days_remaining <= 3) echo '⚠️ '; ?>
-                                                            <?php echo sprintf(_n('%s day remaining', '%s days remaining', $days_remaining, 'rm-panel-extensions'), $days_remaining); ?>
-                                                        </span>
-                                                    <?php endif; ?>
-                                                <?php elseif ($start_date) : ?>
-                                                    <strong>Starts: <?php echo date_i18n('M j, Y', strtotime($start_date)); ?></strong>
-                                                <?php elseif ($end_date) : ?>
-                                                    <strong>Ends: <?php echo date_i18n('M j, Y', strtotime($end_date)); ?></strong>
-                                                <?php endif; ?>
+                                                Not specified
                                             <?php endif; ?>
-                                        <?php else : ?>
-                                            <span class="rm-detail-subtitle">No duration set</span>
-                                        <?php endif; ?>
-                                    </p>
+                                        </div>
+                                        <div class="rm-card-subtitle">
+                                            <?php if ($duration_type === 'never_ending') : ?>
+                                                Available anytime
+                                            <?php elseif ($is_expired) : ?>
+                                                Survey has ended
+                                            <?php elseif ($days_remaining !== null && $settings['show_days_remaining'] === 'yes') : ?>
+                                                <?php echo sprintf(_n('%s day remaining', '%s days remaining', $days_remaining, 'rm-panel-extensions'), $days_remaining); ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        <?php endif; ?>
+                            <?php endif; ?>
 
-                        <!-- Survey Length -->
-                        <?php if ($settings['show_questions_count'] === 'yes' || $settings['show_estimated_time'] === 'yes') : ?>
-                            <div class="rm-survey-detail-box">
-                                <span class="rm-detail-icon">📝</span>
-                                <div class="rm-detail-content">
-                                    <h5 class="rm-detail-title">Survey Length</h5>
-                                    <p class="rm-detail-value">
+                        </div>
+
+                        <!-- Survey Length - Yellow Highlight Box -->
+                        <?php if (($settings['show_questions_count'] === 'yes' && $questions_count) || ($settings['show_estimated_time'] === 'yes' && $estimated_time)) : ?>
+                            <div class="rm-survey-length-box">
+                                <div class="rm-length-icon">📊</div>
+                                <div class="rm-length-content">
+                                    <div class="rm-length-label">Survey Length</div>
+                                    <div class="rm-length-details">
                                         <?php if ($settings['show_questions_count'] === 'yes' && $questions_count) : ?>
-                                            <strong><?php echo $questions_count; ?> Questions</strong>
+                                            <span><?php echo $questions_count; ?> Questions</span>
+                                        <?php endif; ?>
+                                        <?php if ($settings['show_questions_count'] === 'yes' && $questions_count && $settings['show_estimated_time'] === 'yes' && $estimated_time) : ?>
+                                            <span class="rm-separator">•</span>
                                         <?php endif; ?>
                                         <?php if ($settings['show_estimated_time'] === 'yes' && $estimated_time) : ?>
-                                            <span class="rm-detail-subtitle">⏱️ ~<?php echo $estimated_time; ?> minutes to complete</span>
+                                            <span>~<?php echo $estimated_time; ?> minutes to complete</span>
                                         <?php endif; ?>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         <?php endif; ?>
 
                         <!-- Target Audience -->
                         <?php if ($settings['show_target_audience'] === 'yes' && !empty($target_audience)) : ?>
-                            <div class="rm-survey-detail-box rm-survey-detail-full">
-                                <span class="rm-detail-icon">👥</span>
-                                <div class="rm-detail-content">
-                                    <h5 class="rm-detail-title">Target Audience</h5>
-                                    <p class="rm-detail-value">
-                                        <?php echo wp_kses_post(wpautop($target_audience)); ?>
-                                    </p>
+                            <div class="rm-target-audience-box">
+                                <div class="rm-audience-icon">🎯</div>
+                                <div class="rm-audience-content">
+                                    <div class="rm-audience-label">Target Audience</div>
+                                    <div class="rm-audience-text">
+                                        <?php echo wp_kses_post($target_audience); ?>
+                                    </div>
                                 </div>
                             </div>
                         <?php endif; ?>
+
                     </div>
 
                     <!-- Action Buttons -->
