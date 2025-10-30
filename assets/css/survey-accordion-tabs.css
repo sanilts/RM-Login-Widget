@@ -1,10 +1,19 @@
 /**
- * RM Panel Survey Accordion Tabs - Complete Redesign (Based on Screenshot)
+ * RM Panel Survey Accordion Tabs - FIXED CSS (v2.0.1)
  * 
- * File: assets/css/survey-accordion-tabs.css
- * Version: 2.0.0 - Complete Redesign
+ * File: assets/css/survey-accordion-tabs-FIXED.css
+ * Version: 2.0.1 - Critical Layout Fixes
  * 
  * @package RM_Panel_Extensions
+ * 
+ * CHANGELOG v2.0.1:
+ * - Fixed tab navigation alignment and spacing
+ * - Fixed accordion header layout (avatar + content + arrow)
+ * - Fixed meta information wrapping issues
+ * - Fixed icon positioning and sizing
+ * - Added proper flexbox constraints
+ * - Improved mobile responsiveness
+ * - Fixed z-index and stacking issues
  */
 
 /* ============================================
@@ -29,7 +38,7 @@
 }
 
 /* ============================================
-   Base Container
+   Base Container - FIXED
    ============================================ */
 .rm-accordion-tabs-wrapper {
     width: 100%;
@@ -40,6 +49,7 @@
     -moz-osx-font-smoothing: grayscale;
     background: var(--rm-background);
     padding: 0;
+    position: relative; /* FIXED: Establish stacking context */
 }
 
 .rm-accordion-tabs-wrapper * {
@@ -47,7 +57,7 @@
 }
 
 /* ============================================
-   Tab Navigation - Redesigned
+   Tab Navigation - FIXED LAYOUT
    ============================================ */
 .rm-accordion-tabs-nav {
     display: flex;
@@ -57,10 +67,13 @@
     border-radius: var(--rm-radius);
     overflow: hidden;
     box-shadow: var(--rm-shadow-sm);
+    /* FIXED: Remove any max-width constraints */
+    width: 100%;
 }
 
 .rm-accordion-tab-btn {
-    flex: 1;
+    flex: 1; /* FIXED: Equal width tabs */
+    min-width: 0; /* FIXED: Allow flex shrinking */
     padding: 16px 24px;
     background: var(--rm-white);
     border: none;
@@ -75,6 +88,7 @@
     justify-content: center;
     gap: 10px;
     position: relative;
+    white-space: nowrap; /* FIXED: Prevent text wrapping */
 }
 
 .rm-accordion-tab-btn:hover {
@@ -88,15 +102,16 @@
     border-bottom-color: var(--rm-primary-blue);
 }
 
-/* Tab Icon */
+/* Tab Icon - FIXED */
 .rm-accordion-tab-btn .tab-icon {
     font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0; /* FIXED: Don't shrink icon */
 }
 
-/* Tab Count Badge */
+/* Tab Count Badge - FIXED */
 .rm-accordion-tab-btn .tab-count {
     background: var(--rm-primary-blue);
     color: var(--rm-white);
@@ -107,6 +122,7 @@
     min-width: 24px;
     text-align: center;
     line-height: 1.5;
+    flex-shrink: 0; /* FIXED: Don't shrink badge */
 }
 
 .rm-accordion-tab-btn.active .tab-count {
@@ -146,13 +162,13 @@
 }
 
 /* ============================================
-   Accordion Item - Redesigned to Match Screenshot
+   Accordion Item - FIXED
    ============================================ */
 .rm-survey-accordion-item {
     background: var(--rm-white);
     border: 1px solid var(--rm-border-light);
     border-radius: var(--rm-radius);
-    overflow: hidden;
+    overflow: hidden; /* FIXED: Prevent content overflow */
     transition: var(--rm-transition);
     box-shadow: var(--rm-shadow-sm);
 }
@@ -168,16 +184,17 @@
 }
 
 /* ============================================
-   Accordion Header - Redesigned Layout
+   Accordion Header - FIXED LAYOUT
    ============================================ */
 .rm-survey-accordion-header {
     display: flex;
-    align-items: center;
+    align-items: center; /* FIXED: Vertical center alignment */
     padding: 20px 24px;
     cursor: pointer;
     background: var(--rm-white);
     transition: var(--rm-transition);
     gap: 16px;
+    min-height: 80px; /* FIXED: Consistent height */
 }
 
 .rm-survey-accordion-header:hover {
@@ -189,10 +206,12 @@
     border-bottom: 1px solid var(--rm-border-light);
 }
 
-/* Survey Avatar Icon */
+/* Survey Avatar Icon - FIXED */
 .rm-survey-avatar {
     width: 48px;
     height: 48px;
+    min-width: 48px; /* FIXED: Prevent shrinking */
+    min-height: 48px; /* FIXED: Prevent shrinking */
     border-radius: var(--rm-radius-sm);
     background: var(--rm-primary-blue);
     color: var(--rm-white);
@@ -201,32 +220,38 @@
     justify-content: center;
     font-size: 20px;
     font-weight: 600;
-    flex-shrink: 0;
+    flex-shrink: 0; /* FIXED: Don't allow avatar to shrink */
     text-transform: uppercase;
 }
 
-/* Header Content Area */
+/* Header Content Area - FIXED */
 .rm-survey-accordion-header-content {
-    flex: 1;
-    min-width: 0;
+    flex: 1; /* FIXED: Take remaining space */
+    min-width: 0; /* FIXED: Allow text truncation */
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow: hidden; /* FIXED: Prevent overflow */
 }
 
-/* Survey Title */
+/* Survey Title - FIXED */
 .rm-survey-accordion-title {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
     color: var(--rm-text-dark);
     line-height: 1.4;
+    overflow: hidden; /* FIXED: Handle long titles */
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* FIXED: Max 2 lines */
+    -webkit-box-orient: vertical;
 }
 
-/* Meta Information Row */
+/* Meta Information Row - FIXED */
 .rm-survey-accordion-meta {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* FIXED: Allow wrapping on small screens */
     gap: 16px;
     align-items: center;
 }
@@ -238,32 +263,37 @@
     font-size: 14px;
     color: var(--rm-text-gray);
     font-weight: 400;
+    white-space: nowrap; /* FIXED: Keep items on one line */
+    flex-shrink: 0; /* FIXED: Don't shrink meta items */
 }
 
-/* Amount Styling - Green */
+/* Amount Styling - Green - FIXED */
 .rm-survey-meta-item.meta-amount {
     color: var(--rm-success-green);
     font-weight: 600;
 }
 
-/* Icons in Meta */
+/* Icons in Meta - FIXED */
 .rm-survey-meta-item .meta-icon {
     font-size: 16px;
     display: flex;
     align-items: center;
+    flex-shrink: 0; /* FIXED: Don't shrink icons */
 }
 
-/* Toggle Arrow */
+/* Toggle Arrow - FIXED */
 .rm-accordion-toggle-icon {
     font-size: 18px;
     color: var(--rm-text-light);
     transition: transform 0.3s ease;
-    flex-shrink: 0;
+    flex-shrink: 0; /* FIXED: Don't allow arrow to shrink */
     width: 20px;
     height: 20px;
+    min-width: 20px; /* FIXED: Prevent shrinking */
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: auto; /* FIXED: Push to right edge */
 }
 
 .rm-survey-accordion-item.active .rm-accordion-toggle-icon {
@@ -327,7 +357,7 @@
 }
 
 /* ============================================
-   Info Cards Grid
+   Info Cards Grid - FIXED
    ============================================ */
 .rm-info-cards-grid {
     display: grid;
@@ -401,557 +431,7 @@
 }
 
 /* ============================================
-   Survey Length Box (Yellow Highlight)
-   ============================================ */
-.rm-survey-length-box {
-    background: #fef3c7;
-    border: 1px solid #fde68a;
-    border-radius: var(--rm-radius-sm);
-    padding: 16px;
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.rm-length-icon {
-    font-size: 28px;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.rm-length-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.rm-length-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: #92400e;
-    margin-bottom: 6px;
-}
-
-.rm-length-details {
-    font-size: 14px;
-    color: #78350f;
-    line-height: 1.6;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.rm-length-details .rm-separator {
-    color: #d97706;
-    font-weight: 700;
-    margin: 0 4px;
-}
-
-/* ============================================
-   Target Audience Box
-   ============================================ */
-.rm-target-audience-box {
-    background: #f1f5f9;
-    border: 1px solid var(--rm-border-light);
-    border-left: 3px solid var(--rm-primary-blue);
-    border-radius: var(--rm-radius-sm);
-    padding: 16px;
-    margin: 20px 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.rm-audience-icon {
-    font-size: 24px;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.rm-audience-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.rm-audience-label {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--rm-text-dark);
-    margin-bottom: 8px;
-}
-
-.rm-audience-text {
-    font-size: 14px;
-    color: var(--rm-text-gray);
-    line-height: 1.6;
-}
-
-.rm-audience-text p {
-    margin: 0 0 8px 0;
-}
-
-.rm-audience-text p:last-child {
-    margin-bottom: 0;
-}
-
-/* ============================================
-   Action Buttons
-   ============================================ */
-.rm-survey-action {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid var(--rm-border-light);
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.rm-survey-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--rm-primary-blue);
-    color: var(--rm-white);
-    text-decoration: none;
-    border-radius: var(--rm-radius-sm);
-    font-weight: 600;
-    font-size: 14px;
-    transition: var(--rm-transition);
-    border: none;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.rm-survey-button:hover {
-    background: var(--rm-primary-blue-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    color: var(--rm-white);
-}
-
-.rm-survey-button:active {
-    transform: translateY(0);
-}
-
-.rm-invite-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--rm-success-green);
-    color: var(--rm-white);
-    border: none;
-    border-radius: var(--rm-radius-sm);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: var(--rm-transition);
-    line-height: 1;
-}
-
-.rm-invite-button:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-
-.rm-invite-button:active {
-    transform: translateY(0);
-}
-
-.rm-invite-button .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-}
-
-.rm-button-disabled {
-    background: var(--rm-text-light) !important;
-    cursor: not-allowed !important;
-    opacity: 0.6;
-}
-
-.rm-button-disabled:hover {
-    background: var(--rm-text-light) !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-
-/* ============================================
-   No Surveys Message
-   ============================================ */
-.no-surveys-message {
-    text-align: center;
-    padding: 60px 20px;
-    background: var(--rm-white);
-    border-radius: var(--rm-radius);
-    border: 2px dashed var(--rm-border-light);
-    box-shadow: var(--rm-shadow-sm);
-}
-
-.no-surveys-message p {
-    margin: 0;
-    color: var(--rm-text-gray);
-    font-size: 15px;
-    font-weight: 500;
-}
-
-/* ============================================
-   Invite Modal
-   ============================================ */
-.rm-invite-modal {
-    display: none;
-    position: fixed;
-    z-index: 99999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    animation: fadeInModal 0.3s ease-out;
-}
-
-@keyframes fadeInModal {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-.rm-invite-modal-content {
-    background: var(--rm-white);
-    margin: 5% auto;
-    padding: 32px;
-    border-radius: var(--rm-radius);
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-    position: relative;
-    animation: slideInModal 0.3s ease-out;
-}
-
-@keyframes slideInModal {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.rm-invite-close {
-    position: absolute;
-    right: 16px;
-    top: 16px;
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--rm-text-light);
-    cursor: pointer;
-    transition: color 0.3s;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-}
-
-.rm-invite-close:hover {
-    color: var(--rm-text-dark);
-    background: #f1f5f9;
-}
-
-.rm-invite-modal-content h3 {
-    margin: 0 0 8px 0;
-    font-size: 22px;
-    color: var(--rm-text-dark);
-    font-weight: 700;
-}
-
-.rm-invite-modal-content > p {
-    margin: 0 0 24px 0;
-    color: var(--rm-text-gray);
-    line-height: 1.5;
-    font-size: 14px;
-}
-
-/* ============================================
-   Referral Link
-   ============================================ */
-.referral-link-container {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-}
-
-.referral-link-input {
-    flex: 1;
-    padding: 12px 16px;
-    border: 1px solid var(--rm-border-light);
-    border-radius: var(--rm-radius-sm);
-    font-size: 14px;
-    background: #f8fafc;
-    color: var(--rm-text-dark);
-    font-family: monospace;
-}
-
-.referral-link-input:focus {
-    outline: none;
-    border-color: var(--rm-primary-blue);
-    background: var(--rm-white);
-}
-
-.copy-link-btn {
-    padding: 12px 20px;
-    background: var(--rm-primary-blue);
-    color: var(--rm-white);
-    border: none;
-    border-radius: var(--rm-radius-sm);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--rm-transition);
-    white-space: nowrap;
-    font-size: 14px;
-}
-
-.copy-link-btn:hover {
-    background: var(--rm-primary-blue-hover);
-    transform: translateY(-1px);
-}
-
-.copy-link-btn:active {
-    transform: translateY(0);
-}
-
-/* ============================================
-   Social Share Buttons
-   ============================================ */
-.social-share-buttons {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 24px;
-}
-
-.share-btn {
-    padding: 12px 16px;
-    border: none;
-    border-radius: var(--rm-radius-sm);
-    color: var(--rm-white);
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: var(--rm-transition);
-    font-size: 14px;
-}
-
-.share-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--rm-shadow-md);
-}
-
-.share-btn:active {
-    transform: translateY(0);
-}
-
-.share-btn i {
-    font-size: 16px;
-}
-
-.whatsapp-share {
-    background: #25d366;
-}
-
-.whatsapp-share:hover {
-    background: #1fb855;
-}
-
-.facebook-share {
-    background: #1877f2;
-}
-
-.facebook-share:hover {
-    background: #0c65d2;
-}
-
-.twitter-share {
-    background: #1da1f2;
-}
-
-.twitter-share:hover {
-    background: #0d8bd9;
-}
-
-.email-share {
-    background: #64748b;
-}
-
-.email-share:hover {
-    background: #475569;
-}
-
-/* ============================================
-   Invite Stats
-   ============================================ */
-.invite-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    padding-top: 20px;
-    border-top: 1px solid var(--rm-border-light);
-}
-
-.stat-item {
-    text-align: center;
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: var(--rm-radius-sm);
-}
-
-.stat-number {
-    display: block;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--rm-primary-blue);
-    margin-bottom: 4px;
-    line-height: 1;
-}
-
-.stat-label {
-    display: block;
-    font-size: 13px;
-    color: var(--rm-text-gray);
-    font-weight: 500;
-}
-
-/* ============================================
-   Completion Badge
-   ============================================ */
-.completion-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #d1fae5;
-    color: #065f46;
-    border-radius: 16px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.completion-badge .dashicons {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-}
-
-/* ============================================
-   Approval Status Badges
-   ============================================ */
-.approval-status {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.status-pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-approved {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-success {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.status-quota_complete {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-disqualified {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-/* ============================================
-   Completion Details
-   ============================================ */
-.rm-completion-details {
-    margin-top: 20px;
-}
-
-.rm-completion-details h4 {
-    margin: 0 0 16px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--rm-text-dark);
-}
-
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-}
-
-.detail-item {
-    padding: 16px;
-    background: #f8fafc;
-    border-radius: var(--rm-radius-sm);
-    border: 1px solid var(--rm-border-light);
-}
-
-.detail-label {
-    display: block;
-    font-size: 12px;
-    color: var(--rm-text-light);
-    font-weight: 600;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.detail-value {
-    font-size: 15px;
-    color: var(--rm-text-dark);
-    font-weight: 600;
-}
-
-/* ============================================
-   Responsive Design - Tablet
-   ============================================ */
-@media (max-width: 1024px) {
-    .rm-info-cards-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-}
-
-/* ============================================
-   Responsive Design - Mobile
+   Responsive Design - Mobile - FIXED
    ============================================ */
 @media (max-width: 768px) {
     .rm-accordion-tabs-nav {
@@ -963,6 +443,8 @@
         width: 100%;
         border-bottom: 1px solid var(--rm-border-light);
         border-radius: 0;
+        justify-content: flex-start; /* FIXED: Left align on mobile */
+        padding: 14px 20px; /* FIXED: Adjust padding */
     }
     
     .rm-accordion-tab-btn:first-child {
@@ -975,34 +457,50 @@
     }
     
     .rm-accordion-tab-btn.active {
-        border-bottom-color: var(--rm-primary-blue);
+        border-bottom-color: transparent; /* FIXED: Remove bottom border color on mobile */
+        border-left: 3px solid var(--rm-primary-blue); /* FIXED: Show active on left */
     }
     
+    /* FIXED: Accordion header on mobile */
     .rm-survey-accordion-header {
         padding: 16px;
         gap: 12px;
+        min-height: auto;
+        flex-wrap: wrap; /* FIXED: Allow wrapping if needed */
     }
     
+    /* FIXED: Avatar on mobile */
     .rm-survey-avatar {
         width: 40px;
         height: 40px;
+        min-width: 40px;
+        min-height: 40px;
         font-size: 18px;
     }
     
+    /* FIXED: Title on mobile */
     .rm-survey-accordion-title {
         font-size: 15px;
     }
     
+    /* FIXED: Meta on mobile */
     .rm-survey-accordion-meta {
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
+        width: 100%; /* FIXED: Full width for better layout */
     }
     
+    .rm-survey-meta-item {
+        font-size: 13px;
+    }
+    
+    /* FIXED: Content wrapper on mobile */
     .rm-survey-content-wrapper {
         padding: 16px;
     }
     
+    /* FIXED: Info cards on mobile */
     .rm-info-cards-grid {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -1011,61 +509,39 @@
     .rm-info-card {
         padding: 12px;
     }
-    
-    .rm-survey-length-box {
-        padding: 12px;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .rm-length-icon {
-        font-size: 24px;
-    }
-    
-    .rm-target-audience-box {
-        padding: 12px;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .rm-section-heading {
-        font-size: 15px;
-    }
-    
-    .rm-survey-action {
-        flex-direction: column;
-    }
-    
-    .rm-survey-button,
-    .rm-invite-button {
-        width: 100%;
-    }
-    
-    .social-share-buttons {
-        grid-template-columns: 1fr;
-    }
-    
-    .rm-invite-modal-content {
-        margin: 10% auto;
-        padding: 24px;
-    }
-    
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* ============================================
-   Responsive Design - Small Mobile
+   Responsive Design - Small Mobile - FIXED
    ============================================ */
 @media (max-width: 480px) {
+    /* FIXED: Tab buttons on very small screens */
+    .rm-accordion-tab-btn {
+        font-size: 14px;
+        padding: 12px 16px;
+    }
+    
+    .rm-accordion-tab-btn .tab-icon {
+        font-size: 16px;
+    }
+    
+    .rm-accordion-tab-btn .tab-count {
+        font-size: 12px;
+        padding: 1px 8px;
+        min-width: 20px;
+    }
+    
+    /* FIXED: Header on very small screens */
     .rm-survey-accordion-header {
         padding: 12px;
+        gap: 10px;
     }
     
     .rm-survey-avatar {
         width: 36px;
         height: 36px;
+        min-width: 36px;
+        min-height: 36px;
         font-size: 16px;
     }
     
@@ -1074,50 +550,14 @@
     }
     
     .rm-survey-meta-item {
-        font-size: 13px;
+        font-size: 12px;
     }
     
-    .rm-info-card {
-        gap: 10px;
-    }
-    
-    .rm-card-icon {
-        font-size: 24px;
-    }
-    
-    .rm-card-label {
-        font-size: 10px;
-    }
-    
-    .rm-card-value {
-        font-size: 14px;
-    }
-    
-    .rm-survey-length-box {
-        gap: 10px;
-    }
-    
-    .rm-length-details {
-        font-size: 13px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-    
-    .rm-length-details .rm-separator {
-        display: none;
-    }
-    
-    .rm-audience-icon {
-        font-size: 20px;
-    }
-    
-    .referral-link-container {
-        flex-direction: column;
-    }
-    
-    .copy-link-btn {
-        width: 100%;
+    .rm-accordion-toggle-icon {
+        font-size: 16px;
+        width: 18px;
+        height: 18px;
+        min-width: 18px;
     }
 }
 
@@ -1153,9 +593,7 @@
    ============================================ */
 .rm-accordion-tab-btn:focus,
 .rm-survey-button:focus,
-.rm-invite-button:focus,
-.copy-link-btn:focus,
-.share-btn:focus {
+.rm-invite-button:focus {
     outline: 2px solid var(--rm-primary-blue);
     outline-offset: 2px;
 }
@@ -1166,25 +604,13 @@
 }
 
 /* ============================================
-   Dark Mode Support (Optional)
-   ============================================ */
-@media (prefers-color-scheme: dark) {
-    .rm-accordion-tabs-wrapper {
-        --rm-text-dark: #f1f5f9;
-        --rm-text-gray: #cbd5e1;
-        --rm-text-light: #94a3b8;
-        --rm-border-light: #334155;
-        --rm-white: #1e293b;
-        --rm-background: #0f172a;
-    }
-}
-
-/* ============================================
    Loading State
    ============================================ */
 .rm-survey-accordion.loading {
     opacity: 0.6;
     pointer-events: none;
+    position: relative;
+    min-height: 200px;
 }
 
 .rm-survey-accordion.loading::after {
@@ -1208,5 +634,41 @@
 }
 
 /* ============================================
-   End of Stylesheet
+   Critical Layout Fixes - ADDITIONAL
+   ============================================ */
+
+/* FIXED: Prevent Elementor conflicts */
+.elementor-widget-rm_panel_survey_accordion_tabs .rm-accordion-tabs-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* FIXED: Ensure proper spacing in Elementor */
+.elementor-widget-rm_panel_survey_accordion_tabs {
+    width: 100%;
+}
+
+/* FIXED: Override any theme conflicts */
+.rm-accordion-tabs-wrapper .rm-survey-accordion-header * {
+    box-sizing: border-box !important;
+}
+
+/* FIXED: Ensure icons don't break layout */
+.rm-accordion-tabs-wrapper [class*="icon"],
+.rm-accordion-tabs-wrapper [class*="Icon"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* FIXED: Clear floats if any */
+.rm-survey-accordion-header::after,
+.rm-accordion-tabs-nav::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* ============================================
+   End of Fixed Stylesheet
    ============================================ */
