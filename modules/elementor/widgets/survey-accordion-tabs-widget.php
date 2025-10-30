@@ -3,6 +3,7 @@
  * RM Panel Survey Accordion Tabs Widget for Elementor (FULL CONTROL VERSION)
  * 
  * File: modules/elementor/widgets/survey-accordion-tabs-widget.php
+ * Version: 1.1.1 (FIXED - Accordion animation conflict)
  * 
  * @package RM_Panel_Extensions
  * @subpackage Modules/Elementor/Widgets
@@ -641,6 +642,8 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
 
         <script>
         jQuery(document).ready(function($) {
+            'use strict';
+            
             // Tab switching
             $('.rm-accordion-tab-btn').on('click', function() {
                 var tab = $(this).data('tab');
@@ -652,13 +655,13 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
                 $('#' + tab + '-tab').addClass('active');
             });
 
-            // Accordion functionality
+            // Accordion functionality - FIXED v1.1.1
+            // Let CSS handle the animation via max-height transition
             $('.rm-survey-accordion-header').on('click', function() {
                 var $item = $(this).closest('.rm-survey-accordion-item');
-                var $content = $item.find('.rm-survey-accordion-content');
                 
+                // Just toggle the active class - CSS handles the animation
                 $item.toggleClass('active');
-                $content.slideToggle(300);
             });
 
             // Invite button

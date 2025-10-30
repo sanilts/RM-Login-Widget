@@ -1,8 +1,8 @@
 /**
- * RM Panel Survey Accordion Tabs - Complete Stylesheet (REGENERATED)
+ * RM Panel Survey Accordion Tabs - Complete Redesign (Based on Screenshot)
  * 
  * File: assets/css/survey-accordion-tabs.css
- * Version: 1.1.0 - Updated Design
+ * Version: 2.0.0 - Complete Redesign
  * 
  * @package RM_Panel_Extensions
  */
@@ -11,40 +11,35 @@
    CSS Variables
    ============================================ */
 :root {
-    --rm-primary-color: #3b82f6;
-    --rm-primary-hover: #2563eb;
-    --rm-success-color: #10b981;
-    --rm-success-hover: #059669;
-    --rm-warning-color: #f59e0b;
-    --rm-danger-color: #dc2626;
-    --rm-text-primary: #1f2937;
-    --rm-text-secondary: #6b7280;
-    --rm-text-light: #9ca3af;
-    --rm-border-color: #e5e7eb;
-    --rm-background: #ffffff;
-    --rm-background-light: #f9fafb;
-    --rm-background-lighter: #f8fafc;
-    --rm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --rm-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --rm-primary-blue: #3b82f6;
+    --rm-primary-blue-hover: #2563eb;
+    --rm-success-green: #10b981;
+    --rm-text-dark: #1e293b;
+    --rm-text-gray: #64748b;
+    --rm-text-light: #94a3b8;
+    --rm-border-light: #e2e8f0;
+    --rm-white: #ffffff;
+    --rm-background: #f8fafc;
+    --rm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --rm-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
     --rm-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --rm-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
-    --rm-radius-sm: 4px;
-    --rm-radius-md: 6px;
-    --rm-radius-lg: 8px;
-    --rm-radius-xl: 12px;
-    --rm-transition: all 0.3s ease;
+    --rm-radius: 12px;
+    --rm-radius-sm: 8px;
+    --rm-transition: all 0.2s ease;
 }
 
 /* ============================================
-   Base Styles
+   Base Container
    ============================================ */
 .rm-accordion-tabs-wrapper {
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: var(--rm-background);
+    padding: 0;
 }
 
 .rm-accordion-tabs-wrapper * {
@@ -52,64 +47,70 @@
 }
 
 /* ============================================
-   Tab Navigation
+   Tab Navigation - Redesigned
    ============================================ */
 .rm-accordion-tabs-nav {
     display: flex;
-    gap: 8px;
-    margin-bottom: 30px;
-    border-bottom: 2px solid var(--rm-border-color);
-    background: var(--rm-background);
-    border-radius: var(--rm-radius-lg) var(--rm-radius-lg) 0 0;
+    gap: 0;
+    margin-bottom: 24px;
+    background: var(--rm-white);
+    border-radius: var(--rm-radius);
     overflow: hidden;
+    box-shadow: var(--rm-shadow-sm);
 }
 
 .rm-accordion-tab-btn {
     flex: 1;
     padding: 16px 24px;
-    background: var(--rm-background-light);
+    background: var(--rm-white);
     border: none;
     border-bottom: 3px solid transparent;
     cursor: pointer;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--rm-text-secondary);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--rm-text-gray);
     transition: var(--rm-transition);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     position: relative;
 }
 
 .rm-accordion-tab-btn:hover {
-    background: #f3f4f6;
-    color: var(--rm-text-primary);
+    background: #f1f5f9;
+    color: var(--rm-text-dark);
 }
 
 .rm-accordion-tab-btn.active {
-    background: var(--rm-background);
-    color: var(--rm-text-primary);
-    border-bottom-color: var(--rm-primary-color);
+    background: var(--rm-white);
+    color: var(--rm-primary-blue);
+    border-bottom-color: var(--rm-primary-blue);
 }
 
+/* Tab Icon */
 .rm-accordion-tab-btn .tab-icon {
-    font-size: 20px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* Tab Count Badge */
 .rm-accordion-tab-btn .tab-count {
-    background: var(--rm-primary-color);
-    color: white;
-    padding: 3px 10px;
-    border-radius: 20px;
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
+    padding: 2px 10px;
+    border-radius: 12px;
     font-size: 13px;
-    font-weight: 700;
-    min-width: 28px;
+    font-weight: 600;
+    min-width: 24px;
     text-align: center;
+    line-height: 1.5;
 }
 
 .rm-accordion-tab-btn.active .tab-count {
-    background: var(--rm-primary-hover);
+    background: var(--rm-primary-blue);
 }
 
 /* ============================================
@@ -117,7 +118,7 @@
    ============================================ */
 .rm-accordion-tab-content {
     display: none;
-    animation: fadeIn 0.4s ease-in;
+    animation: fadeIn 0.3s ease-in;
 }
 
 .rm-accordion-tab-content.active {
@@ -127,7 +128,7 @@
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-5px);
     }
     to {
         opacity: 1;
@@ -141,66 +142,88 @@
 .rm-survey-accordion {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 /* ============================================
-   Accordion Item
+   Accordion Item - Redesigned to Match Screenshot
    ============================================ */
 .rm-survey-accordion-item {
-    background: var(--rm-background);
-    border: 1px solid var(--rm-border-color);
-    border-radius: var(--rm-radius-lg);
+    background: var(--rm-white);
+    border: 1px solid var(--rm-border-light);
+    border-radius: var(--rm-radius);
     overflow: hidden;
     transition: var(--rm-transition);
+    box-shadow: var(--rm-shadow-sm);
 }
 
 .rm-survey-accordion-item:hover {
     box-shadow: var(--rm-shadow-md);
-    border-color: #d1d5db;
+    border-color: #cbd5e1;
 }
 
 .rm-survey-accordion-item.active {
     box-shadow: var(--rm-shadow-lg);
-    border-color: var(--rm-primary-color);
+    border-color: var(--rm-primary-blue);
 }
 
 /* ============================================
-   Accordion Header
+   Accordion Header - Redesigned Layout
    ============================================ */
 .rm-survey-accordion-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 20px 24px;
     cursor: pointer;
-    background: var(--rm-background);
+    background: var(--rm-white);
     transition: var(--rm-transition);
-    user-select: none;
+    gap: 16px;
 }
 
 .rm-survey-accordion-header:hover {
-    background: var(--rm-background-light);
+    background: #f8fafc;
 }
 
 .rm-survey-accordion-item.active .rm-survey-accordion-header {
-    background: var(--rm-background-lighter);
-    border-bottom: 1px solid var(--rm-border-color);
+    background: var(--rm-white);
+    border-bottom: 1px solid var(--rm-border-light);
 }
 
+/* Survey Avatar Icon */
+.rm-survey-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--rm-radius-sm);
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+/* Header Content Area */
 .rm-survey-accordion-header-content {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
+/* Survey Title */
 .rm-survey-accordion-title {
-    margin: 0 0 12px 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--rm-text-primary);
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--rm-text-dark);
     line-height: 1.4;
 }
 
+/* Meta Information Row */
 .rm-survey-accordion-meta {
     display: flex;
     flex-wrap: wrap;
@@ -213,20 +236,31 @@
     align-items: center;
     gap: 6px;
     font-size: 14px;
-    color: var(--rm-text-secondary);
-    font-weight: 500;
+    color: var(--rm-text-gray);
+    font-weight: 400;
 }
 
-/* ============================================
-   Accordion Toggle Icon
-   ============================================ */
+/* Amount Styling - Green */
+.rm-survey-meta-item.meta-amount {
+    color: var(--rm-success-green);
+    font-weight: 600;
+}
+
+/* Icons in Meta */
+.rm-survey-meta-item .meta-icon {
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+/* Toggle Arrow */
 .rm-accordion-toggle-icon {
-    font-size: 20px;
+    font-size: 18px;
     color: var(--rm-text-light);
     transition: transform 0.3s ease;
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -234,11 +268,11 @@
 
 .rm-survey-accordion-item.active .rm-accordion-toggle-icon {
     transform: rotate(180deg);
-    color: var(--rm-primary-color);
+    color: var(--rm-primary-blue);
 }
 
 /* ============================================
-   Accordion Content
+   Accordion Content (Expanded Area)
    ============================================ */
 .rm-survey-accordion-content {
     max-height: 0;
@@ -252,41 +286,40 @@
 }
 
 .rm-survey-content-wrapper {
-    padding: 28px;
+    padding: 24px;
+    background: var(--rm-white);
 }
 
 /* ============================================
-   UPDATED: About Survey Section
+   About Survey Section
    ============================================ */
 .rm-about-survey-section {
     padding: 0;
 }
 
 .rm-section-heading {
-    margin: 0 0 20px 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--rm-text-primary);
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--rm-text-dark);
     display: flex;
     align-items: center;
     gap: 8px;
     padding-bottom: 12px;
-    border-bottom: 2px solid var(--rm-primary-color);
+    border-bottom: 2px solid var(--rm-primary-blue);
 }
 
-/* ============================================
-   UPDATED: Survey Description Text
-   ============================================ */
+/* Survey Description */
 .rm-survey-description-text {
-    margin: 0 0 24px 0;
+    margin: 0 0 20px 0;
     padding: 0;
 }
 
 .rm-survey-description-text p {
     margin: 0 0 12px 0;
-    line-height: 1.7;
-    color: #4b5563;
-    font-size: 15px;
+    line-height: 1.6;
+    color: var(--rm-text-gray);
+    font-size: 14px;
 }
 
 .rm-survey-description-text p:last-child {
@@ -294,23 +327,23 @@
 }
 
 /* ============================================
-   NEW: Info Cards Grid
+   Info Cards Grid
    ============================================ */
 .rm-info-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
-    margin: 24px 0;
+    margin: 20px 0;
 }
 
 .rm-info-card {
-    background: var(--rm-background-lighter);
-    border: 1px solid #e5e7eb;
-    border-radius: var(--rm-radius-lg);
-    padding: 20px;
+    background: #f8fafc;
+    border: 1px solid var(--rm-border-light);
+    border-radius: var(--rm-radius-sm);
+    padding: 16px;
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
     transition: var(--rm-transition);
 }
 
@@ -321,7 +354,7 @@
 }
 
 .rm-card-icon {
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1;
     flex-shrink: 0;
 }
@@ -334,55 +367,55 @@
 .rm-card-label {
     font-size: 11px;
     font-weight: 700;
-    color: #6b7280;
+    color: var(--rm-text-light);
     letter-spacing: 0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-transform: uppercase;
 }
 
 .rm-card-value {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
-    color: var(--rm-text-primary);
+    color: var(--rm-text-dark);
     line-height: 1.4;
     margin-bottom: 4px;
 }
 
 .rm-earn-amount {
     font-size: 14px;
-    color: var(--rm-success-color);
+    color: var(--rm-success-green);
     font-weight: 700;
     margin-top: 6px;
 }
 
 .rm-card-subtitle {
     font-size: 13px;
-    color: var(--rm-text-secondary);
+    color: var(--rm-text-gray);
     margin-top: 4px;
     line-height: 1.5;
 }
 
 .rm-expired-text {
-    color: var(--rm-danger-color);
+    color: #ef4444;
     font-weight: 700;
 }
 
 /* ============================================
-   NEW: Survey Length Box (Yellow Highlight)
+   Survey Length Box (Yellow Highlight)
    ============================================ */
 .rm-survey-length-box {
     background: #fef3c7;
     border: 1px solid #fde68a;
-    border-radius: var(--rm-radius-lg);
-    padding: 20px;
-    margin: 24px 0;
+    border-radius: var(--rm-radius-sm);
+    padding: 16px;
+    margin: 20px 0;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 .rm-length-icon {
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1;
     flex-shrink: 0;
 }
@@ -393,14 +426,14 @@
 }
 
 .rm-length-label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     color: #92400e;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .rm-length-details {
-    font-size: 15px;
+    font-size: 14px;
     color: #78350f;
     line-height: 1.6;
     display: flex;
@@ -416,22 +449,22 @@
 }
 
 /* ============================================
-   NEW: Target Audience Box
+   Target Audience Box
    ============================================ */
 .rm-target-audience-box {
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    border-left: 3px solid var(--rm-primary-color);
-    border-radius: var(--rm-radius-md);
-    padding: 20px;
-    margin: 24px 0;
+    background: #f1f5f9;
+    border: 1px solid var(--rm-border-light);
+    border-left: 3px solid var(--rm-primary-blue);
+    border-radius: var(--rm-radius-sm);
+    padding: 16px;
+    margin: 20px 0;
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
 }
 
 .rm-audience-icon {
-    font-size: 28px;
+    font-size: 24px;
     line-height: 1;
     flex-shrink: 0;
 }
@@ -442,20 +475,20 @@
 }
 
 .rm-audience-label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
-    color: var(--rm-text-primary);
-    margin-bottom: 10px;
+    color: var(--rm-text-dark);
+    margin-bottom: 8px;
 }
 
 .rm-audience-text {
     font-size: 14px;
-    color: #4b5563;
-    line-height: 1.7;
+    color: var(--rm-text-gray);
+    line-height: 1.6;
 }
 
 .rm-audience-text p {
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
 }
 
 .rm-audience-text p:last-child {
@@ -466,9 +499,9 @@
    Action Buttons
    ============================================ */
 .rm-survey-action {
-    margin-top: 28px;
-    padding-top: 24px;
-    border-top: 1px solid var(--rm-border-color);
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rm-border-light);
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
@@ -479,13 +512,13 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 13px 30px;
-    background: var(--rm-primary-color);
-    color: #ffffff;
+    padding: 12px 24px;
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
     text-decoration: none;
-    border-radius: var(--rm-radius-md);
+    border-radius: var(--rm-radius-sm);
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     transition: var(--rm-transition);
     border: none;
     cursor: pointer;
@@ -493,10 +526,10 @@
 }
 
 .rm-survey-button:hover {
-    background: var(--rm-primary-hover);
+    background: var(--rm-primary-blue-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
-    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    color: var(--rm-white);
 }
 
 .rm-survey-button:active {
@@ -508,22 +541,22 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 13px 30px;
-    background: var(--rm-success-color);
-    color: #ffffff;
+    padding: 12px 24px;
+    background: var(--rm-success-green);
+    color: var(--rm-white);
     border: none;
-    border-radius: var(--rm-radius-md);
+    border-radius: var(--rm-radius-sm);
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
     transition: var(--rm-transition);
     line-height: 1;
 }
 
 .rm-invite-button:hover {
-    background: var(--rm-success-hover);
+    background: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .rm-invite-button:active {
@@ -531,9 +564,9 @@
 }
 
 .rm-invite-button .dashicons {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
 }
 
 .rm-button-disabled {
@@ -553,16 +586,17 @@
    ============================================ */
 .no-surveys-message {
     text-align: center;
-    padding: 80px 20px;
-    background: var(--rm-background-light);
-    border-radius: var(--rm-radius-lg);
-    border: 2px dashed var(--rm-border-color);
+    padding: 60px 20px;
+    background: var(--rm-white);
+    border-radius: var(--rm-radius);
+    border: 2px dashed var(--rm-border-light);
+    box-shadow: var(--rm-shadow-sm);
 }
 
 .no-surveys-message p {
     margin: 0;
-    color: var(--rm-text-secondary);
-    font-size: 16px;
+    color: var(--rm-text-gray);
+    font-size: 15px;
     font-weight: 500;
 }
 
@@ -577,7 +611,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
     animation: fadeInModal 0.3s ease-out;
 }
@@ -592,20 +626,20 @@
 }
 
 .rm-invite-modal-content {
-    background: var(--rm-background);
+    background: var(--rm-white);
     margin: 5% auto;
-    padding: 35px;
-    border-radius: var(--rm-radius-xl);
+    padding: 32px;
+    border-radius: var(--rm-radius);
     width: 90%;
-    max-width: 520px;
-    box-shadow: var(--rm-shadow-xl);
+    max-width: 500px;
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
     position: relative;
     animation: slideInModal 0.3s ease-out;
 }
 
 @keyframes slideInModal {
     from {
-        transform: translateY(-50px);
+        transform: translateY(-30px);
         opacity: 0;
     }
     to {
@@ -616,9 +650,9 @@
 
 .rm-invite-close {
     position: absolute;
-    right: 20px;
-    top: 20px;
-    font-size: 28px;
+    right: 16px;
+    top: 16px;
+    font-size: 24px;
     font-weight: bold;
     color: var(--rm-text-light);
     cursor: pointer;
@@ -632,21 +666,22 @@
 }
 
 .rm-invite-close:hover {
-    color: var(--rm-text-primary);
-    background: var(--rm-background-light);
+    color: var(--rm-text-dark);
+    background: #f1f5f9;
 }
 
 .rm-invite-modal-content h3 {
-    margin: 0 0 12px 0;
-    font-size: 24px;
-    color: var(--rm-text-primary);
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    color: var(--rm-text-dark);
     font-weight: 700;
 }
 
 .rm-invite-modal-content > p {
-    margin: 0 0 28px 0;
-    color: var(--rm-text-secondary);
-    line-height: 1.6;
+    margin: 0 0 24px 0;
+    color: var(--rm-text-gray);
+    line-height: 1.5;
+    font-size: 14px;
 }
 
 /* ============================================
@@ -654,41 +689,42 @@
    ============================================ */
 .referral-link-container {
     display: flex;
-    gap: 10px;
-    margin-bottom: 28px;
+    gap: 8px;
+    margin-bottom: 24px;
 }
 
 .referral-link-input {
     flex: 1;
-    padding: 13px 16px;
-    border: 1px solid var(--rm-border-color);
-    border-radius: var(--rm-radius-md);
+    padding: 12px 16px;
+    border: 1px solid var(--rm-border-light);
+    border-radius: var(--rm-radius-sm);
     font-size: 14px;
-    background: var(--rm-background-light);
-    color: var(--rm-text-primary);
+    background: #f8fafc;
+    color: var(--rm-text-dark);
     font-family: monospace;
 }
 
 .referral-link-input:focus {
     outline: none;
-    border-color: var(--rm-primary-color);
-    background: var(--rm-background);
+    border-color: var(--rm-primary-blue);
+    background: var(--rm-white);
 }
 
 .copy-link-btn {
-    padding: 13px 24px;
-    background: var(--rm-primary-color);
-    color: white;
+    padding: 12px 20px;
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
     border: none;
-    border-radius: var(--rm-radius-md);
+    border-radius: var(--rm-radius-sm);
     font-weight: 600;
     cursor: pointer;
     transition: var(--rm-transition);
     white-space: nowrap;
+    font-size: 14px;
 }
 
 .copy-link-btn:hover {
-    background: var(--rm-primary-hover);
+    background: var(--rm-primary-blue-hover);
     transform: translateY(-1px);
 }
 
@@ -702,15 +738,15 @@
 .social-share-buttons {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-    margin-bottom: 28px;
+    gap: 10px;
+    margin-bottom: 24px;
 }
 
 .share-btn {
-    padding: 13px 16px;
+    padding: 12px 16px;
     border: none;
-    border-radius: var(--rm-radius-md);
-    color: white;
+    border-radius: var(--rm-radius-sm);
+    color: var(--rm-white);
     font-weight: 600;
     cursor: pointer;
     display: flex;
@@ -731,7 +767,7 @@
 }
 
 .share-btn i {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .whatsapp-share {
@@ -759,11 +795,11 @@
 }
 
 .email-share {
-    background: #6b7280;
+    background: #64748b;
 }
 
 .email-share:hover {
-    background: #4b5563;
+    background: #475569;
 }
 
 /* ============================================
@@ -772,36 +808,36 @@
 .invite-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    padding-top: 24px;
-    border-top: 1px solid var(--rm-border-color);
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rm-border-light);
 }
 
 .stat-item {
     text-align: center;
     padding: 16px;
-    background: var(--rm-background-light);
-    border-radius: var(--rm-radius-md);
+    background: #f8fafc;
+    border-radius: var(--rm-radius-sm);
 }
 
 .stat-number {
     display: block;
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
-    color: var(--rm-primary-color);
-    margin-bottom: 6px;
+    color: var(--rm-primary-blue);
+    margin-bottom: 4px;
     line-height: 1;
 }
 
 .stat-label {
     display: block;
-    font-size: 14px;
-    color: var(--rm-text-secondary);
+    font-size: 13px;
+    color: var(--rm-text-gray);
     font-weight: 500;
 }
 
 /* ============================================
-   Completion Badge (for completed surveys)
+   Completion Badge
    ============================================ */
 .completion-badge {
     display: inline-flex;
@@ -810,7 +846,7 @@
     padding: 6px 12px;
     background: #d1fae5;
     color: #065f46;
-    border-radius: 20px;
+    border-radius: 16px;
     font-size: 13px;
     font-weight: 600;
 }
@@ -827,7 +863,7 @@
 .approval-status {
     display: inline-block;
     padding: 4px 12px;
-    border-radius: 20px;
+    border-radius: 16px;
     font-size: 13px;
     font-weight: 600;
 }
@@ -863,7 +899,7 @@
 }
 
 /* ============================================
-   Completion Details (for completed surveys tab)
+   Completion Details
    ============================================ */
 .rm-completion-details {
     margin-top: 20px;
@@ -872,36 +908,36 @@
 .rm-completion-details h4 {
     margin: 0 0 16px 0;
     font-size: 16px;
-    font-weight: 700;
-    color: var(--rm-text-primary);
+    font-weight: 600;
+    color: var(--rm-text-dark);
 }
 
 .detail-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    gap: 12px;
 }
 
 .detail-item {
     padding: 16px;
-    background: var(--rm-background-light);
-    border-radius: var(--rm-radius-md);
-    border: 1px solid var(--rm-border-color);
+    background: #f8fafc;
+    border-radius: var(--rm-radius-sm);
+    border: 1px solid var(--rm-border-light);
 }
 
 .detail-label {
     display: block;
-    font-size: 13px;
-    color: var(--rm-text-secondary);
+    font-size: 12px;
+    color: var(--rm-text-light);
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .detail-value {
     font-size: 15px;
-    color: var(--rm-text-primary);
+    color: var(--rm-text-dark);
     font-weight: 600;
 }
 
@@ -910,7 +946,7 @@
    ============================================ */
 @media (max-width: 1024px) {
     .rm-info-cards-grid {
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
 }
 
@@ -925,54 +961,75 @@
     
     .rm-accordion-tab-btn {
         width: 100%;
-        border-bottom: 1px solid var(--rm-border-color);
+        border-bottom: 1px solid var(--rm-border-light);
+        border-radius: 0;
+    }
+    
+    .rm-accordion-tab-btn:first-child {
+        border-radius: var(--rm-radius) var(--rm-radius) 0 0;
     }
     
     .rm-accordion-tab-btn:last-child {
         border-bottom: none;
+        border-radius: 0 0 var(--rm-radius) var(--rm-radius);
+    }
+    
+    .rm-accordion-tab-btn.active {
+        border-bottom-color: var(--rm-primary-blue);
+    }
+    
+    .rm-survey-accordion-header {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .rm-survey-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
     }
     
     .rm-survey-accordion-title {
-        font-size: 16px;
+        font-size: 15px;
     }
     
     .rm-survey-accordion-meta {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 6px;
     }
     
     .rm-survey-content-wrapper {
-        padding: 20px;
+        padding: 16px;
     }
     
     .rm-info-cards-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
     }
     
     .rm-info-card {
-        padding: 16px;
+        padding: 12px;
     }
     
     .rm-survey-length-box {
-        padding: 16px;
+        padding: 12px;
         flex-direction: column;
         align-items: flex-start;
     }
     
     .rm-length-icon {
-        font-size: 28px;
+        font-size: 24px;
     }
     
     .rm-target-audience-box {
-        padding: 16px;
+        padding: 12px;
         flex-direction: column;
         align-items: flex-start;
     }
     
     .rm-section-heading {
-        font-size: 16px;
+        font-size: 15px;
     }
     
     .rm-survey-action {
@@ -990,7 +1047,7 @@
     
     .rm-invite-modal-content {
         margin: 10% auto;
-        padding: 25px;
+        padding: 24px;
     }
     
     .detail-grid {
@@ -1002,13 +1059,18 @@
    Responsive Design - Small Mobile
    ============================================ */
 @media (max-width: 480px) {
-    .rm-survey-accordion-header,
-    .rm-survey-content-wrapper {
-        padding: 16px;
+    .rm-survey-accordion-header {
+        padding: 12px;
+    }
+    
+    .rm-survey-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
     }
     
     .rm-survey-accordion-title {
-        font-size: 15px;
+        font-size: 14px;
     }
     
     .rm-survey-meta-item {
@@ -1016,11 +1078,11 @@
     }
     
     .rm-info-card {
-        gap: 12px;
+        gap: 10px;
     }
     
     .rm-card-icon {
-        font-size: 28px;
+        font-size: 24px;
     }
     
     .rm-card-label {
@@ -1032,11 +1094,11 @@
     }
     
     .rm-survey-length-box {
-        gap: 12px;
+        gap: 10px;
     }
     
     .rm-length-details {
-        font-size: 14px;
+        font-size: 13px;
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
@@ -1047,7 +1109,7 @@
     }
     
     .rm-audience-icon {
-        font-size: 24px;
+        font-size: 20px;
     }
     
     .referral-link-container {
@@ -1094,12 +1156,12 @@
 .rm-invite-button:focus,
 .copy-link-btn:focus,
 .share-btn:focus {
-    outline: 2px solid var(--rm-primary-color);
+    outline: 2px solid var(--rm-primary-blue);
     outline-offset: 2px;
 }
 
 .rm-survey-accordion-header:focus {
-    outline: 2px solid var(--rm-primary-color);
+    outline: 2px solid var(--rm-primary-blue);
     outline-offset: -2px;
 }
 
@@ -1108,18 +1170,17 @@
    ============================================ */
 @media (prefers-color-scheme: dark) {
     .rm-accordion-tabs-wrapper {
-        --rm-text-primary: #f9fafb;
-        --rm-text-secondary: #d1d5db;
-        --rm-text-light: #9ca3af;
-        --rm-border-color: #374151;
-        --rm-background: #1f2937;
-        --rm-background-light: #111827;
-        --rm-background-lighter: #0f172a;
+        --rm-text-dark: #f1f5f9;
+        --rm-text-gray: #cbd5e1;
+        --rm-text-light: #94a3b8;
+        --rm-border-light: #334155;
+        --rm-white: #1e293b;
+        --rm-background: #0f172a;
     }
 }
 
 /* ============================================
-   Loading State (Optional)
+   Loading State
    ============================================ */
 .rm-survey-accordion.loading {
     opacity: 0.6;
@@ -1134,8 +1195,8 @@
     transform: translate(-50%, -50%);
     width: 40px;
     height: 40px;
-    border: 3px solid var(--rm-border-color);
-    border-top-color: var(--rm-primary-color);
+    border: 3px solid var(--rm-border-light);
+    border-top-color: var(--rm-primary-blue);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
