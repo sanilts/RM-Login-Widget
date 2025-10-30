@@ -1,19 +1,19 @@
 /**
- * RM Panel Survey Accordion Tabs - FIXED CSS (v2.0.1)
+ * RM Panel Survey Accordion Tabs - UPDATED CSS (v2.1.0)
  * 
- * File: assets/css/survey-accordion-tabs-FIXED.css
- * Version: 2.0.1 - Critical Layout Fixes
+ * File: assets/css/survey-accordion-tabs.css
+ * Version: 2.1.0 - Enhanced Styling Update
  * 
  * @package RM_Panel_Extensions
  * 
- * CHANGELOG v2.0.1:
- * - Fixed tab navigation alignment and spacing
- * - Fixed accordion header layout (avatar + content + arrow)
- * - Fixed meta information wrapping issues
- * - Fixed icon positioning and sizing
- * - Added proper flexbox constraints
- * - Improved mobile responsiveness
- * - Fixed z-index and stacking issues
+ * CHANGELOG v2.1.0:
+ * - Added highlighted Survey Length section (yellow background)
+ * - Added highlighted Target Audience section (blue background)
+ * - Added centered text alignment for completed surveys empty state
+ * - Added padding to completed surveys message
+ * - Added active tab blue background with light text
+ * - Improved visual hierarchy with uppercase labels
+ * - Added better spacing and alignment
  */
 
 /* ============================================
@@ -49,7 +49,7 @@
     -moz-osx-font-smoothing: grayscale;
     background: var(--rm-background);
     padding: 0;
-    position: relative; /* FIXED: Establish stacking context */
+    position: relative;
 }
 
 .rm-accordion-tabs-wrapper * {
@@ -57,7 +57,7 @@
 }
 
 /* ============================================
-   Tab Navigation - FIXED LAYOUT
+   Tab Navigation - UPDATED WITH ACTIVE STATE
    ============================================ */
 .rm-accordion-tabs-nav {
     display: flex;
@@ -67,13 +67,12 @@
     border-radius: var(--rm-radius);
     overflow: hidden;
     box-shadow: var(--rm-shadow-sm);
-    /* FIXED: Remove any max-width constraints */
     width: 100%;
 }
 
 .rm-accordion-tab-btn {
-    flex: 1; /* FIXED: Equal width tabs */
-    min-width: 0; /* FIXED: Allow flex shrinking */
+    flex: 1;
+    min-width: 0;
     padding: 16px 24px;
     background: var(--rm-white);
     border: none;
@@ -88,7 +87,7 @@
     justify-content: center;
     gap: 10px;
     position: relative;
-    white-space: nowrap; /* FIXED: Prevent text wrapping */
+    white-space: nowrap;
 }
 
 .rm-accordion-tab-btn:hover {
@@ -96,22 +95,23 @@
     color: var(--rm-text-dark);
 }
 
+/* UPDATED: Active Tab with Blue Background and Light Text */
 .rm-accordion-tab-btn.active {
-    background: var(--rm-white);
-    color: var(--rm-primary-blue);
-    border-bottom-color: var(--rm-primary-blue);
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
+    border-bottom-color: var(--rm-primary-blue-hover);
 }
 
-/* Tab Icon - FIXED */
+/* Tab Icon */
 .rm-accordion-tab-btn .tab-icon {
     font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0; /* FIXED: Don't shrink icon */
+    flex-shrink: 0;
 }
 
-/* Tab Count Badge - FIXED */
+/* Tab Count Badge - UPDATED for Active State */
 .rm-accordion-tab-btn .tab-count {
     background: var(--rm-primary-blue);
     color: var(--rm-white);
@@ -122,11 +122,13 @@
     min-width: 24px;
     text-align: center;
     line-height: 1.5;
-    flex-shrink: 0; /* FIXED: Don't shrink badge */
+    flex-shrink: 0;
 }
 
+/* Badge inverts color when tab is active */
 .rm-accordion-tab-btn.active .tab-count {
-    background: var(--rm-primary-blue);
+    background: var(--rm-white);
+    color: var(--rm-primary-blue);
 }
 
 /* ============================================
@@ -153,6 +155,24 @@
 }
 
 /* ============================================
+   NO SURVEYS MESSAGE - CENTERED WITH PADDING
+   ============================================ */
+.no-surveys-message {
+    text-align: center;
+    padding: 60px 40px;
+    background: var(--rm-white);
+    border-radius: var(--rm-radius);
+    box-shadow: var(--rm-shadow-sm);
+}
+
+.no-surveys-message p {
+    margin: 0;
+    color: var(--rm-text-gray);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* ============================================
    Survey Accordion Container
    ============================================ */
 .rm-survey-accordion {
@@ -168,7 +188,7 @@
     background: var(--rm-white);
     border: 1px solid var(--rm-border-light);
     border-radius: var(--rm-radius);
-    overflow: hidden; /* FIXED: Prevent content overflow */
+    overflow: hidden;
     transition: var(--rm-transition);
     box-shadow: var(--rm-shadow-sm);
 }
@@ -188,13 +208,13 @@
    ============================================ */
 .rm-survey-accordion-header {
     display: flex;
-    align-items: center; /* FIXED: Vertical center alignment */
+    align-items: center;
     padding: 20px 24px;
     cursor: pointer;
     background: var(--rm-white);
     transition: var(--rm-transition);
     gap: 16px;
-    min-height: 80px; /* FIXED: Consistent height */
+    min-height: 80px;
 }
 
 .rm-survey-accordion-header:hover {
@@ -206,12 +226,12 @@
     border-bottom: 1px solid var(--rm-border-light);
 }
 
-/* Survey Avatar Icon - FIXED */
+/* Survey Avatar Icon */
 .rm-survey-avatar {
     width: 48px;
     height: 48px;
-    min-width: 48px; /* FIXED: Prevent shrinking */
-    min-height: 48px; /* FIXED: Prevent shrinking */
+    min-width: 48px;
+    min-height: 48px;
     border-radius: var(--rm-radius-sm);
     background: var(--rm-primary-blue);
     color: var(--rm-white);
@@ -220,38 +240,38 @@
     justify-content: center;
     font-size: 20px;
     font-weight: 600;
-    flex-shrink: 0; /* FIXED: Don't allow avatar to shrink */
+    flex-shrink: 0;
     text-transform: uppercase;
 }
 
-/* Header Content Area - FIXED */
+/* Header Content Area */
 .rm-survey-accordion-header-content {
-    flex: 1; /* FIXED: Take remaining space */
-    min-width: 0; /* FIXED: Allow text truncation */
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    overflow: hidden; /* FIXED: Prevent overflow */
+    overflow: hidden;
 }
 
-/* Survey Title - FIXED */
+/* Survey Title */
 .rm-survey-accordion-title {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
     color: var(--rm-text-dark);
     line-height: 1.4;
-    overflow: hidden; /* FIXED: Handle long titles */
+    overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* FIXED: Max 2 lines */
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
-/* Meta Information Row - FIXED */
+/* Meta Information Row */
 .rm-survey-accordion-meta {
     display: flex;
-    flex-wrap: wrap; /* FIXED: Allow wrapping on small screens */
+    flex-wrap: wrap;
     gap: 16px;
     align-items: center;
 }
@@ -263,37 +283,37 @@
     font-size: 14px;
     color: var(--rm-text-gray);
     font-weight: 400;
-    white-space: nowrap; /* FIXED: Keep items on one line */
-    flex-shrink: 0; /* FIXED: Don't shrink meta items */
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-/* Amount Styling - Green - FIXED */
+/* Amount Styling - Green */
 .rm-survey-meta-item.meta-amount {
     color: var(--rm-success-green);
     font-weight: 600;
 }
 
-/* Icons in Meta - FIXED */
+/* Icons in Meta */
 .rm-survey-meta-item .meta-icon {
     font-size: 16px;
     display: flex;
     align-items: center;
-    flex-shrink: 0; /* FIXED: Don't shrink icons */
+    flex-shrink: 0;
 }
 
-/* Toggle Arrow - FIXED */
+/* Toggle Arrow */
 .rm-accordion-toggle-icon {
     font-size: 18px;
     color: var(--rm-text-light);
     transition: transform 0.3s ease;
-    flex-shrink: 0; /* FIXED: Don't allow arrow to shrink */
+    flex-shrink: 0;
     width: 20px;
     height: 20px;
-    min-width: 20px; /* FIXED: Prevent shrinking */
+    min-width: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: auto; /* FIXED: Push to right edge */
+    margin-left: auto;
 }
 
 .rm-survey-accordion-item.active .rm-accordion-toggle-icon {
@@ -357,7 +377,7 @@
 }
 
 /* ============================================
-   Info Cards Grid - FIXED
+   Info Cards Grid
    ============================================ */
 .rm-info-cards-grid {
     display: grid;
@@ -431,7 +451,97 @@
 }
 
 /* ============================================
-   Responsive Design - Mobile - FIXED
+   SURVEY LENGTH BOX - HIGHLIGHTED (YELLOW)
+   ============================================ */
+.rm-survey-length-box {
+    background: #fff9e6;
+    border: 1px solid #ffd54f;
+    border-radius: var(--rm-radius-sm);
+    padding: 16px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rm-length-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.rm-length-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.rm-length-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #f57c00;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.rm-length-details {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--rm-text-dark);
+    line-height: 1.4;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.rm-separator {
+    color: var(--rm-text-light);
+    font-weight: 400;
+}
+
+/* ============================================
+   TARGET AUDIENCE BOX - HIGHLIGHTED (BLUE)
+   ============================================ */
+.rm-target-audience-box {
+    background: #e3f2fd;
+    border: 1px solid #64b5f6;
+    border-radius: var(--rm-radius-sm);
+    padding: 16px;
+    margin: 20px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.rm-audience-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.rm-audience-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.rm-audience-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1976d2;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.rm-audience-text {
+    font-size: 14px;
+    color: var(--rm-text-dark);
+    line-height: 1.6;
+}
+
+/* ============================================
+   Responsive Design - Mobile
    ============================================ */
 @media (max-width: 768px) {
     .rm-accordion-tabs-nav {
@@ -443,8 +553,8 @@
         width: 100%;
         border-bottom: 1px solid var(--rm-border-light);
         border-radius: 0;
-        justify-content: flex-start; /* FIXED: Left align on mobile */
-        padding: 14px 20px; /* FIXED: Adjust padding */
+        justify-content: flex-start;
+        padding: 14px 20px;
     }
     
     .rm-accordion-tab-btn:first-child {
@@ -457,19 +567,17 @@
     }
     
     .rm-accordion-tab-btn.active {
-        border-bottom-color: transparent; /* FIXED: Remove bottom border color on mobile */
-        border-left: 3px solid var(--rm-primary-blue); /* FIXED: Show active on left */
+        border-bottom-color: transparent;
+        border-left: 3px solid var(--rm-primary-blue);
     }
     
-    /* FIXED: Accordion header on mobile */
     .rm-survey-accordion-header {
         padding: 16px;
         gap: 12px;
         min-height: auto;
-        flex-wrap: wrap; /* FIXED: Allow wrapping if needed */
+        flex-wrap: wrap;
     }
     
-    /* FIXED: Avatar on mobile */
     .rm-survey-avatar {
         width: 40px;
         height: 40px;
@@ -478,29 +586,25 @@
         font-size: 18px;
     }
     
-    /* FIXED: Title on mobile */
     .rm-survey-accordion-title {
         font-size: 15px;
     }
     
-    /* FIXED: Meta on mobile */
     .rm-survey-accordion-meta {
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
-        width: 100%; /* FIXED: Full width for better layout */
+        width: 100%;
     }
     
     .rm-survey-meta-item {
         font-size: 13px;
     }
     
-    /* FIXED: Content wrapper on mobile */
     .rm-survey-content-wrapper {
         padding: 16px;
     }
     
-    /* FIXED: Info cards on mobile */
     .rm-info-cards-grid {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -509,13 +613,16 @@
     .rm-info-card {
         padding: 12px;
     }
+    
+    .no-surveys-message {
+        padding: 40px 20px;
+    }
 }
 
 /* ============================================
-   Responsive Design - Small Mobile - FIXED
+   Responsive Design - Small Mobile
    ============================================ */
 @media (max-width: 480px) {
-    /* FIXED: Tab buttons on very small screens */
     .rm-accordion-tab-btn {
         font-size: 14px;
         padding: 12px 16px;
@@ -531,7 +638,6 @@
         min-width: 20px;
     }
     
-    /* FIXED: Header on very small screens */
     .rm-survey-accordion-header {
         padding: 12px;
         gap: 10px;
@@ -634,26 +740,21 @@
 }
 
 /* ============================================
-   Critical Layout Fixes - ADDITIONAL
+   Critical Layout Fixes
    ============================================ */
-
-/* FIXED: Prevent Elementor conflicts */
 .elementor-widget-rm_panel_survey_accordion_tabs .rm-accordion-tabs-wrapper {
     width: 100% !important;
     max-width: 100% !important;
 }
 
-/* FIXED: Ensure proper spacing in Elementor */
 .elementor-widget-rm_panel_survey_accordion_tabs {
     width: 100%;
 }
 
-/* FIXED: Override any theme conflicts */
 .rm-accordion-tabs-wrapper .rm-survey-accordion-header * {
     box-sizing: border-box !important;
 }
 
-/* FIXED: Ensure icons don't break layout */
 .rm-accordion-tabs-wrapper [class*="icon"],
 .rm-accordion-tabs-wrapper [class*="Icon"] {
     display: inline-flex;
@@ -661,7 +762,6 @@
     justify-content: center;
 }
 
-/* FIXED: Clear floats if any */
 .rm-survey-accordion-header::after,
 .rm-accordion-tabs-nav::after {
     content: "";
@@ -670,5 +770,5 @@
 }
 
 /* ============================================
-   End of Fixed Stylesheet
+   End of Stylesheet
    ============================================ */
