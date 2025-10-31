@@ -208,6 +208,19 @@ class RM_Panel_Extensions {
         if (file_exists($profile_picture_handler_file)) {
             require_once $profile_picture_handler_file;
         }
+        
+        // Load Reports Modules - v1.1.0
+        $reports_dir = RM_PANEL_EXT_PLUGIN_DIR . 'modules/reports/';
+
+        if (file_exists($reports_dir . 'class-survey-live-monitor.php')) {
+            require_once $reports_dir . 'class-survey-live-monitor.php';
+        }
+        if (file_exists($reports_dir . 'class-survey-reports.php')) {
+            require_once $reports_dir . 'class-survey-reports.php';
+        }
+        if (file_exists($reports_dir . 'class-user-reports.php')) {
+            require_once $reports_dir . 'class-user-reports.php';
+        }
 
         // Allow filtering of modules
         $this->modules = apply_filters('rm_panel_extensions_modules', $core_modules);

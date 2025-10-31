@@ -226,6 +226,17 @@
     border-bottom: 1px solid var(--rm-border-light);
 }
 
+.rm-survey-accordion-item.active .rm-survey-accordion-header .rm-survey-accordion-title{
+    color: #ffffff !important;
+}
+
+.rm-survey-accordion-item.active .rm-survey-accordion-header .rm-survey-accordion-title{
+    color: #ffffff !important;
+}
+.rm-survey-accordion-item.active .rm-survey-accordion-header .rm-survey-meta-item{
+    color: #ffffff !important;
+}
+
 /* Survey Avatar Icon */
 .rm-survey-avatar {
     width: 48px;

@@ -1,0 +1,178 @@
+/* ============================================
+   RM Panel Extensions - Survey Reports Styles
+   Version: 1.1.0
+   ============================================ */
+
+/* Page Container */
+.rm-survey-reports-page {
+    max-width: 1400px;
+}
+
+/* Filters Section */
+.rm-reports-filters {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.rm-filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.rm-filter-row:last-child {
+    margin-bottom: 0;
+}
+
+.rm-filter-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.rm-filter-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 13px;
+}
+
+.rm-filter-field input[type="text"],
+.rm-filter-field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.rm-filter-field input[type="text"]:focus,
+.rm-filter-field select:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+.rm-filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.rm-filter-actions .button {
+    margin-top: 0 !important;
+}
+
+/* Datepicker Input */
+.rm-datepicker {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 35px;
+}
+
+/* Export Section */
+.rm-export-section {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rm-export-count {
+    color: #666;
+    font-size: 13px;
+}
+
+/* Reports Table */
+.rm-reports-table-wrapper {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rm-reports-table-wrapper table {
+    margin: 0;
+}
+
+.rm-reports-table-wrapper th {
+    background: #f9f9f9;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #666;
+}
+
+.rm-reports-table-wrapper td {
+    vertical-align: middle;
+}
+
+/* Status Badges */
+.rm-status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.rm-status-started {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.rm-status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Completion Badges */
+.rm-completion-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.rm-completion-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.rm-completion-quota_complete {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.rm-completion-disqualified {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .rm-filter-row {
+        flex-direction: column;
+    }
+    
+    .rm-filter-field {
+        width: 100%;
+    }
+    
+    .rm-filter-actions {
+        width: 100%;
+    }
+    
+    .rm-filter-actions .button {
+        flex: 1;
+    }
+}

@@ -1,0 +1,263 @@
+/* ============================================
+   RM Panel Extensions - User Reports Styles
+   Version: 1.1.0
+   ============================================ */
+
+/* Page Container */
+.rm-user-reports-page {
+    max-width: 1600px;
+}
+
+/* Summary Stats */
+.rm-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.rm-summary-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.rm-summary-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.rm-summary-icon {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.rm-summary-content {
+    flex: 1;
+}
+
+.rm-summary-value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.rm-summary-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rm-summary-success .rm-summary-value {
+    color: #46b450;
+}
+
+.rm-summary-warning .rm-summary-value {
+    color: #f0b849;
+}
+
+/* Filters */
+.rm-user-reports-filters {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.rm-filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.rm-filter-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.rm-filter-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 13px;
+}
+
+.rm-filter-field input[type="text"],
+.rm-filter-field select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.rm-filter-field input[type="text"]:focus,
+.rm-filter-field select:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+.rm-filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.rm-filter-actions .button {
+    margin-top: 0 !important;
+}
+
+/* Datepicker */
+.rm-datepicker {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 35px;
+}
+
+/* Export Section */
+.rm-export-section {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rm-export-count {
+    color: #666;
+    font-size: 13px;
+}
+
+/* Users Table */
+.rm-users-table-wrapper {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.rm-user-reports-table {
+    margin: 0;
+    font-size: 13px;
+}
+
+.rm-user-reports-table th {
+    background: #f9f9f9;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    color: #666;
+    white-space: nowrap;
+    padding: 12px 8px;
+}
+
+.rm-user-reports-table td {
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+
+.rm-user-reports-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+/* User Role Badge */
+.rm-user-role {
+    display: inline-block;
+    padding: 2px 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+/* Status Indicators */
+.rm-active-now {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.rm-never {
+    color: #999;
+    font-style: italic;
+}
+
+.rm-success-count {
+    color: #46b450;
+}
+
+/* Amount Cells */
+.rm-amount {
+    font-family: 'Courier New', monospace;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.rm-amount-paid {
+    color: #46b450;
+}
+
+.rm-amount-pending {
+    color: #f0b849;
+    font-weight: 600;
+}
+
+/* Table Footer */
+.rm-user-reports-table tfoot th {
+    background: #f0f0f0;
+    border-top: 2px solid #ddd;
+    padding: 15px 8px;
+}
+
+/* Empty State */
+.rm-users-table-wrapper p {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .rm-summary-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .rm-filter-row {
+        flex-direction: column;
+    }
+    
+    .rm-filter-field {
+        width: 100%;
+    }
+    
+    .rm-filter-actions {
+        width: 100%;
+    }
+    
+    .rm-filter-actions .button {
+        flex: 1;
+    }
+    
+    .rm-user-reports-table {
+        font-size: 11px;
+    }
+    
+    .rm-user-reports-table th,
+    .rm-user-reports-table td {
+        padding: 8px 4px;
+    }
+}
