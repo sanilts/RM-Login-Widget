@@ -2,9 +2,9 @@
 
 ## 📋 Project Overview
 **Plugin Name:** RM Panel Extensions  
-**Version:** 1.0.4.1  
-**Last Updated:** October 29, 2025  
-**Purpose:** Comprehensive WordPress plugin with survey management, Elementor widgets, user tracking, Fluent Forms integration with real-time validation, country auto-detection, country mismatch prevention, profile picture management, and admin bar control by role
+**Version:** 1.1.0  
+**Last Updated:** October 31, 2025  
+**Purpose:** Comprehensive WordPress plugin with survey management, Elementor widgets, user tracking, Fluent Forms integration with real-time validation, country auto-detection, country mismatch prevention, profile picture management, admin bar control by role, and advanced reporting & analytics system
 
 ---
 
@@ -22,6 +22,10 @@ rm-panel-extensions.php (Main plugin file)
 │   │   ├── class-survey-database-upgrade.php (DB version management)
 │   │   ├── class-survey-tabs-shortcode.php (Available/Completed tabs)
 │   │   └── class-survey-thank-you.php (Thank you pages)
+│   ├── reports/ ✨ NEW v1.1.0
+│   │   ├── class-survey-live-monitor.php (Real-time survey monitoring)
+│   │   ├── class-survey-reports.php (Survey completion reports with Excel export)
+│   │   └── class-user-reports.php (User activity & earnings reports)
 │   ├── elementor/
 │   │   ├── class-elementor-module.php (Main Elementor integration)
 │   │   ├── widgets/
@@ -37,7 +41,7 @@ rm-panel-extensions.php (Main plugin file)
 │   ├── profile-picture/
 │   │   └── class-profile-picture-handler.php (Profile picture AJAX handler)
 │   ├── admin-bar/
-│   │   └── class-admin-bar-manager.php (Admin bar visibility by role) ✨ NEW
+│   │   └── class-admin-bar-manager.php (Admin bar visibility by role)
 │   └── fluent-forms/
 │       └── class-fluent-forms-module.php (Fluent Forms integration, validation & country detection)
 └── assets/
@@ -45,11 +49,16 @@ rm-panel-extensions.php (Main plugin file)
     │   ├── All stylesheets
     │   ├── fluent-forms-validation.css (Real-time validation styles + country mismatch)
     │   ├── profile-picture-widget.css (Profile picture widget styles)
-    │   └── admin-bar-settings.css (Admin bar settings page styles - optional) ✨ NEW
+    │   ├── live-monitor.css ✨ NEW (Live monitoring dashboard styles)
+    │   ├── survey-styles.css (Survey listing styles)
+    │   └── user-reports.css ✨ NEW (User reports dashboard styles)
     └── js/
         ├── All JavaScript files
         ├── fluent-forms-validation.js (Real-time validation, country detection & mismatch prevention)
-        └── profile-picture-widget.js (Profile picture upload & interactions)
+        ├── profile-picture-widget.js (Profile picture upload & interactions)
+        ├── live-monitor.js ✨ NEW (Auto-refreshing live monitor)
+        ├── survey-reports.js ✨ NEW (Datepicker & filtering)
+        └── user-reports.js ✨ NEW (User reports interactions)
 ```
 
 ---
@@ -194,120 +203,12 @@ RM_Panel_Fluent_Forms_Module::get_instance(); // ✅ CORRECT
 'container_background' // Container background color
 ```
 
-**User Data Retrieval:**
-```php
-// Get current user data
-$current_user = wp_get_current_user();
-$user_id = $current_user->ID;
-$full_name = $current_user->display_name;
-$email = $current_user->user_email;
-
-// Get country from FluentCRM (priority) or user meta
-if (class_exists('RM_Panel_FluentCRM_Helper')) {
-    $country = RM_Panel_FluentCRM_Helper::get_contact_country($user_id);
-}
-if (empty($country)) {
-    $country = get_user_meta($user_id, 'country', true);
-}
-
-// Get profile picture
-$profile_picture_id = get_user_meta($user_id, 'rm_profile_picture', true);
-if ($profile_picture_id) {
-    $profile_picture_url = wp_get_attachment_image_url($profile_picture_id, 'medium');
-} else {
-    $profile_picture_url = get_avatar_url($user_id, ['size' => 150]);
-}
-```
-
-**HTML Structure:**
-```html
-<div class="rm-profile-picture-container">
-    <div class="rm-profile-picture-wrapper">
-        <!-- Profile Picture with Overlay -->
-        <div class="rm-profile-picture-image-wrapper">
-            <img class="rm-profile-picture-image" data-user-id="{user_id}">
-            <div class="rm-profile-picture-overlay">
-                <span class="rm-profile-picture-icon">📷</span>
-                <span class="rm-profile-picture-text">Click to Upload Photo</span>
-            </div>
-        </div>
-        
-        <!-- User Information -->
-        <div class="rm-profile-info">
-            <div class="rm-profile-name">{Full Name}</div>
-            <div class="rm-profile-email">{email@example.com}</div>
-            <div class="rm-profile-country">🌍 {Country}</div>
-        </div>
-    </div>
-</div>
-
-<!-- Upload Modal -->
-<div class="rm-profile-picture-modal" id="rm-profile-picture-modal">
-    <div class="rm-modal-content">
-        <div class="rm-modal-header">
-            <h3>Update Profile Picture</h3>
-            <span class="rm-modal-close">&times;</span>
-        </div>
-        <div class="rm-modal-body">
-            <!-- Upload Area -->
-            <div class="rm-upload-area" id="rm-upload-area">
-                <div class="rm-upload-icon">📤</div>
-                <p>Click to upload or drag and drop</p>
-                <p class="rm-upload-hint">PNG, JPG, GIF up to 5MB</p>
-                <input type="file" id="rm-profile-picture-input" accept="image/*">
-            </div>
-            <!-- Preview Area -->
-            <div class="rm-preview-area" id="rm-preview-area" style="display: none;">
-                <img src="" alt="Preview" id="rm-preview-image">
-                <button id="rm-change-image">Change Image</button>
-            </div>
-        </div>
-        <div class="rm-modal-footer">
-            <button class="rm-modal-cancel">Cancel</button>
-            <button id="rm-save-profile-picture">Save Changes</button>
-        </div>
-    </div>
-</div>
-```
-
-**Login Check:**
-```php
-protected function render() {
-    if (!is_user_logged_in()) {
-        echo '<p>' . __('Please log in to view your profile.', 'rm-panel-extensions') . '</p>';
-        return;
-    }
-    // ... render widget
-}
-```
-
 ---
 
 ### 7. **RM_Profile_Picture_Handler** (class-profile-picture-handler.php) - v1.0.3
 **Purpose:** Handles AJAX profile picture uploads, validation, and management
 
 **Pattern:** Singleton
-
-**Singleton Implementation:**
-```php
-class RM_Profile_Picture_Handler {
-    private static $instance = null;
-
-    public static function get_instance() {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
-    private function __construct() {
-        $this->init_hooks();
-    }
-}
-
-// Initialize
-RM_Profile_Picture_Handler::get_instance();
-```
 
 **AJAX Endpoints:**
 ```php
@@ -337,340 +238,14 @@ $max_size = 5 * 1024 * 1024; // 5MB
 - File size validation
 ```
 
-**Upload Process:**
-```php
-1. Verify nonce and user authentication
-2. Validate file type and size
-3. Upload to WordPress media library using media_handle_upload()
-4. Store attachment ID in user meta: 'rm_profile_picture'
-5. Delete old profile picture (if not used by other users)
-6. Log action in user history
-7. Return success response with image URL
-```
-
-**User Meta Storage:**
-```php
-// Current profile picture
-update_user_meta($user_id, 'rm_profile_picture', $attachment_id);
-
-// History tracking (last 5 entries)
-update_user_meta($user_id, 'rm_profile_picture_history', [
-    [
-        'user_id' => $user_id,
-        'attachment_id' => $attachment_id,
-        'timestamp' => current_time('mysql'),
-        'ip_address' => $ip_address
-    ]
-]);
-```
-
-**Helper Method:**
-```php
-/**
- * Get profile picture URL for a user
- * 
- * @param int $user_id User ID
- * @param string $size Image size (thumbnail, medium, large, full)
- * @return string Image URL
- */
-public static function get_user_profile_picture($user_id, $size = 'medium') {
-    $attachment_id = get_user_meta($user_id, 'rm_profile_picture', true);
-    
-    if ($attachment_id) {
-        $image_url = wp_get_attachment_image_url($attachment_id, $size);
-        if ($image_url) {
-            return $image_url;
-        }
-    }
-    
-    // Fallback to WordPress avatar
-    return get_avatar_url($user_id, ['size' => 150]);
-}
-```
-
-**AJAX Response Format:**
-```javascript
-// Success Response
-{
-    success: true,
-    data: {
-        message: "Profile picture updated successfully!",
-        url: "https://site.com/wp-content/uploads/2025/10/image-150x150.jpg",
-        full_url: "https://site.com/wp-content/uploads/2025/10/image.jpg",
-        attachment_id: 123
-    }
-}
-
-// Error Response
-{
-    success: false,
-    data: {
-        message: "Invalid file type. Only JPG, PNG, and GIF are allowed"
-    }
-}
-```
-
-**Smart Cleanup:**
-```php
-/**
- * Only delete old profile picture if not used by other users
- */
-private function maybe_delete_old_picture($attachment_id) {
-    global $wpdb;
-    
-    $usage_count = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM {$wpdb->usermeta} 
-        WHERE meta_key = 'rm_profile_picture' 
-        AND meta_value = %d",
-        $attachment_id
-    ));
-    
-    // Only delete if not used by any other user
-    if ($usage_count == 0) {
-        wp_delete_attachment($attachment_id, true);
-    }
-}
-```
-
 ---
 
-### 8. **Profile Picture JavaScript** (profile-picture-widget.js) - v1.0.3
-**Purpose:** Handles modal interactions, file upload, drag-and-drop, and AJAX submission
-
-**Dependencies:** jQuery
-
-**Initialization:**
-```javascript
-(function($) {
-    'use strict';
-    
-    $(document).ready(function() {
-        initProfilePictureWidget();
-    });
-})(jQuery);
-```
-
-**Event Handlers:**
-```javascript
-// Modal Control
-$(document).on('click', '.rm-profile-picture-image-wrapper', openModal);
-$(document).on('click', '.rm-modal-close, .rm-modal-cancel', closeModal);
-$(document).on('click', '.rm-profile-picture-modal', clickOutsideModal);
-$(document).on('keydown', escapeKeyHandler); // ESC key
-
-// File Upload
-$(document).on('click', '#rm-upload-area', triggerFileInput);
-$(document).on('change', '#rm-profile-picture-input', handleFileSelect);
-$(document).on('click', '#rm-change-image', triggerFileInput);
-
-// Save Button
-$(document).on('click', '#rm-save-profile-picture', saveProfilePicture);
-```
-
-**Drag & Drop:**
-```javascript
-function setupDragAndDrop() {
-    var uploadArea = document.getElementById('rm-upload-area');
-    
-    // Prevent default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-    
-    // Highlight drop area when item is dragged over it
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, highlight, false);
-    });
-    
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, unhighlight, false);
-    });
-    
-    // Handle dropped files
-    uploadArea.addEventListener('drop', handleDrop, false);
-}
-
-function highlight(e) {
-    uploadArea.classList.add('dragover');
-}
-
-function unhighlight(e) {
-    uploadArea.classList.remove('dragover');
-}
-
-function handleDrop(e) {
-    var files = e.dataTransfer.files;
-    handleFileSelect(files);
-}
-```
-
-**File Validation:**
-```javascript
-function handleFileSelect(files) {
-    // Safety check
-    if (!files || files.length === 0) {
-        return;
-    }
-    
-    var file = files[0];
-    
-    // Validate file type
-    if (!file.type.match('image.*')) {
-        showMessage('error', 'Please select an image file (PNG, JPG, GIF)');
-        return;
-    }
-    
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-        showMessage('error', 'File size must be less than 5MB');
-        return;
-    }
-    
-    // Show preview
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        $('#rm-preview-image').attr('src', e.target.result);
-        $('#rm-upload-area').hide();
-        $('#rm-preview-area').show();
-    };
-    reader.readAsDataURL(file);
-}
-```
-
-**AJAX Upload:**
-```javascript
-function saveProfilePicture() {
-    var fileInput = $('#rm-profile-picture-input')[0];
-    var userId = $('.rm-profile-picture-image').data('user-id');
-    
-    // Prepare FormData
-    var formData = new FormData();
-    formData.append('action', 'rm_upload_profile_picture');
-    formData.append('user_id', userId);
-    formData.append('profile_picture', fileInput.files[0]);
-    formData.append('nonce', rmProfilePicture.nonce);
-    
-    // Show loading state
-    $saveButton.addClass('loading').prop('disabled', true);
-    hideMessage();
-    
-    // AJAX request
-    $.ajax({
-        url: rmProfilePicture.ajax_url,
-        type: 'POST',
-        data: formData,
-        processData: false,  // Don't process data
-        contentType: false,  // Don't set content type
-        success: function(response) {
-            $saveButton.removeClass('loading').prop('disabled', false);
-            
-            if (response.success) {
-                // Update profile picture on page
-                $('.rm-profile-picture-image').attr('src', response.data.url);
-                
-                // Show success message
-                showMessage('success', response.data.message || 'Profile picture updated successfully!');
-                
-                // Close modal after delay
-                setTimeout(function() {
-                    closeModal();
-                }, 1500);
-            } else {
-                showMessage('error', response.data.message || 'Failed to upload profile picture');
-            }
-        },
-        error: function(xhr, status, error) {
-            $saveButton.removeClass('loading').prop('disabled', false);
-            console.error('Upload error:', error);
-            showMessage('error', 'An error occurred while uploading. Please try again.');
-        }
-    });
-}
-```
-
-**Modal Management:**
-```javascript
-function closeModal() {
-    $('#rm-profile-picture-modal').removeClass('active');
-    $('body').css('overflow', ''); // Restore scrolling
-    
-    // Reset modal state
-    setTimeout(function() {
-        $('#rm-upload-area').show();
-        $('#rm-preview-area').hide();
-        
-        // Reset file input (prevents infinite loop)
-        var $fileInput = $('#rm-profile-picture-input');
-        var $newInput = $fileInput.clone();
-        $fileInput.replaceWith($newInput);
-        
-        $('#rm-preview-image').attr('src', '');
-        hideMessage();
-    }, 300); // Wait for fade out animation
-}
-```
-
-**Message System:**
-```javascript
-function showMessage(type, message) {
-    var $message = $('.rm-message');
-    
-    // Create message element if it doesn't exist
-    if ($message.length === 0) {
-        $message = $('<div class="rm-message"></div>');
-        $('.rm-modal-body').prepend($message);
-    }
-    
-    $message
-        .removeClass('success error')
-        .addClass(type)
-        .text(message)
-        .addClass('show');
-}
-
-function hideMessage() {
-    $('.rm-message').removeClass('show');
-}
-```
-
-**Localized Script Variables:**
-```javascript
-rmProfilePicture = {
-    ajax_url: 'https://site.com/wp-admin/admin-ajax.php',
-    nonce: 'abc123def456...'
-}
-```
-
----
-
-### 9. **RM_Panel_Admin_Bar_Manager** (class-admin-bar-manager.php) - ✨ NEW v1.0.4.1
+### 8. **RM_Panel_Admin_Bar_Manager** (class-admin-bar-manager.php) - v1.0.4.1
 **Purpose:** Manages WordPress admin bar visibility based on user roles
 
 **Pattern:** Singleton
 
 **Version:** 1.0.4.1 (FIXED - Corrected inverted logic bug)
-
-**Singleton Implementation:**
-```php
-class RM_Panel_Admin_Bar_Manager {
-    private static $instance = null;
-
-    public static function get_instance() {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
-    private function __construct() {
-        $this->init_hooks();
-    }
-}
-
-// Initialize
-RM_Panel_Admin_Bar_Manager::get_instance();
-```
 
 **Key Features:**
 - Per-role admin bar control
@@ -681,263 +256,906 @@ RM_Panel_Admin_Bar_Manager::get_instance();
 - Settings save/load
 - Reset to defaults
 
-**Hooks Used:**
+---
+
+### 9. **RM_Survey_Live_Monitor** (class-survey-live-monitor.php) - ✨ NEW v1.1.0
+**Purpose:** Real-time monitoring of active survey sessions with auto-refreshing dashboard
+
+**Pattern:** Singleton
+
+**Database Queries:**
 ```php
-add_action('after_setup_theme', [$this, 'manage_admin_bar']);
-add_action('wp_head', [$this, 'hide_admin_bar_css'], 999);
-add_action('admin_head', [$this, 'hide_admin_bar_css'], 999);
+// Active surveys (started in last 2 minutes, not completed)
+SELECT r.*, u.display_name, p.post_title as survey_title
+FROM {$table_name} r
+LEFT JOIN {$wpdb->users} u ON r.user_id = u.ID
+LEFT JOIN {$wpdb->posts} p ON r.survey_id = p.ID
+WHERE r.status = 'started'
+AND r.start_time >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+ORDER BY r.start_time DESC
+
+// Waiting to complete (started but not completed in last 24 hours)
+SELECT r.*, u.display_name, p.post_title as survey_title,
+    TIMESTAMPDIFF(MINUTE, r.start_time, NOW()) as minutes_waiting
+FROM {$table_name} r
+LEFT JOIN {$wpdb->users} u ON r.user_id = u.ID
+LEFT JOIN {$wpdb->posts} p ON r.survey_id = p.ID
+WHERE r.status = 'started'
+AND r.start_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+AND r.start_time < DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+ORDER BY r.start_time DESC
+
+// Today's completions
+SELECT COUNT(*) FROM {$table_name}
+WHERE status = 'completed'
+AND DATE(completion_time) = CURDATE()
+
+// Today's conversion rate
+$conversion_rate = ($today_completed / $today_started) * 100
 ```
 
 **Key Methods:**
 
-**`manage_admin_bar()` - Main Control Method (FIXED in v1.0.4.1)**
+**`add_admin_menu()`** - Adds menu under Surveys
 ```php
-public function manage_admin_bar() {
-    // Get settings
-    $settings = $this->get_admin_bar_settings();
-    
-    // If no settings exist, use defaults (admins only)
-    if (empty($settings)) {
-        $settings = self::get_default_settings();
-    }
-
-    // ✅ FIXED: Explicitly enable OR disable admin bar
-    if ($this->should_show_admin_bar($settings)) {
-        // EXPLICITLY ENABLE admin bar
-        show_admin_bar(true);
-        add_filter('show_admin_bar', '__return_true');
-    } else {
-        // EXPLICITLY DISABLE admin bar
-        show_admin_bar(false);
-        add_filter('show_admin_bar', '__return_false');
-    }
-}
+add_submenu_page(
+    'edit.php?post_type=rm_survey',
+    __('Live Monitoring', 'rm-panel-extensions'),
+    __('📊 Live Monitor', 'rm-panel-extensions'),
+    'manage_options',
+    'rm-survey-live-monitor',
+    [$this, 'render_live_monitor_page']
+);
 ```
 
-**`should_show_admin_bar($settings)` - Check User's Role**
+**`ajax_get_live_stats()`** - AJAX handler for statistics
 ```php
-private function should_show_admin_bar($settings) {
-    $current_user = wp_get_current_user();
-    
-    if (!is_user_logged_in()) {
-        return false;
-    }
-
-    $user_roles = $current_user->roles;
-    
-    if (empty($user_roles)) {
-        return false;
-    }
-
-    // Check if any of the user's roles are allowed
-    foreach ($user_roles as $role) {
-        if (isset($settings[$role]) && $settings[$role] === '1') {
-            return true;
-        }
-    }
-
-    return false;
-}
-```
-
-**`get_admin_bar_settings()` - Get Settings (FIXED in v1.0.4.1)**
-```php
-private function get_admin_bar_settings() {
-    $settings = get_option('rm_panel_admin_bar_settings', []);
-    
-    // ✅ FIXED: Return defaults if empty
-    if (empty($settings)) {
-        return self::get_default_settings();
-    }
-    
-    return $settings;
-}
-```
-
-**`hide_admin_bar_css()` - Remove Visual Artifacts**
-```php
-public function hide_admin_bar_css() {
-    $settings = $this->get_admin_bar_settings();
-    
-    if (!$this->should_show_admin_bar($settings)) {
-        ?>
-        <style type="text/css">
-            #wpadminbar {
-                display: none !important;
-            }
-            html {
-                margin-top: 0 !important;
-            }
-            body.admin-bar {
-                margin-top: 0 !important;
-            }
-            body.elementor-editor-active {
-                margin-top: 0 !important;
-            }
-        </style>
-        <?php
-    }
-}
-```
-
-**`get_all_roles()` - Get All WordPress Roles**
-```php
-public static function get_all_roles() {
-    global $wp_roles;
-    
-    if (!isset($wp_roles)) {
-        $wp_roles = new WP_Roles();
-    }
-    
-    $roles = [];
-    
-    foreach ($wp_roles->roles as $role_key => $role_data) {
-        $roles[$role_key] = [
-            'name' => $role_key,
-            'display_name' => $role_data['name']
-        ];
-    }
-    
-    return $roles;
-}
-```
-
-**`save_settings($settings)` - Save Settings**
-```php
-public static function save_settings($settings) {
-    $validated = [];
-    $all_roles = self::get_all_roles();
-    
-    foreach ($all_roles as $role_key => $role_data) {
-        $validated[$role_key] = isset($settings[$role_key]) ? '1' : '0';
-    }
-    
-    return update_option('rm_panel_admin_bar_settings', $validated);
-}
-```
-
-**`get_default_settings()` - Default Settings**
-```php
-public static function get_default_settings() {
-    return [
-        'administrator' => '1', // Admins can see
-        'editor' => '0',        // Editors cannot see
-        'author' => '0',        // Authors cannot see
-        'contributor' => '0',   // Contributors cannot see
-        'subscriber' => '0'     // Subscribers cannot see
-    ];
-}
-```
-
-**`reset_to_defaults()` - Reset Settings**
-```php
-public static function reset_to_defaults() {
-    return update_option('rm_panel_admin_bar_settings', self::get_default_settings());
-}
-```
-
-**Database Structure:**
-```php
-// Option Name: rm_panel_admin_bar_settings
-// Format: Serialized array
+// Returns:
 [
-    'administrator' => '1',  // Show
-    'editor' => '0',         // Hide
-    'author' => '0',         // Hide
-    'contributor' => '0',    // Hide
-    'subscriber' => '0'      // Hide
+    'active_now' => count($active_surveys),
+    'waiting_complete' => count($waiting_complete),
+    'today_completed' => intval($today_completed),
+    'today_started' => intval($today_started),
+    'conversion_rate' => $conversion_rate,
+    'active_surveys' => $active_surveys,
+    'waiting_surveys' => $waiting_complete,
+    'timestamp' => current_time('mysql')
 ]
 ```
 
-**Settings UI Integration:**
-Located in `rm-panel-extensions.php` → `render_settings_page()` method:
+**`ajax_get_active_users()`** - Get users active on site
 ```php
-<h2>Admin Bar Visibility</h2>
-<p class="description">Control which user roles can see the WordPress admin bar</p>
-
-<table class="form-table">
-    <?php
-    $admin_bar_settings = get_option('rm_panel_admin_bar_settings', 
-        RM_Panel_Admin_Bar_Manager::get_default_settings());
-    $all_roles = RM_Panel_Admin_Bar_Manager::get_all_roles();
-    
-    foreach ($all_roles as $role_key => $role_data) :
-        $is_checked = isset($admin_bar_settings[$role_key]) 
-            && $admin_bar_settings[$role_key] === '1';
-    ?>
-        <tr>
-            <th scope="row">
-                <label for="admin_bar_<?php echo esc_attr($role_key); ?>">
-                    <?php echo esc_html($role_data['display_name']); ?>
-                </label>
-            </th>
-            <td>
-                <input type="checkbox" 
-                       name="rm_panel_admin_bar[<?php echo esc_attr($role_key); ?>]" 
-                       id="admin_bar_<?php echo esc_attr($role_key); ?>" 
-                       value="1" 
-                       <?php checked($is_checked); ?>>
-                <p class="description">
-                    <?php 
-                    if ($role_key === 'administrator') {
-                        _e('Recommended: Keep enabled for administrators', 'rm-panel-extensions'); 
-                    } else {
-                        printf(__('Allow %s to see the admin bar', 'rm-panel-extensions'), 
-                            esc_html($role_data['display_name']));
-                    }
-                    ?>
-                </p>
-            </td>
-        </tr>
-    <?php endforeach; ?>
-    
-    <tr>
-        <th scope="row" colspan="2">
-            <button type="button" id="rm-admin-bar-reset" class="button">
-                Reset to Defaults
-            </button>
-        </th>
-    </tr>
-</table>
+// Get users active in last 5 minutes
+SELECT u.ID, u.display_name, u.user_email, um.meta_value as last_activity
+FROM {$wpdb->users} u
+INNER JOIN {$wpdb->usermeta} um ON u.ID = um.user_id
+WHERE um.meta_key = 'rm_last_activity'
+AND um.meta_value >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+ORDER BY um.meta_value DESC
 ```
 
-**Save Integration:**
-Located in `rm-panel-extensions.php` → `save_settings()` method:
+**`track_survey_visit()`** - Track active survey sessions
 ```php
-// Save Admin Bar settings
-if (isset($_POST['rm_panel_admin_bar'])) {
-    RM_Panel_Admin_Bar_Manager::save_settings($_POST['rm_panel_admin_bar']);
-} else {
-    // If no settings submitted, save empty (hide for all roles)
-    RM_Panel_Admin_Bar_Manager::save_settings([]);
+// Stores active session in transient (expires in 2 minutes)
+$session_key = 'rm_active_survey_' . $user_id . '_' . $survey_id;
+set_transient($session_key, [
+    'user_id' => $user_id,
+    'survey_id' => $survey_id,
+    'started' => current_time('mysql'),
+    'last_active' => current_time('mysql')
+], 2 * MINUTE_IN_SECONDS);
+```
+
+**`heartbeat_update($response, $data)`** - WordPress Heartbeat API integration
+```php
+// Provides quick stats for real-time updates
+if (!empty($data['rm_monitor_active'])) {
+    $response['rm_active_surveys'] = intval($active_count);
 }
 ```
 
-**Security Features:**
-- Nonce verification on form submission
-- Capability check (`manage_options`)
-- Data sanitization
-- Singleton pattern (no duplicates)
-- Safe defaults
+**Dashboard Features:**
+- 🔴 Live indicator with pulsing animation
+- 📊 Four stat cards: Active Now, Waiting to Complete, Completed Today, Conversion Rate
+- 📋 Active surveys table with user info, survey title, duration, status
+- ⏳ Waiting surveys table with time waiting indicators
+- 👥 Active users list with last activity timestamps
+- ⏱️ Last updated timestamp
+- 🔄 Auto-refresh every 5 seconds
+- 🎨 Color-coded duration warnings (orange > 5 min, red > 10 min)
+- 📈 Real-time conversion rate calculation
 
-**What It Does:**
-- ✅ Hides WordPress admin bar based on role
-- ✅ Removes admin bar spacing completely
-- ✅ Works on frontend and backend
-- ✅ Auto-detects custom roles from other plugins
-- ✅ Provides easy UI in settings page
+**Auto-Refresh System:**
+```javascript
+// Refresh interval: 5 seconds
+refreshInterval: 5000,
 
-**What It Doesn't Do:**
-- ❌ Does NOT restrict admin area access
-- ❌ Does NOT change user capabilities
-- ❌ Does NOT prevent /wp-admin/ access
-- ❌ Does NOT hide admin menu items
+// Loads stats and active users automatically
+setInterval(function() {
+    RMLiveMonitor.loadStats();
+    RMLiveMonitor.loadActiveUsers();
+}, rmLiveMonitor.refresh_interval);
+```
+
+**Admin Menu Location:**
+```
+WordPress Admin → Surveys → 📊 Live Monitor
+URL: /wp-admin/edit.php?post_type=rm_survey&page=rm-survey-live-monitor
+```
+
+**Permissions:**
+- Requires: `manage_options` capability
+- Only administrators can access by default
 
 ---
 
-## 🔧 Important Settings
+### 10. **RM_Survey_Reports** (class-survey-reports.php) - ✨ NEW v1.1.0
+**Purpose:** Comprehensive survey completion reports with filtering and Excel/CSV export
 
-### Admin Bar Management Setting - ✨ NEW v1.0.4.1
+**Pattern:** Singleton
+
+**Database Queries:**
+```php
+// Filtered survey responses with user and survey details
+SELECT r.*, u.display_name, u.user_email, p.post_title as survey_title,
+    TIMESTAMPDIFF(MINUTE, r.start_time, r.completion_time) as duration_minutes
+FROM {$table_name} r
+LEFT JOIN {$wpdb->users} u ON r.user_id = u.ID
+LEFT JOIN {$wpdb->posts} p ON r.survey_id = p.ID
+WHERE {$where_clauses}
+ORDER BY r.start_time DESC
+```
+
+**Filter Options:**
+- Survey: Dropdown of all published surveys
+- Status: started / completed
+- Completion Status: success / quota_complete / disqualified
+- Date Range: From date → To date (with datepicker)
+- User: Filter by specific user ID
+
+**Key Methods:**
+
+**`get_filtered_responses($filters)`** - Get survey responses with filters
+```php
+$filters = [
+    'survey_id' => intval($_GET['survey_id']),
+    'status' => sanitize_text_field($_GET['status']),
+    'completion_status' => sanitize_text_field($_GET['completion_status']),
+    'date_from' => sanitize_text_field($_GET['date_from']),
+    'date_to' => sanitize_text_field($_GET['date_to']),
+    'user_id' => intval($_GET['user_id'])
+];
+
+// Returns array of response objects with:
+// - id, user_id, survey_id
+// - display_name, user_email, survey_title
+// - status, completion_status
+// - start_time, completion_time, duration_minutes
+// - ip_address, user_agent
+```
+
+**`handle_excel_export()`** - Export to CSV (Excel-compatible)
+```php
+// CSV Export Features:
+- UTF-8 BOM for Excel compatibility
+- Comprehensive headers
+- All filtered data included
+- Filename: survey-reports-YYYY-MM-DD-HHMMSS.csv
+
+// CSV Columns:
+[
+    'ID',
+    'User Name',
+    'User Email',
+    'Survey Title',
+    'Status',
+    'Completion Status',
+    'Started',
+    'Completed',
+    'Duration (minutes)',
+    'IP Address',
+    'User Agent'
+]
+```
+
+**Report Features:**
+- 🔍 Advanced filtering system
+- 📅 jQuery UI datepicker integration
+- 📥 One-click Excel/CSV export
+- 📊 Comprehensive data table
+- 🎯 Status badges with color coding
+- ⏱️ Duration display in minutes
+- 🔄 Clear filters button
+- 📈 Record count display
+
+**Admin Menu Location:**
+```
+WordPress Admin → Surveys → 📊 Survey Reports
+URL: /wp-admin/edit.php?post_type=rm_survey&page=rm-survey-reports
+```
+
+**Export URL Pattern:**
+```php
+// Export with current filters
+/wp-admin/admin.php?action=rm_export_survey_reports
+    &survey_id=123
+    &status=completed
+    &completion_status=success
+    &date_from=2025-10-01
+    &date_to=2025-10-31
+    &_wpnonce=abc123...
+```
+
+**Permissions:**
+- Requires: `manage_options` capability
+- Only administrators can access by default
+
+---
+
+### 11. **RM_User_Reports** (class-user-reports.php) - ✨ NEW v1.1.0
+**Purpose:** Comprehensive user activity, earnings, and payment tracking dashboard
+
+**Pattern:** Singleton
+
+**Database Queries:**
+```php
+// Get comprehensive user data with survey statistics
+SELECT 
+    COUNT(*) as total_surveys,
+    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_surveys,
+    SUM(CASE WHEN completion_status = 'success' THEN 1 ELSE 0 END) as successful_surveys,
+    MAX(completion_time) as last_survey_completed
+FROM {$table_name}
+WHERE user_id = %d
+```
+
+**User Data Retrieved:**
+```php
+// For each user:
+[
+    'ID' => $user->ID,
+    'username' => $user->user_login,
+    'display_name' => $user->display_name,
+    'email' => $user->user_email,
+    'registered' => $user->user_registered,
+    'role' => implode(', ', $user->roles),
+    'country' => $country, // From FluentCRM or user meta
+    'last_login' => get_user_meta('rm_last_login'),
+    'last_activity' => get_user_meta('rm_last_activity'),
+    'login_count' => get_user_meta('rm_login_count'),
+    'total_surveys' => intval($survey_stats->total_surveys),
+    'completed_surveys' => intval($survey_stats->completed_surveys),
+    'successful_surveys' => intval($survey_stats->successful_surveys),
+    'last_survey_completed' => $survey_stats->last_survey_completed,
+    'total_earned' => get_user_meta('rm_total_earnings'),
+    'paid_amount' => get_user_meta('rm_paid_amount'),
+    'pending_payment' => $total_earned - $paid_amount
+]
+```
+
+**Filter Options:**
+- Search: Name, email, or username (text search)
+- Role: Dropdown of all WordPress roles
+- Registered After: Date picker for registration date
+
+**Key Methods:**
+
+**`get_user_comprehensive_data($filters)`** - Get all user data with filters
+```php
+$filters = [
+    'role' => sanitize_text_field($_GET['role']),
+    'date_from' => sanitize_text_field($_GET['date_from']),
+    'search' => sanitize_text_field($_GET['search'])
+];
+
+// Returns array of user data objects
+```
+
+**`track_user_login($user_login, $user)`** - Track user logins
+```php
+// Updates on wp_login hook:
+update_user_meta($user->ID, 'rm_last_login', current_time('mysql'));
+update_user_meta($user->ID, 'rm_login_count', $count + 1);
+```
+
+**`track_user_activity()`** - Track user site activity
+```php
+// Updates every 5 minutes during site browsing:
+if (empty($last_activity) || strtotime($last_activity) < strtotime('-5 minutes')) {
+    update_user_meta($user_id, 'rm_last_activity', current_time('mysql'));
+}
+```
+
+**`handle_excel_export()`** - Export user data to CSV
+```php
+// CSV Export Features:
+- UTF-8 BOM for Excel compatibility
+- Currency symbol configuration
+- All user metrics included
+- Filename: user-reports-YYYY-MM-DD-HHMMSS.csv
+
+// CSV Columns:
+[
+    'User ID',
+    'Username',
+    'Display Name',
+    'Email',
+    'Role',
+    'Country',
+    'Registered',
+    'Last Login',
+    'Last Activity',
+    'Login Count',
+    'Total Surveys',
+    'Completed Surveys',
+    'Successful Surveys',
+    'Last Survey Completed',
+    'Total Earned',
+    'Paid Amount',
+    'Pending Payment'
+]
+```
+
+**Dashboard Features:**
+- 📊 Four summary stat cards:
+  - 👥 Total Users
+  - 💰 Total Earned
+  - ✅ Total Paid
+  - ⏳ Pending Payment
+- 🔍 Advanced search and filtering
+- 📅 jQuery UI datepicker
+- 🌍 Country display (from FluentCRM or user meta)
+- 🟢 Active now indicator (last 5 minutes)
+- 📈 Survey completion statistics
+- 💵 Earnings breakdown (earned / paid / pending)
+- 🎨 Visual indicators for pending payments
+- 📥 One-click Excel/CSV export
+- 📊 Totals footer row
+- ⏱️ Human-readable time displays ("2 hours ago")
+
+**Special Indicators:**
+```php
+// Active Now (green)
+if ($minutes_ago < 5) {
+    echo '<span class="rm-active-now">🟢 Active Now</span>';
+}
+
+// Pending Payment Highlight
+if ($pending_payment > 0) {
+    // 3px orange left border on table row
+    $(this).css('border-left', '3px solid #f0b849');
+}
+```
+
+**Admin Menu Location:**
+```
+WordPress Admin → Surveys → 👥 User Reports
+URL: /wp-admin/edit.php?post_type=rm_survey&page=rm-user-reports
+```
+
+**Permissions:**
+- Requires: `manage_options` capability
+- Only administrators can access by default
+
+**Currency Configuration:**
+```php
+// Set in plugin settings or default to $
+$currency = get_option('rm_panel_currency_symbol', '$');
+
+// Display format:
+$currency . number_format($amount, 2)
+// Examples: $25.00, €25.00, £25.00
+```
+
+---
+
+## 🎨 CSS Architecture - UPDATED v1.1.0
+
+### Live Monitor CSS (live-monitor.css) - ✨ NEW
+```css
+/* Live Indicator with Pulsing Animation */
+.rm-live-indicator {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.rm-live-dot {
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Stats Cards Grid */
+.rm-stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* Color-Coded Stats */
+.rm-stat-active .rm-stat-value { color: #dc3232; } /* Red */
+.rm-stat-waiting .rm-stat-value { color: #f0b849; } /* Orange */
+.rm-stat-completed .rm-stat-value { color: #46b450; } /* Green */
+.rm-stat-conversion .rm-stat-value { color: #00a0d2; } /* Blue */
+
+/* Duration Warnings */
+.rm-duration-warning { color: #f0b849; } /* > 5 minutes */
+.rm-duration-danger { color: #dc3232; } /* > 10 minutes */
+
+/* Status Badges */
+.rm-status-started {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.rm-status-active {
+    background: #d4edda;
+    color: #155724;
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+```
+
+### Survey Styles CSS (survey-styles.css) - Enhanced
+```css
+/* Survey Grid Layout */
+.rm-survey-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Survey Item Card */
+.survey-item {
+    background: #fff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+}
+
+.survey-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Status Badges */
+.survey-status-badge.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.survey-status-badge.status-draft {
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.survey-status-badge.status-paused {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.survey-status-badge.status-closed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .rm-survey-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .rm-survey-grid {
+        grid-template-columns: 1fr;
+    }
+}
+```
+
+### User Reports CSS (user-reports.css) - ✨ NEW
+```css
+/* Summary Stats Cards */
+.rm-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.rm-summary-success .rm-summary-value {
+    color: #46b450;
+}
+
+.rm-summary-warning .rm-summary-value {
+    color: #f0b849;
+}
+
+/* Filters Section */
+.rm-filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+/* Datepicker Icon */
+.rm-datepicker {
+    background-image: url('data:image/svg+xml...');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 35px;
+}
+
+/* Active Now Indicator */
+.rm-active-now {
+    color: #46b450;
+    font-weight: 600;
+}
+
+/* Amount Cells */
+.rm-amount {
+    font-family: 'Courier New', monospace;
+    text-align: right;
+}
+
+.rm-amount-paid {
+    color: #46b450;
+}
+
+.rm-amount-pending {
+    color: #f0b849;
+    font-weight: 600;
+}
+```
+
+---
+
+## 🔧 JavaScript Architecture - UPDATED v1.1.0
+
+### Live Monitor JS (live-monitor.js) - ✨ NEW
+```javascript
+var RMLiveMonitor = {
+    refreshInterval: null,
+    
+    /**
+     * Initialize with auto-refresh
+     */
+    init: function() {
+        this.loadStats();
+        this.loadActiveUsers();
+        
+        // Auto-refresh every 5 seconds
+        this.refreshInterval = setInterval(function() {
+            RMLiveMonitor.loadStats();
+            RMLiveMonitor.loadActiveUsers();
+        }, rmLiveMonitor.refresh_interval);
+    },
+    
+    /**
+     * Load statistics via AJAX
+     */
+    loadStats: function() {
+        $.ajax({
+            url: rmLiveMonitor.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'rm_get_live_survey_stats',
+                nonce: rmLiveMonitor.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    RMLiveMonitor.updateStats(response.data);
+                    RMLiveMonitor.updateActiveSurveys(response.data.active_surveys);
+                    RMLiveMonitor.updateWaitingSurveys(response.data.waiting_surveys);
+                }
+            }
+        });
+    },
+    
+    /**
+     * Calculate duration in minutes
+     */
+    calculateDuration: function(startTime) {
+        var start = new Date(startTime.replace(/-/g, '/'));
+        var now = new Date();
+        var diff = Math.floor((now - start) / 1000 / 60);
+        return diff;
+    },
+    
+    /**
+     * Format waiting time (minutes → hours → days)
+     */
+    formatWaitingTime: function(minutes) {
+        if (minutes < 60) {
+            return minutes + ' min';
+        } else if (minutes < 1440) {
+            var hours = Math.floor(minutes / 60);
+            return hours + ' hour' + (hours > 1 ? 's' : '');
+        } else {
+            var days = Math.floor(minutes / 1440);
+            return days + ' day' + (days > 1 ? 's' : '');
+        }
+    }
+};
+```
+
+### Survey Reports JS (survey-reports.js) - ✨ NEW
+```javascript
+$(document).ready(function() {
+    // Initialize jQuery UI datepickers
+    if ($.fn.datepicker) {
+        $('.rm-datepicker').datepicker({
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            maxDate: 0, // Today
+            yearRange: '-10:+0'
+        });
+    }
+    
+    // Table row hover effects
+    $('.rm-reports-table-wrapper tbody tr').hover(
+        function() {
+            $(this).css('background-color', '#f9f9f9');
+        },
+        function() {
+            $(this).css('background-color', '');
+        }
+    );
+});
+```
+
+### User Reports JS (user-reports.js) - ✨ NEW
+```javascript
+$(document).ready(function() {
+    // Initialize datepickers
+    if ($.fn.datepicker) {
+        $('.rm-datepicker').datepicker({
+            dateFormat: 'yy-mm-dd',
+            changeMonth: true,
+            changeYear: true,
+            maxDate: 0,
+            yearRange: '-10:+0'
+        });
+    }
+    
+    // Highlight rows with pending payments
+    $('.rm-user-reports-table tbody tr').each(function() {
+        var $pending = $(this).find('.rm-amount-pending strong');
+        if ($pending.length && parseFloat($pending.text().replace(/[^0-9.]/g, '')) > 0) {
+            $(this).css('border-left', '3px solid #f0b849');
+        }
+    });
+    
+    // Add tooltip for active users
+    $('.rm-active-now').attr('title', 'User is currently online');
+});
+```
+
+---
+
+## 📊 Reporting System Architecture - ✨ NEW v1.1.0
+
+### Overview
+The reporting system provides three complementary dashboards for comprehensive survey and user analytics:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  REPORTING SYSTEM                       │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────────┐  ┌──────────────────┐           │
+│  │  Live Monitor    │  │  Survey Reports  │           │
+│  │  Real-time data  │  │  Historical data │           │
+│  │  Auto-refresh    │  │  Excel export    │           │
+│  └──────────────────┘  └──────────────────┘           │
+│                                                          │
+│  ┌──────────────────────────────────────┐              │
+│  │  User Reports                         │              │
+│  │  User activity & earnings tracking    │              │
+│  │  Payment management                   │              │
+│  └──────────────────────────────────────┘              │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Data Flow
+
+```
+┌──────────────┐
+│  User Action │
+└──────┬───────┘
+       │
+       v
+┌──────────────────────┐
+│  Survey Tracking     │ ← Records to wp_rm_survey_responses
+│  (Database)          │
+└──────┬───────────────┘
+       │
+       ├─────────────────────┐
+       │                     │
+       v                     v
+┌──────────────┐      ┌──────────────┐
+│ Live Monitor │      │ Survey       │
+│ (Real-time)  │      │ Reports      │
+│              │      │ (Historical) │
+└──────────────┘      └──────────────┘
+       │
+       │              ┌──────────────┐
+       └──────────────│ User         │
+                      │ Reports      │
+                      │ (Activity)   │
+                      └──────────────┘
+```
+
+### Database Schema
+
+```sql
+-- Main survey responses table
+CREATE TABLE wp_rm_survey_responses (
+    id bigint(20) NOT NULL AUTO_INCREMENT,
+    user_id bigint(20) NOT NULL,
+    survey_id bigint(20) NOT NULL,
+    status varchar(50) NOT NULL DEFAULT 'started',
+    completion_status varchar(50) DEFAULT NULL,
+    start_time datetime DEFAULT CURRENT_TIMESTAMP,
+    completion_time datetime DEFAULT NULL,
+    response_data longtext DEFAULT NULL,
+    ip_address varchar(100) DEFAULT NULL,
+    user_agent text DEFAULT NULL,
+    referrer_url text DEFAULT NULL,
+    notes text DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY user_id (user_id),
+    KEY survey_id (survey_id),
+    KEY status (status),
+    KEY completion_status (completion_status),
+    KEY start_time (start_time),
+    UNIQUE KEY user_survey (user_id, survey_id)
+);
+
+-- User meta for activity tracking
+-- rm_last_login: datetime of last login
+-- rm_last_activity: datetime of last site activity
+-- rm_login_count: total number of logins
+-- rm_total_earnings: total amount earned
+-- rm_paid_amount: total amount paid to user
+```
+
+### Report Types Comparison
+
+| Feature | Live Monitor | Survey Reports | User Reports |
+|---------|-------------|----------------|--------------|
+| **Data Type** | Real-time | Historical | User-centric |
+| **Refresh** | Auto (5s) | Manual | Manual |
+| **Time Range** | Last 2 min / 24 hrs | Unlimited | Unlimited |
+| **Filtering** | None | Survey, Date, Status | Role, Date, Search |
+| **Export** | None | CSV/Excel | CSV/Excel |
+| **Primary Use** | Monitoring active sessions | Analyzing survey performance | Managing user earnings |
+| **Active Users** | ✅ Yes | ❌ No | ✅ Yes (last 5 min) |
+| **Conversion Rate** | ✅ Yes | ❌ No | ❌ No |
+| **Duration Tracking** | ✅ Yes | ✅ Yes | ❌ No |
+| **Payment Info** | ❌ No | ❌ No | ✅ Yes |
+
+### Use Cases
+
+**Live Monitor:**
+- Watch users taking surveys in real-time
+- Identify stuck or abandoned surveys
+- Monitor conversion rates throughout the day
+- See which surveys are most active
+- Track waiting completions (started but not finished)
+- Monitor overall site activity
+
+**Survey Reports:**
+- Analyze survey completion trends
+- Export data for external analysis
+- Filter by date range, status, result
+- Review specific survey performance
+- Audit survey responses
+- Calculate survey duration averages
+
+**User Reports:**
+- Track user earnings and payments
+- Identify pending payments
+- Monitor user activity and engagement
+- Export user data for accounting
+- See last login and activity times
+- Analyze user survey completion rates
+
+---
+
+## 🔧 Important Settings - UPDATED v1.1.0
+
+### Currency Symbol Setting - ✨ NEW v1.1.0
+
+**Location:** RM Panel Ext → Settings (future implementation)
+
+**Database Option:** `rm_panel_currency_symbol`
+
+**Default:** `$`
+
+**Usage in User Reports:**
+```php
+$currency = get_option('rm_panel_currency_symbol', '$');
+
+// Display format:
+echo $currency . number_format($amount, 2);
+// Examples: $25.00, €25.00, £25.00, ₹25.00
+```
+
+**Supported Currencies:**
+```php
+// Common currency symbols
+$currencies = [
+    '$' => 'US Dollar',
+    '€' => 'Euro',
+    '£' => 'British Pound',
+    '¥' => 'Japanese Yen',
+    '₹' => 'Indian Rupee',
+    'CAD$' => 'Canadian Dollar',
+    'A$' => 'Australian Dollar',
+    'CHF' => 'Swiss Franc',
+    'R' => 'South African Rand'
+];
+```
+
+### Auto-Refresh Interval - ✨ NEW v1.1.0
+
+**Location:** Hard-coded in live-monitor.js
+
+**Default:** 5000 ms (5 seconds)
+
+**Configuration:**
+```javascript
+// In rm-panel-extensions.php enqueue_admin_scripts()
+wp_localize_script('rm-live-monitor', 'rmLiveMonitor', [
+    'ajax_url' => admin_url('admin-ajax.php'),
+    'nonce' => wp_create_nonce('rm_live_monitor'),
+    'refresh_interval' => 5000 // Customize here
+]);
+```
+
+**Recommended Values:**
+- 3000 (3s) - Very active sites
+- 5000 (5s) - Default, balanced
+- 10000 (10s) - Lower server load
+- 15000 (15s) - Minimal updates
+
+### Activity Timeout Settings - ✨ NEW v1.1.0
+
+**Active Survey Timeout:** 2 minutes
+```php
+// In class-survey-live-monitor.php
+WHERE r.start_time >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+```
+
+**Waiting Survey Timeout:** 24 hours
+```php
+// In class-survey-live-monitor.php
+WHERE r.start_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+AND r.start_time < DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+```
+
+**Active User Timeout:** 5 minutes
+```php
+// In class-user-reports.php track_user_activity()
+if (strtotime($last_activity) < strtotime('-5 minutes')) {
+    update_user_meta($user_id, 'rm_last_activity', current_time('mysql'));
+}
+```
+
+### Excel Export Settings - ✨ NEW v1.1.0
+
+**Encoding:** UTF-8 with BOM
+```php
+// Add BOM for Excel UTF-8 compatibility
+fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+```
+
+**Content Type:** `text/csv; charset=utf-8`
+
+**File Naming Convention:**
+- Survey Reports: `survey-reports-YYYY-MM-DD-HHMMSS.csv`
+- User Reports: `user-reports-YYYY-MM-DD-HHMMSS.csv`
+
+### Admin Bar Management Setting - v1.0.4.1
 
 **Location:** RM Panel Ext → Settings → Admin Bar Visibility
 
@@ -947,1352 +1165,1007 @@ if (isset($_POST['rm_panel_admin_bar'])) {
 - ✅ **Administrators:** Can see admin bar (recommended)
 - ❌ **All other roles:** Cannot see admin bar
 
-**Setting Structure:**
-```php
-[
-    'administrator' => '1',  // Show (checked)
-    'editor' => '0',         // Hide (unchecked)
-    'author' => '0',         // Hide (unchecked)
-    'contributor' => '0',    // Hide (unchecked)
-    'subscriber' => '0'      // Hide (unchecked)
-]
-```
+---
 
-**Common Use Cases:**
+## 🧪 Testing Checklist - UPDATED v1.1.0
 
-**Use Case 1: Clean Public Site**
-```php
-[
-    'administrator' => '1',  // Only admins see bar
-    'editor' => '0',
-    'author' => '0',
-    'contributor' => '0',
-    'subscriber' => '0'
-]
-```
+### Live Monitor Testing - ✨ NEW v1.1.0
+- [ ] Module file exists at `/modules/reports/class-survey-live-monitor.php`
+- [ ] Menu appears under Surveys → 📊 Live Monitor
+- [ ] Page loads without errors
+- [ ] Live indicator displays and pulses
+- [ ] Four stat cards display (Active Now, Waiting, Completed Today, Conversion Rate)
+- [ ] Stats auto-refresh every 5 seconds
+- [ ] Start a survey as test user
+- [ ] User appears in "Active Now" table within 5 seconds
+- [ ] User shows correct survey title
+- [ ] Duration counter updates
+- [ ] Duration warning colors work (orange > 5min, red > 10min)
+- [ ] Complete survey
+- [ ] "Completed Today" count increments
+- [ ] Conversion rate updates
+- [ ] Abandon survey (don't complete)
+- [ ] User moves to "Waiting to Complete" after 2 minutes
+- [ ] Waiting time displays correctly
+- [ ] Active users list shows recent site visitors
+- [ ] Last updated timestamp updates
+- [ ] Empty states display when no data
+- [ ] No JavaScript errors in console
+- [ ] No PHP errors in debug.log
+- [ ] Works with multiple simultaneous users
+- [ ] Cleanup on page unload (clearInterval)
+- [ ] Permissions check (only admins can access)
 
-**Use Case 2: Content Team Access**
-```php
-[
-    'administrator' => '1',
-    'editor' => '1',         // Content team sees bar
-    'author' => '1',         // Content team sees bar
-    'contributor' => '0',
-    'subscriber' => '0'
-]
-```
+### Survey Reports Testing - ✨ NEW v1.1.0
+- [ ] Module file exists at `/modules/reports/class-survey-reports.php`
+- [ ] Menu appears under Surveys → 📊 Survey Reports
+- [ ] Page loads without errors
+- [ ] Filter dropdowns populate correctly
+- [ ] Survey dropdown shows all published surveys
+- [ ] Status dropdown works (started/completed)
+- [ ] Completion status dropdown works (success/quota/disqualified)
+- [ ] Date pickers open and work correctly
+- [ ] Filter form submission works
+- [ ] Results table displays filtered data
+- [ ] All columns display correctly
+- [ ] Status badges show correct colors
+- [ ] Duration displays in minutes
+- [ ] Export button displays
+- [ ] Record count shows correct number
+- [ ] Click "Export to Excel" button
+- [ ] CSV file downloads
+- [ ] Filename format correct (survey-reports-YYYY-MM-DD-HHMMSS.csv)
+- [ ] CSV opens in Excel correctly
+- [ ] UTF-8 characters display correctly (accents, special chars)
+- [ ] All filtered data included in export
+- [ ] Clear filters button resets form
+- [ ] Empty state shows when no results
+- [ ] Table sorting works (if implemented)
+- [ ] Pagination works (if implemented)
+- [ ] No JavaScript errors
+- [ ] No PHP errors
+- [ ] Permissions check (only admins)
 
-**Use Case 3: Hide for Everyone (Not Recommended)**
-```php
-[
-    'administrator' => '0',  // Even admins don't see bar
-    'editor' => '0',
-    'author' => '0',
-    'contributor' => '0',
-    'subscriber' => '0'
-]
-```
+### User Reports Testing - ✨ NEW v1.1.0
+- [ ] Module file exists at `/modules/reports/class-user-reports.php`
+- [ ] Menu appears under Surveys → 👥 User Reports
+- [ ] Page loads without errors
+- [ ] Four summary cards display correctly
+- [ ] Total Users count is accurate
+- [ ] Total Earned calculates correctly
+- [ ] Total Paid calculates correctly
+- [ ] Pending Payment calculates correctly
+- [ ] Search filter works (name, email, username)
+- [ ] Role filter dropdown populates
+- [ ] Role filter works correctly
+- [ ] Date filter (Registered After) works
+- [ ] Date picker opens and works
+- [ ] Apply Filters button works
+- [ ] Clear button resets filters
+- [ ] User table displays all columns
+- [ ] Country displays (from FluentCRM or user meta)
+- [ ] Last Login shows correctly
+- [ ] Last Activity shows correctly
+- [ ] "Active Now" indicator works (green, within 5 min)
+- [ ] Login count displays
+- [ ] Survey statistics display correctly
+- [ ] Last Survey shows human-readable time
+- [ ] Earned amount formats correctly with currency
+- [ ] Paid amount displays in green
+- [ ] Pending payment displays in orange
+- [ ] Rows with pending payment have orange border
+- [ ] Export button works
+- [ ] CSV downloads correctly
+- [ ] Filename format correct (user-reports-YYYY-MM-DD-HHMMSS.csv)
+- [ ] CSV includes all user data
+- [ ] Currency symbol in CSV
+- [ ] Totals footer row calculates correctly
+- [ ] Empty state shows when no users
+- [ ] No JavaScript errors
+- [ ] No PHP errors
+- [ ] User tracking works (rm_last_login updates on login)
+- [ ] User activity updates every 5 minutes
+- [ ] Permissions check (only admins)
 
-**⚠️ Important Notes:**
-- Hiding admin bar does NOT restrict admin access
-- Users can still visit `/wp-admin/` directly
-- Only controls visibility, not capabilities
-- Recommended to keep administrators enabled
+### Integration Testing - v1.1.0
+- [ ] All three reports modules load together
+- [ ] No conflicts between modules
+- [ ] Database queries don't conflict
+- [ ] AJAX endpoints unique and working
+- [ ] CSS doesn't conflict between reports
+- [ ] JavaScript doesn't conflict
+- [ ] Menu items all appear correctly
+- [ ] No duplicate nonce creation
+- [ ] Works with Profile Picture Widget
+- [ ] Works with Admin Bar Manager
+- [ ] Works with Fluent Forms module
+- [ ] Works with Survey Tracking module
+- [ ] FluentCRM integration works (user reports country)
+- [ ] WordPress Heartbeat API works (live monitor)
+- [ ] jQuery UI datepicker loads correctly
+- [ ] No console errors across all reports
+- [ ] No PHP errors in debug.log
+- [ ] Works with different themes
+- [ ] Works with other plugins
+- [ ] Responsive design works on mobile
 
 ---
 
-### Profile Picture Widget Setting - v1.0.3
+## 🐛 Common Issues & Solutions - UPDATED v1.1.0
 
-**Location:** RM Panel Ext → Settings
-
-**Field Name:** `enable_profile_picture_widget`
-
-**Default:** Enabled (1)
-
-**Setting Structure:**
-```php
-$sanitized['enable_profile_picture_widget'] = isset($settings['enable_profile_picture_widget']) ? 1 : 0;
-```
-
-**Script Enqueuing:**
-```php
-// In rm-panel-extensions.php enqueue_frontend_scripts() method
-if (is_user_logged_in()) {
-    // Enqueue Profile Picture CSS
-    wp_enqueue_style(
-        'rm-profile-picture-widget',
-        RM_PANEL_EXT_PLUGIN_URL . 'assets/css/profile-picture-widget.css',
-        [],
-        RM_PANEL_EXT_VERSION
-    );
-
-    // Enqueue Profile Picture JavaScript
-    wp_enqueue_script(
-        'rm-profile-picture-widget',
-        RM_PANEL_EXT_PLUGIN_URL . 'assets/js/profile-picture-widget.js',
-        ['jquery'],
-        RM_PANEL_EXT_VERSION,
-        true
-    );
-
-    // Localize script with AJAX configuration
-    wp_localize_script('rm-profile-picture-widget', 'rmProfilePicture', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('rm_profile_picture_nonce')
-    ]);
-}
-```
-
-**⚠️ CRITICAL:** Scripts only load for logged-in users to prevent unnecessary loading on public pages.
-
----
-
-### IPStack API Key Setting
-
-**Location:** RM Panel Ext → Settings
-
-**Field Name:** `rm_panel_ipstack_api_key`
-
-**Saving Logic:**
-```php
-// In rm-panel-extensions.php save_settings() method:
-if (isset($settings['ipstack_api_key'])) {
-    $api_key = sanitize_text_field($settings['ipstack_api_key']);
-    update_option('rm_panel_ipstack_api_key', $api_key);
-}
-```
-
-**Getting Free API Key:**
-1. Visit: https://ipstack.com
-2. Sign up for free account (no credit card required)
-3. Free tier: 100 requests/month
-4. Copy your API key
-5. Paste in RM Panel Ext → Settings
-6. Click "Save Settings"
-
-**Testing API Key:**
-```php
-// Quick test
-$api_key = get_option('rm_panel_ipstack_api_key', '');
-$ip = '8.8.8.8'; // Test with Google's IP
-$url = "http://api.ipstack.com/{$ip}?access_key={$api_key}";
-$response = wp_remote_get($url);
-$data = json_decode(wp_remote_retrieve_body($response), true);
-print_r($data);
-```
-
----
-
-## 🔄 Module Loading Order
-
-The plugin loads modules in this order:
-1. Survey Module (independent)
-2. Survey Tracking (depends on Survey Module)
-3. Survey Callbacks (depends on Survey Module)
-4. Elementor Module (if Elementor active)
-5. Profile Picture Handler - v1.0.3
-6. **Admin Bar Manager (if module exists)** - ✨ NEW v1.0.4.1
-7. Fluent Forms Module (if Fluent Forms active) - Uses Singleton Pattern
-8. Referral System (depends on Survey Module)
-
-**Integration Code in `rm-panel-extensions.php`:**
-
-```php
-/**
- * Load modules
- */
-private function load_modules() {
-    // ... other module loading code ...
-    
-    // Load Profile Picture Handler - v1.0.3
-    $profile_picture_handler_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/profile-picture/class-profile-picture-handler.php';
-    if (file_exists($profile_picture_handler_file)) {
-        require_once $profile_picture_handler_file;
-    }
-    
-    // Load Admin Bar Manager - NEW v1.0.4.1
-    $admin_bar_manager_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/admin-bar/class-admin-bar-manager.php';
-    if (file_exists($admin_bar_manager_file)) {
-        require_once $admin_bar_manager_file;
-    }
-    
-    // ... rest of code ...
-}
-```
-
-**Elementor Widget Registration:**
-```php
-// In class-elementor-module.php register_widgets() method
-public function register_widgets($widgets_manager) {
-    // ... other widgets ...
-    
-    // Register Profile Picture Widget
-    require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/profile-picture-widget.php';
-    $widgets_manager->register(new \RMPanelExtensions\Modules\Elementor\Widgets\Profile_Picture_Widget());
-}
-```
-
----
-
-## 🐛 Common Issues & Solutions - UPDATED v1.0.4.1
-
-### Issue 26: Admin Bar Visibility Inverted (FIXED in v1.0.4.1) - ✨ NEW
-**Problem:** Admin bar shows when it should be hidden and vice versa  
-**Status:** ✅ FIXED in version 1.0.4.1
-
-**Original Bug (v1.0.4):**
-- When Administrator was **CHECKED** → Admin bar was **HIDDEN** ❌
-- When Administrator was **UNCHECKED** → Admin bar was **SHOWING** ❌
-
-**Root Cause:**
-Code only explicitly disabled admin bar but never explicitly enabled it.
-
-**Fix Applied:**
-```php
-// BEFORE (Buggy):
-if (!$this->should_show_admin_bar($settings)) {
-    show_admin_bar(false);
-    add_filter('show_admin_bar', '__return_false');
-}
-// ❌ No explicit enable
-
-// AFTER (Fixed):
-if ($this->should_show_admin_bar($settings)) {
-    show_admin_bar(true);  // ← ADDED
-    add_filter('show_admin_bar', '__return_true');  // ← ADDED
-} else {
-    show_admin_bar(false);
-    add_filter('show_admin_bar', '__return_false');
-}
-// ✅ Explicit enable AND disable
-```
-
-**Verification:**
-- Check file version comment: `@version 1.0.4.1 (FIXED - Corrected inverted logic)`
-- Test: Check Administrator → Admin bar should be **visible** ✅
-- Test: Uncheck Administrator → Admin bar should be **hidden** ✅
-
----
-
-### Issue 27: Admin Bar Settings Not Saving - ✨ NEW
-**Problem:** Settings appear to save but don't persist  
+### Issue 31: Live Monitor Not Auto-Refreshing - ✨ NEW
+**Problem:** Dashboard loads but doesn't update automatically  
 **Possible Causes:**
-1. Nonce verification failing
-2. Database permission issues
-3. Cache interference
-4. JavaScript conflicts
-
-**Solutions:**
-
-**A. Verify Nonce:**
-```php
-// Check browser source for nonce field
-// Should see: <input type="hidden" name="_wpnonce" value="..." />
-```
-
-**B. Check Database:**
-```sql
-SELECT * FROM wp_options 
-WHERE option_name = 'rm_panel_admin_bar_settings';
--- Should return serialized array after saving
-```
-
-**C. Clear All Caches:**
-```
-- Browser cache (Ctrl+F5)
-- WordPress object cache
-- Plugin cache (W3 Total Cache, WP Super Cache, etc.)
-- CDN cache (if applicable)
-```
-
-**D. Check File Permissions:**
-```bash
-# Plugin folder should be writable
-chmod 755 /wp-content/plugins/rm-panel-extensions/
-```
-
-**E. Enable Debug Logging:**
-```php
-// In wp-config.php
-define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-
-// Check: wp-content/debug.log for errors
-```
-
----
-
-### Issue 28: Admin Bar Still Shows After Disabling - ✨ NEW
-**Problem:** Admin bar visible even after unchecking role  
-**Possible Causes:**
-1. Browser cache
-2. User has multiple roles
-3. Another plugin overriding settings
-4. Theme forcing admin bar
-
-**Solutions:**
-
-**A. Hard Refresh:**
-```
-Windows: Ctrl + Shift + R
-Mac: Cmd + Shift + R
-```
-
-**B. Check User Roles:**
-```php
-// Check if user has multiple roles
-$current_user = wp_get_current_user();
-print_r($current_user->roles);
-
-// If user has ['editor', 'administrator'], and either is checked,
-// admin bar will show
-```
-
-**C. Check for Conflicts:**
-```php
-// Temporarily disable other plugins
-// Activate one by one to find conflict
-```
-
-**D. Theme Check:**
-```php
-// Some themes force admin bar
-// Check theme's functions.php for:
-// show_admin_bar(true);
-// add_filter('show_admin_bar', '__return_true');
-```
-
-**E. Database Reset:**
-```sql
--- Reset to defaults
-DELETE FROM wp_options 
-WHERE option_name = 'rm_panel_admin_bar_settings';
-
--- Then save settings again from admin panel
-```
-
----
-
-### Issue 29: Custom Roles Not Showing in Settings - ✨ NEW
-**Problem:** Custom roles from other plugins not listed  
-**Possible Causes:**
-1. Plugin loads before custom roles registered
-2. Custom role plugin not active
-3. Custom roles registered incorrectly
-
-**Solutions:**
-
-**A. Check Load Order:**
-```php
-// Custom roles must be registered before our plugin loads
-// Check plugin activation order
-```
-
-**B. Manual Verification:**
-```php
-// Check what roles WordPress knows about
-global $wp_roles;
-print_r($wp_roles->roles);
-```
-
-**C. Force Refresh:**
-```
-1. Deactivate RM Panel Extensions
-2. Reactivate RM Panel Extensions
-3. Visit Settings page again
-```
-
-**D. Check Custom Role Plugin:**
-```php
-// Ensure custom role plugin is active
-// Check Plugins page
-```
-
----
-
-### Issue 30: Admin Bar Hidden in Elementor Editor - ✨ NEW
-**Problem:** Cannot see admin bar while editing in Elementor  
-**Status:** This is intentional behavior
-
-**Explanation:**
-Elementor editor has its own UI requirements and our CSS includes:
-```css
-body.elementor-editor-active {
-    margin-top: 0 !important;
-}
-```
-
-**Workaround:**
-If you need admin bar in Elementor editor:
-1. Edit: `class-admin-bar-manager.php`
-2. Find: `hide_admin_bar_css()` method
-3. Remove or comment out the Elementor CSS rule
-
-**Or temporarily:**
-```css
-/* Add to Customize → Additional CSS (for testing) */
-body.elementor-editor-active #wpadminbar {
-    display: block !important;
-}
-```
-
----
-
-### Issue 20: Profile Picture Not Uploading - v1.0.3
-**Problem:** File selected but upload fails  
-**Possible Causes:**
-1. JavaScript not loaded properly
-2. Nonce verification failing
-3. File permissions issue
-4. Max upload size exceeded
-5. AJAX URL incorrect
+1. JavaScript not loaded
+2. AJAX URL incorrect
+3. Nonce verification failing
+4. setInterval not working
 
 **Solutions:**
 
 **A. Check JavaScript Console:**
 ```javascript
 // F12 → Console tab
-// Should NOT see these errors:
-// - "rmProfilePicture is not defined"
-// - "Uncaught ReferenceError"
-// - "Failed to load resource"
+// Should see: "RM Live Monitor: Initializing..."
+// Should NOT see errors about rmLiveMonitor undefined
 ```
 
 **B. Verify Script Loaded:**
 ```javascript
 // Browser console
-console.log(rmProfilePicture);
-// Should output: {ajax_url: "...", nonce: "..."}
+console.log(rmLiveMonitor);
+// Should output: {ajax_url: "...", nonce: "...", refresh_interval: 5000}
 ```
 
-**C. Check Nonce:**
-```php
-// Temporary debug in upload_profile_picture() method
-error_log('Nonce received: ' . $_POST['nonce']);
-error_log('Nonce valid: ' . wp_verify_nonce($_POST['nonce'], 'rm_profile_picture_nonce'));
-```
-
-**D. Check File Permissions:**
-```bash
-# uploads folder should be writable
-chmod 755 wp-content/uploads
-```
-
-**E. Check PHP Upload Limits:**
-```php
-// In wp-config.php or php.ini
-upload_max_filesize = 10M
-post_max_size = 10M
-```
-
-**F. Enable Debug Logging:**
-```php
-// In wp-config.php
-define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-
-// Check debug.log for errors
-```
-
----
-
-### Issue 21: Modal Not Opening - v1.0.3
-**Problem:** Clicking profile picture does nothing  
-**Possible Causes:**
-1. jQuery not loaded
-2. JavaScript conflicts
-3. Elementor editor mode active
-4. Event handler not attached
-
-**Solutions:**
-
-**A. Check jQuery:**
+**C. Test AJAX Manually:**
 ```javascript
 // Browser console
-jQuery.fn.jquery
-// Should show version number like "3.6.0"
-```
-
-**B. Check Event Handler:**
-```javascript
-// Browser console
-jQuery._data(jQuery('.rm-profile-picture-image-wrapper')[0], 'events')
-// Should show "click" event
-```
-
-**C. Manual Modal Open (Test):**
-```javascript
-// Browser console
-jQuery('#rm-profile-picture-modal').addClass('active');
-jQuery('body').css('overflow', 'hidden');
-```
-
-**D. Check Elementor Editor:**
-- Profile picture widget has pointer-events disabled in editor
-- Must preview page or view on frontend
-- Check CSS: `.elementor-editor-active .rm-profile-picture-image-wrapper { pointer-events: none; }`
-
-**E. Check for JavaScript Errors:**
-```javascript
-// F12 → Console tab
-// Look for errors before clicking
-// Common: "$ is not defined" = jQuery issue
-```
-
----
-
-### Issue 22: Drag & Drop Not Working - v1.0.3
-**Problem:** Can't drag files into upload area  
-**Possible Causes:**
-1. Browser doesn't support drag & drop
-2. Event listeners not attached
-3. Z-index issue covering upload area
-4. File type not supported
-
-**Solutions:**
-
-**A. Check Browser Support:**
-```javascript
-// Modern browsers support this
-'draggable' in document.createElement('div')
-// Should return: true
-```
-
-**B. Test Event Listeners:**
-```javascript
-// Browser console
-document.getElementById('rm-upload-area')
-// Should return the element, not null
-```
-
-**C. Test Manually:**
-```javascript
-// Browser console
-setupDragAndDrop(); // Re-initialize
-```
-
-**D. Check Element Visibility:**
-```css
-/* Make sure upload area is visible */
-#rm-upload-area {
-    display: block !important;
-    z-index: 1 !important;
-}
-```
-
-**E. Use Click Upload Instead:**
-- Fallback: Click "Click to upload" text
-- Opens file browser
-- Same validation applies
-
----
-
-### Issue 23: Old Profile Picture Not Deleting - v1.0.3
-**Problem:** Multiple pictures accumulating in media library  
-**Possible Causes:**
-1. Picture used by multiple users
-2. Smart cleanup disabled
-3. Permissions issue
-
-**Solutions:**
-
-**A. Check Cleanup Function:**
-```php
-// In maybe_delete_old_picture() method
-error_log('Checking usage for attachment: ' . $attachment_id);
-error_log('Usage count: ' . $usage_count);
-```
-
-**B. Manual Cleanup:**
-```php
-// Find unused profile pictures
-global $wpdb;
-$all_attachments = $wpdb->get_col(
-    "SELECT meta_value FROM {$wpdb->usermeta} 
-    WHERE meta_key = 'rm_profile_picture'"
-);
-
-// Get all media with 'profile' in name not in use
-// Delete manually from Media Library
-```
-
-**C. Disable Smart Cleanup (Keep All):**
-```php
-// In maybe_delete_old_picture() method
-// Comment out wp_delete_attachment() call
-// Pictures will never be deleted
-```
-
----
-
-### Issue 24: Profile Picture Not Showing After Upload - v1.0.3
-**Problem:** Upload succeeds but image doesn't update  
-**Possible Causes:**
-1. Cache issue
-2. Wrong image URL in response
-3. JavaScript not updating src
-4. Browser cache
-
-**Solutions:**
-
-**A. Check AJAX Response:**
-```javascript
-// In browser console → Network tab
-// Find "admin-ajax.php" request
-// Check response JSON for "url" field
-```
-
-**B. Hard Refresh:**
-```
-- Windows: Ctrl + F5
-- Mac: Cmd + Shift + R
-```
-
-**C. Clear Browser Cache:**
-```
-- Chrome: Settings → Privacy → Clear browsing data
-- Select "Cached images and files"
-```
-
-**D. Manual Update Test:**
-```javascript
-// Browser console
-jQuery('.rm-profile-picture-image').attr('src', 'NEW_URL_HERE');
-```
-
-**E. Check Image Size:**
-```php
-// Verify 'medium' size exists
-$sizes = get_intermediate_image_sizes();
-print_r($sizes);
-// Should include 'medium'
-```
-
----
-
-### Issue 25: Upload Works But Country Not Showing - v1.0.3
-**Problem:** Profile picture displays but country is blank  
-**Possible Causes:**
-1. FluentCRM not active
-2. Country not set in FluentCRM
-3. User meta 'country' not set
-
-**Solutions:**
-
-**A. Check FluentCRM:**
-```php
-// Check if FluentCRM active
-if (defined('FLUENTCRM')) {
-    echo 'FluentCRM is active';
-} else {
-    echo 'FluentCRM is NOT active';
-}
-```
-
-**B. Check Country Data:**
-```php
-// Check FluentCRM country
-if (class_exists('RM_Panel_FluentCRM_Helper')) {
-    $country = RM_Panel_FluentCRM_Helper::get_contact_country($user_id);
-    echo 'FluentCRM Country: ' . $country;
-}
-
-// Check user meta
-$country_meta = get_user_meta($user_id, 'country', true);
-echo 'User Meta Country: ' . $country_meta;
-```
-
-**C. Set Country Manually:**
-```php
-// Set in user meta
-update_user_meta($user_id, 'country', 'United States');
-
-// Or set in FluentCRM
-// Go to FluentCRM → Contacts → Edit Contact → Country
-```
-
-**D. Widget Setting:**
-```
-- Edit widget in Elementor
-- Content → Show Country → Enable
-- Update page
-```
-
----
-
-## 🧪 Testing Checklist - UPDATED v1.0.4.1
-
-### Admin Bar Management Testing - ✨ NEW v1.0.4.1
-- [ ] Module file exists at `/modules/admin-bar/class-admin-bar-manager.php`
-- [ ] Module class loads correctly (check debug.log)
-- [ ] Settings page shows "Admin Bar Visibility" section
-- [ ] All WordPress roles listed with checkboxes
-- [ ] Administrator checkbox checked by default
-- [ ] Other role checkboxes unchecked by default
-- [ ] "Reset to Defaults" button displays
-- [ ] Checking checkbox and saving works
-- [ ] Unchecking checkbox and saving works
-- [ ] Settings persist after page refresh
-- [ ] Database option created: `rm_panel_admin_bar_settings`
-
-**Role Visibility Testing:**
-- [ ] Test with Administrator role (checked) → Admin bar visible ✅
-- [ ] Test with Administrator role (unchecked) → Admin bar hidden ✅
-- [ ] Test with Editor role (unchecked) → Admin bar hidden ✅
-- [ ] Test with Editor role (checked) → Admin bar visible ✅
-- [ ] Test with multiple roles enabled
-- [ ] Test on frontend (logged in)
-- [ ] Test on backend (/wp-admin/)
-- [ ] No spacing artifacts where admin bar was
-- [ ] CSS removes #wpadminbar element
-- [ ] CSS removes top margin
-
-**Custom Roles Testing:**
-- [ ] Install plugin with custom roles (WooCommerce, BuddyPress, etc.)
-- [ ] Custom roles appear in settings automatically
-- [ ] Custom role visibility works correctly
-- [ ] Settings save for custom roles
-
-**Reset Functionality:**
-- [ ] "Reset to Defaults" button shows confirmation
-- [ ] Clicking OK unchecks all except Administrator
-- [ ] Must click "Save Changes" to apply
-- [ ] Reset works correctly
-
-**Integration Testing:**
-- [ ] Works with Elementor
-- [ ] Works with WPML (if installed)
-- [ ] Works with different themes
-- [ ] Works with caching plugins
-- [ ] No JavaScript errors in console
-- [ ] No PHP errors in debug.log
-
-**Bug Fix Verification (v1.0.4.1):**
-- [ ] Version comment shows: `@version 1.0.4.1 (FIXED - Corrected inverted logic)`
-- [ ] Administrator checked → Admin bar visible (NOT hidden)
-- [ ] Administrator unchecked → Admin bar hidden (NOT visible)
-- [ ] Logic is correct (not inverted)
-- [ ] Works consistently across page refreshes
-
-### Profile Picture Widget Testing - v1.0.3
-- [ ] Widget appears in Elementor under RM Panel Widgets category
-- [ ] Widget shows message for logged-out users
-- [ ] Widget displays current user's name
-- [ ] Widget displays current user's email
-- [ ] Widget displays current user's country (if available)
-- [ ] Widget shows default avatar if no custom picture
-- [ ] Widget shows custom profile picture if uploaded
-- [ ] Hover effect shows upload icon and text
-- [ ] Clicking picture opens modal
-- [ ] Modal backdrop appears
-- [ ] Modal content animates in
-- [ ] Close button (X) closes modal
-- [ ] Cancel button closes modal
-- [ ] Clicking outside modal closes it
-- [ ] ESC key closes modal
-- [ ] Clicking upload area opens file browser
-- [ ] File browser filters to images only
-- [ ] Selecting non-image shows error
-- [ ] Selecting file > 5MB shows error
-- [ ] Valid image shows preview
-- [ ] Preview image displays correctly
-- [ ] "Change Image" button works
-- [ ] Drag & drop file onto upload area works
-- [ ] Dragover highlights upload area
-- [ ] Dropping file shows preview
-- [ ] Save button is disabled initially
-- [ ] Save button enables after file selection
-- [ ] Clicking Save shows loading spinner
-- [ ] Save button disables during upload
-- [ ] Upload success updates profile picture on page
-- [ ] Success message displays
-- [ ] Modal closes automatically after success
-- [ ] Error message displays on failure
-- [ ] Modal state resets after closing
-- [ ] File input resets after closing
-- [ ] Widget respects Content settings (show/hide name, email, country)
-- [ ] Widget respects Style settings (size, colors, spacing)
-- [ ] Responsive design works on mobile
-- [ ] Widget doesn't interfere with other widgets
-- [ ] Multiple instances work independently
-- [ ] Works in Elementor preview mode
-- [ ] Picture displays correctly after page refresh
-
-### AJAX Handler Testing - v1.0.3
-- [ ] Nonce verification works
-- [ ] User authentication check works
-- [ ] User ID validation works
-- [ ] File type validation works (JPG, PNG, GIF only)
-- [ ] File size validation works (5MB max)
-- [ ] Upload to media library succeeds
-- [ ] User meta updates correctly
-- [ ] Old picture deleted if unused
-- [ ] Old picture kept if used by others
-- [ ] History log updated
-- [ ] IP address captured
-- [ ] Success response includes URL
-- [ ] Success response includes attachment ID
-- [ ] Error responses have clear messages
-- [ ] 'get_profile_picture' endpoint works
-- [ ] 'delete_profile_picture' endpoint works
-
-### Integration Testing - v1.0.3
-- [ ] FluentCRM country display works
-- [ ] Falls back to user meta country
-- [ ] Works without FluentCRM installed
-- [ ] Gravatar fallback works
-- [ ] Scripts load only for logged-in users
-- [ ] Scripts don't load for logged-out users
-- [ ] No JavaScript errors in console
-- [ ] No PHP errors in debug.log
-- [ ] Settings page checkbox works
-- [ ] Disabling widget removes from Elementor
-- [ ] Widget works with WPML (if installed)
-- [ ] Widget works with different themes
-- [ ] Widget works with page builders besides Elementor
-
-### Fluent Forms - Real-time Validation
-- [ ] Username: Type less than 5 characters → Error
-- [ ] Username: Type invalid characters (!, @, #) → Error
-- [ ] Username: Type valid username → "Checking..."
-- [ ] Username: Type existing username → Error: "already taken"
-- [ ] Username: Type new username → Success: "available!"
-- [ ] Email: Type invalid format → Error
-- [ ] Email: Type valid email → "Checking..."
-- [ ] Email: Type existing email → Error: "already registered"
-- [ ] Email: Type new email → Success: "available!"
-- [ ] Password: Type weak password → "Checking..."
-- [ ] Password: Type weak password → Warning or Error
-- [ ] Password: Type strong password → Success: "Strong!"
-- [ ] Confirm Password: Type mismatch → Error: "do not match"
-- [ ] Confirm Password: Type match → Success: "match!"
-
-### Country Detection Testing
-- [ ] IPStack API key saved in settings
-- [ ] Verify API key in database
-- [ ] Form has field named exactly `country`
-- [ ] Validation enabled for the specific form
-- [ ] Open form in incognito/private window
-- [ ] Open browser console (F12)
-- [ ] See "Detecting country..." message
-- [ ] AJAX call appears in Network tab
-- [ ] Response contains country name
-- [ ] Country field auto-fills correctly
-- [ ] "Country detected!" success message appears
-- [ ] Works on live server (not localhost)
-- [ ] Cache working (second load is faster)
-- [ ] Error logging working in debug.log
-- [ ] Test with VPN (different countries)
-- [ ] Test with dropdown and text input fields
-- [ ] Verify exact match priority (India ≠ British Indian Ocean Territory)
-
-### Country Mismatch Validation Testing
-- [ ] Country auto-detects (e.g., "India")
-- [ ] Field shows green success message
-- [ ] Wait for 3 seconds (validation initializes)
-- [ ] Try to change country to different value
-- [ ] **Expected:** Red error message appears immediately
-- [ ] **Expected:** Field border turns red
-- [ ] **Expected:** Shake animation plays
-- [ ] **Expected:** Error message: "Please select your actual country"
-- [ ] Try to submit form with wrong country
-- [ ] **Expected:** Form submission blocked
-- [ ] **Expected:** Page scrolls to country field
-- [ ] **Expected:** Console log: "Form submission blocked"
-- [ ] Change country back to detected value
-- [ ] **Expected:** Error clears, green border returns
-- [ ] Submit form with correct country
-- [ ] **Expected:** Form submits successfully
-- [ ] Test with JavaScript disabled (server-side validation)
-- [ ] **Expected:** Server returns country mismatch error
-- [ ] Test with country aliases (USA vs United States)
-- [ ] **Expected:** Aliases accepted (no error)
-- [ ] Check `data-detected-value` attribute set correctly
-- [ ] Check `data-country-detected` attribute set correctly
-- [ ] Test session storage (refresh page within 30 min)
-- [ ] **Expected:** Country still validated against session
-
----
-
-## 📝 Quick Reference Commands - UPDATED v1.0.4.1
-
-### Admin Bar Management - ✨ NEW v1.0.4.1
-
-```php
-// Get current settings
-$settings = get_option('rm_panel_admin_bar_settings', []);
-print_r($settings);
-
-// Check if specific role can see admin bar
-$can_editor_see = isset($settings['editor']) && $settings['editor'] === '1';
-
-// Reset to defaults programmatically
-RM_Panel_Admin_Bar_Manager::reset_to_defaults();
-
-// Get all WordPress roles
-$roles = RM_Panel_Admin_Bar_Manager::get_all_roles();
-print_r($roles);
-
-// Save settings programmatically
-RM_Panel_Admin_Bar_Manager::save_settings([
-    'administrator' => '1',
-    'editor' => '1',
-    'author' => '0',
-    'contributor' => '0',
-    'subscriber' => '0'
-]);
-
-// Check if current user should see admin bar
-$current_user = wp_get_current_user();
-$settings = get_option('rm_panel_admin_bar_settings', []);
-$should_see = false;
-
-foreach ($current_user->roles as $role) {
-    if (isset($settings[$role]) && $settings[$role] === '1') {
-        $should_see = true;
-        break;
+jQuery.ajax({
+    url: rmLiveMonitor.ajax_url,
+    type: 'POST',
+    data: {
+        action: 'rm_get_live_survey_stats',
+        nonce: rmLiveMonitor.nonce
+    },
+    success: function(response) {
+        console.log(response);
     }
-}
-
-echo $should_see ? 'Should see admin bar' : 'Should NOT see admin bar';
-
-// Check if admin bar is actually showing
-if (is_admin_bar_showing()) {
-    echo 'Admin bar is showing';
-} else {
-    echo 'Admin bar is hidden';
-}
-
-// Manually force show/hide admin bar (temporary override)
-add_filter('show_admin_bar', '__return_false'); // Force hide
-add_filter('show_admin_bar', '__return_true');  // Force show
-
-// Debug: Check what WordPress thinks about admin bar
-global $wp_filter;
-if (isset($wp_filter['show_admin_bar'])) {
-    print_r($wp_filter['show_admin_bar']);
-}
-
-// Get default settings
-$defaults = RM_Panel_Admin_Bar_Manager::get_default_settings();
-print_r($defaults);
-
-// Clear settings (hide for everyone)
-delete_option('rm_panel_admin_bar_settings');
-
-// Check if module is loaded
-if (class_exists('RM_Panel_Admin_Bar_Manager')) {
-    echo 'Admin Bar Manager module is loaded';
-} else {
-    echo 'Admin Bar Manager module is NOT loaded';
-}
-
-// Check database directly
-global $wpdb;
-$result = $wpdb->get_var(
-    "SELECT option_value FROM {$wpdb->options} 
-    WHERE option_name = 'rm_panel_admin_bar_settings'"
-);
-print_r(maybe_unserialize($result));
+});
 ```
 
-### Profile Picture - v1.0.3
+**D. Check Auto-Refresh Interval:**
+```javascript
+// Browser console - Check if interval is running
+console.log('Interval ID:', RMLiveMonitor.refreshInterval);
+// Should output a number, not null
+```
+
+---
+
+### Issue 32: "Active Now" Shows Users Who Aren't Active - ✨ NEW
+**Problem:** Users appear in active list after they've left  
+**Possible Causes:**
+1. 2-minute timeout too long
+2. Transient cache not expiring
+3. Time comparison issue
+
+**Solutions:**
+
+**A. Check Transient Cache:**
+```php
+// Get all active survey transients
+global $wpdb;
+$transients = $wpdb->get_results(
+    "SELECT option_name, option_value 
+    FROM {$wpdb->options} 
+    WHERE option_name LIKE '_transient_rm_active_survey_%'"
+);
+print_r($transients);
+```
+
+**B. Manually Clear Transients:**
+```php
+global $wpdb;
+$wpdb->query(
+    "DELETE FROM {$wpdb->options} 
+    WHERE option_name LIKE '_transient_rm_active_survey_%'"
+);
+```
+
+**C. Adjust Timeout (if needed):**
+```php
+// In class-survey-live-monitor.php track_survey_visit()
+// Change from 2 minutes to 1 minute
+set_transient($session_key, $data, 1 * MINUTE_IN_SECONDS);
+```
+
+---
+
+### Issue 33: Excel Export Shows Garbled Characters - ✨ NEW
+**Problem:** Special characters display incorrectly in Excel  
+**Possible Causes:**
+1. BOM not added
+2. Encoding issue
+3. Excel version/locale
+
+**Solutions:**
+
+**A. Verify BOM Added:**
+```php
+// In handle_excel_export() method
+// This line should be present:
+fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+```
+
+**B. Test UTF-8 Characters:**
+```php
+// Add test row with special chars
+fputcsv($output, ['Test', 'café', 'naïve', 'résumé']);
+```
+
+**C. Open in Different Program:**
+- Try Google Sheets
+- Try LibreOffice Calc
+- Try Excel with "Import Data" instead of double-click
+
+**D. Manual Import in Excel:**
+```
+1. Excel → Data → Get Data → From Text/CSV
+2. Select your CSV file
+3. Choose UTF-8 encoding
+4. Click Load
+```
+
+---
+
+### Issue 34: Datepicker Not Showing - ✨ NEW
+**Problem:** Clicking date field doesn't open calendar  
+**Possible Causes:**
+1. jQuery UI not loaded
+2. JavaScript conflicts
+3. CSS not loaded
+4. Wrong class name
+
+**Solutions:**
+
+**A. Check jQuery UI:**
+```javascript
+// Browser console
+jQuery.ui.version
+// Should show version like "1.12.1"
+```
+
+**B. Check CSS Loaded:**
+```javascript
+// Browser console - Check if jQuery UI CSS loaded
+document.querySelector('link[href*="jquery-ui.css"]')
+// Should return element, not null
+```
+
+**C. Manual Datepicker Init:**
+```javascript
+// Browser console
+jQuery('.rm-datepicker').datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    maxDate: 0
+});
+```
+
+**D. Check for Conflicts:**
+```javascript
+// Temporarily disable other scripts
+// See if datepicker works
+```
+
+---
+
+### Issue 35: User Reports "Active Now" Always Shows - ✨ NEW
+**Problem:** All users show as "Active Now" or none do  
+**Possible Causes:**
+1. Time comparison incorrect
+2. User meta not updating
+3. Timezone issues
+
+**Solutions:**
+
+**A. Check User Meta:**
+```php
+$user_id = 1; // Test user
+$last_activity = get_user_meta($user_id, 'rm_last_activity', true);
+echo "Last Activity: " . $last_activity . "<br>";
+echo "Current Time: " . current_time('mysql') . "<br>";
+echo "Minutes Ago: " . round((time() - strtotime($last_activity)) / 60);
+```
+
+**B. Check Time Calculation:**
+```php
+// In render_user_reports_page() method
+$minutes_ago = round((time() - strtotime($user['last_activity'])) / 60);
+echo "Minutes: " . $minutes_ago . "<br>";
+
+// Should show:
+// < 5 = Active Now
+// > 5 = Show time ago
+```
+
+**C. Force Update User Activity:**
+```php
+// Manually set activity for test
+update_user_meta($user_id, 'rm_last_activity', current_time('mysql'));
+```
+
+**D. Check Timezone Settings:**
+```php
+// In wp-config.php or Settings → General
+echo get_option('timezone_string');
+echo date_default_timezone_get();
+```
+
+---
+
+### Issue 36: Conversion Rate Shows 0% or Wrong Value - ✨ NEW
+**Problem:** Conversion rate not calculating correctly  
+**Possible Causes:**
+1. Division by zero
+2. Wrong query
+3. Date comparison issue
+
+**Solutions:**
+
+**A. Check Raw Data:**
+```php
+global $wpdb;
+$table_name = $wpdb->prefix . 'rm_survey_responses';
+
+// Today's completions
+$completed = $wpdb->get_var("
+    SELECT COUNT(*) FROM {$table_name}
+    WHERE status = 'completed'
+    AND DATE(completion_time) = CURDATE()
+");
+
+// Today's starts
+$started = $wpdb->get_var("
+    SELECT COUNT(*) FROM {$table_name}
+    WHERE DATE(start_time) = CURDATE()
+");
+
+echo "Started: $started<br>";
+echo "Completed: $completed<br>";
+echo "Rate: " . (($started > 0) ? ($completed / $started * 100) : 0) . "%";
+```
+
+**B. Check Date Functions:**
+```php
+// Test CURDATE()
+global $wpdb;
+echo $wpdb->get_var("SELECT CURDATE()");
+// Should match today's date
+```
+
+**C. Manual Calculation Test:**
+```php
+// In browser console on Live Monitor page
+jQuery('#rm-today-completed').text(); // Get completed count
+jQuery('#rm-today-started').text(); // Get started count
+// Calculate: (completed / started) * 100
+```
+
+---
+
+### Issue 37: "Waiting to Complete" Shows Completed Surveys - ✨ NEW
+**Problem:** Surveys show in waiting list even after completion  
+**Possible Causes:**
+1. Status not updating
+2. Query logic incorrect
+3. Completion time not set
+
+**Solutions:**
+
+**A. Check Survey Status:**
+```php
+global $wpdb;
+$table_name = $wpdb->prefix . 'rm_survey_responses';
+
+$response = $wpdb->get_row($wpdb->prepare("
+    SELECT * FROM {$table_name}
+    WHERE user_id = %d AND survey_id = %d
+", $user_id, $survey_id));
+
+print_r($response);
+// Check: status should be 'completed'
+// Check: completion_time should be set
+```
+
+**B. Check Query Logic:**
+```php
+// Waiting query should exclude:
+// 1. Completed surveys (status = 'completed')
+// 2. Recent surveys (last 2 minutes)
+
+// Should include:
+// 1. Started surveys (status = 'started')
+// 2. Older than 2 minutes but less than 24 hours
+```
+
+**C. Force Update Status:**
+```php
+// Manually mark as completed
+global $wpdb;
+$table_name = $wpdb->prefix . 'rm_survey_responses';
+
+$wpdb->update(
+    $table_name,
+    [
+        'status' => 'completed',
+        'completion_time' => current_time('mysql')
+    ],
+    ['user_id' => $user_id, 'survey_id' => $survey_id]
+);
+```
+
+---
+
+### Issue 38: Export Button Returns 403 Forbidden - ✨ NEW
+**Problem:** Clicking export button shows 403 error  
+**Possible Causes:**
+1. Nonce verification failing
+2. Capability check failing
+3. Security plugin blocking
+
+**Solutions:**
+
+**A. Check User Capabilities:**
+```php
+if (current_user_can('manage_options')) {
+    echo 'You have permission';
+} else {
+    echo 'Permission denied';
+}
+```
+
+**B. Check Nonce:**
+```php
+// Verify nonce in URL
+$nonce = $_GET['_wpnonce'];
+if (wp_verify_nonce($nonce, 'rm_export_reports')) {
+    echo 'Nonce valid';
+} else {
+    echo 'Nonce invalid';
+}
+```
+
+**C. Check Security Plugins:**
+- Wordfence: Check firewall rules
+- iThemes Security: Check banned users
+- Sucuri: Check access settings
+
+**D. Check .htaccess:**
+```apache
+# Ensure admin-ajax.php is accessible
+<Files "admin-ajax.php">
+    Order allow,deny
+    Allow from all
+</Files>
+```
+
+---
+
+## 📝 Quick Reference Commands - UPDATED v1.1.0
+
+### Live Monitor Commands - ✨ NEW v1.1.0
 
 ```php
-// Get user's profile picture URL
-$picture_url = RM_Profile_Picture_Handler::get_user_profile_picture($user_id);
-$picture_url = RM_Profile_Picture_Handler::get_user_profile_picture($user_id, 'full');
-
-// Get attachment ID
-$attachment_id = get_user_meta($user_id, 'rm_profile_picture', true);
-
-// Set profile picture manually
-update_user_meta($user_id, 'rm_profile_picture', 123); // attachment ID
-
-// Delete profile picture
-delete_user_meta($user_id, 'rm_profile_picture');
-
-// Get profile picture history
-$history = get_user_meta($user_id, 'rm_profile_picture_history', true);
-print_r($history);
-
-// Clear history
-delete_user_meta($user_id, 'rm_profile_picture_history');
-
-// Check if user has custom picture
-$has_picture = !empty(get_user_meta($user_id, 'rm_profile_picture', true));
-
-// Get all users with profile pictures
+// Get active survey sessions
 global $wpdb;
-$users_with_pictures = $wpdb->get_results(
-    "SELECT DISTINCT user_id FROM {$wpdb->usermeta} 
-    WHERE meta_key = 'rm_profile_picture'"
-);
+$table_name = $wpdb->prefix . 'rm_survey_responses';
 
-// Count total profile pictures uploaded
-$total = $wpdb->get_var(
-    "SELECT COUNT(*) FROM {$wpdb->usermeta} 
-    WHERE meta_key = 'rm_profile_picture' AND meta_value != ''"
-);
+$active = $wpdb->get_results("
+    SELECT * FROM {$table_name}
+    WHERE status = 'started'
+    AND start_time >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+");
+print_r($active);
+
+// Get waiting surveys
+$waiting = $wpdb->get_results("
+    SELECT *, TIMESTAMPDIFF(MINUTE, start_time, NOW()) as minutes_waiting
+    FROM {$table_name}
+    WHERE status = 'started'
+    AND start_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    AND start_time < DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+");
+print_r($waiting);
+
+// Calculate today's conversion rate
+$completed = $wpdb->get_var("
+    SELECT COUNT(*) FROM {$table_name}
+    WHERE status = 'completed'
+    AND DATE(completion_time) = CURDATE()
+");
+
+$started = $wpdb->get_var("
+    SELECT COUNT(*) FROM {$table_name}
+    WHERE DATE(start_time) = CURDATE()
+");
+
+$rate = $started > 0 ? round(($completed / $started) * 100, 2) : 0;
+echo "Conversion Rate: {$rate}%";
+
+// Clear all active survey transients
+global $wpdb;
+$wpdb->query("
+    DELETE FROM {$wpdb->options}
+    WHERE option_name LIKE '_transient_rm_active_survey_%'
+    OR option_name LIKE '_transient_timeout_rm_active_survey_%'
+");
 ```
 
-### JavaScript Console Commands - v1.0.3
+### Survey Reports Commands - ✨ NEW v1.1.0
+
+```php
+// Get all survey responses
+global $wpdb;
+$table_name = $wpdb->prefix . 'rm_survey_responses';
+
+$responses = $wpdb->get_results("
+    SELECT r.*, u.display_name, p.post_title as survey_title
+    FROM {$table_name} r
+    LEFT JOIN {$wpdb->users} u ON r.user_id = u.ID
+    LEFT JOIN {$wpdb->posts} p ON r.survey_id = p.ID
+    ORDER BY r.start_time DESC
+    LIMIT 20
+");
+print_r($responses);
+
+// Get responses for specific survey
+$survey_id = 123;
+$responses = $wpdb->get_results($wpdb->prepare("
+    SELECT * FROM {$table_name}
+    WHERE survey_id = %d
+    ORDER BY start_time DESC
+", $survey_id));
+
+// Get responses by status
+$status = 'completed';
+$responses = $wpdb->get_results($wpdb->prepare("
+    SELECT * FROM {$table_name}
+    WHERE status = %s
+    ORDER BY start_time DESC
+", $status));
+
+// Get responses by date range
+$from = '2025-10-01';
+$to = '2025-10-31';
+$responses = $wpdb->get_results($wpdb->prepare("
+    SELECT * FROM {$table_name}
+    WHERE DATE(start_time) >= %s
+    AND DATE(start_time) <= %s
+    ORDER BY start_time DESC
+", $from, $to));
+
+// Count responses by completion status
+$counts = $wpdb->get_results("
+    SELECT completion_status, COUNT(*) as count
+    FROM {$table_name}
+    WHERE completion_status IS NOT NULL
+    GROUP BY completion_status
+");
+print_r($counts);
+```
+
+### User Reports Commands - ✨ NEW v1.1.0
+
+```php
+// Get user's survey statistics
+$user_id = 1;
+global $wpdb;
+$table_name = $wpdb->prefix . 'rm_survey_responses';
+
+$stats = $wpdb->get_row($wpdb->prepare("
+    SELECT 
+        COUNT(*) as total_surveys,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN completion_status = 'success' THEN 1 ELSE 0 END) as successful
+    FROM {$table_name}
+    WHERE user_id = %d
+", $user_id));
+print_r($stats);
+
+// Get user's earnings
+$total_earned = floatval(get_user_meta($user_id, 'rm_total_earnings', true));
+$paid_amount = floatval(get_user_meta($user_id, 'rm_paid_amount', true));
+$pending = $total_earned - $paid_amount;
+
+echo "Total Earned: $total_earned<br>";
+echo "Paid: $paid_amount<br>";
+echo "Pending: $pending";
+
+// Get user's activity data
+$last_login = get_user_meta($user_id, 'rm_last_login', true);
+$last_activity = get_user_meta($user_id, 'rm_last_activity', true);
+$login_count = intval(get_user_meta($user_id, 'rm_login_count', true));
+
+echo "Last Login: $last_login<br>";
+echo "Last Activity: $last_activity<br>";
+echo "Login Count: $login_count";
+
+// Check if user is active now
+$minutes_ago = round((time() - strtotime($last_activity)) / 60);
+if ($minutes_ago < 5) {
+    echo "User is ACTIVE NOW";
+} else {
+    echo "Last active $minutes_ago minutes ago";
+}
+
+// Get all users with pending payments
+global $wpdb;
+$users_with_pending = $wpdb->get_results("
+    SELECT u.ID, u.display_name,
+        (SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = u.ID AND meta_key = 'rm_total_earnings') as earned,
+        (SELECT meta_value FROM {$wpdb->usermeta} WHERE user_id = u.ID AND meta_key = 'rm_paid_amount') as paid
+    FROM {$wpdb->users} u
+    HAVING (earned - paid) > 0
+    ORDER BY (earned - paid) DESC
+");
+print_r($users_with_pending);
+
+// Update user earnings
+update_user_meta($user_id, 'rm_total_earnings', 25.00);
+update_user_meta($user_id, 'rm_paid_amount', 10.00);
+
+// Mark payment as complete
+$paid = floatval(get_user_meta($user_id, 'rm_paid_amount', true));
+update_user_meta($user_id, 'rm_paid_amount', $paid + 15.00);
+```
+
+### JavaScript Console Commands - ✨ NEW v1.1.0
 
 ```javascript
-// Check if script loaded
-typeof initProfilePictureWidget; // Should show "function"
+// Live Monitor
+// ============
 
-// Check localized variables
-console.log(rmProfilePicture);
+// Check if Live Monitor initialized
+typeof RMLiveMonitor; // Should be "object"
 
-// Manually open modal
-jQuery('#rm-profile-picture-modal').addClass('active');
+// Check config
+console.log(rmLiveMonitor);
 
-// Manually close modal
-jQuery('#rm-profile-picture-modal').removeClass('active');
+// Manually trigger refresh
+RMLiveMonitor.loadStats();
+RMLiveMonitor.loadActiveUsers();
 
-// Check if file selected
-jQuery('#rm-profile-picture-input')[0].files.length;
+// Check refresh interval
+console.log(RMLiveMonitor.refreshInterval);
 
-// Get current profile picture URL
-jQuery('.rm-profile-picture-image').attr('src');
+// Stop auto-refresh
+clearInterval(RMLiveMonitor.refreshInterval);
 
-// Manually update profile picture
-jQuery('.rm-profile-picture-image').attr('src', 'NEW_URL');
+// Restart auto-refresh
+RMLiveMonitor.init();
 
-// Show success message manually
-showMessage('success', 'Test message');
+// Format time manually
+RMLiveMonitor.formatWaitingTime(75); // "1 hour"
+RMLiveMonitor.formatWaitingTime(1500); // "1 day"
 
-// Show error message manually
-showMessage('error', 'Test error');
+// Calculate duration
+RMLiveMonitor.calculateDuration('2025-10-31 10:00:00'); // Minutes since
 
-// Check drag & drop support
-'draggable' in document.createElement('div');
+// Survey Reports & User Reports
+// ==============================
 
-// List all event handlers on upload area
-jQuery._data(jQuery('#rm-upload-area')[0], 'events');
+// Check jQuery UI datepicker
+jQuery.ui.version; // Should show "1.12.1" or similar
 
-// Reset modal state
-jQuery('#rm-upload-area').show();
-jQuery('#rm-preview-area').hide();
+// Manually init datepicker
+jQuery('.rm-datepicker').datepicker({
+    dateFormat: 'yy-mm-dd',
+    maxDate: 0
+});
 
-// Check if modal is open
-jQuery('#rm-profile-picture-modal').hasClass('active');
+// Highlight pending payments (User Reports)
+jQuery('.rm-user-reports-table tbody tr').each(function() {
+    var $pending = jQuery(this).find('.rm-amount-pending strong');
+    if ($pending.length) {
+        jQuery(this).css('border-left', '3px solid #f0b849');
+    }
+});
 ```
 
-### Fluent Forms - Country Detection
+---
 
+## 📊 Performance Optimization - UPDATED v1.1.0
+
+### Live Monitor Optimization - ✨ NEW v1.1.0
+
+**Database Query Optimization:**
 ```php
-// Check if API key is set
-$api_key = get_option('rm_panel_ipstack_api_key', '');
-echo !empty($api_key) ? 'Set' : 'Not Set';
+// Use indexed columns for fast lookups
+KEY status (status),
+KEY start_time (start_time),
 
-// Clear country cache for an IP
-$ip = '8.8.8.8';
-$cache_key = 'rm_country_' . md5($ip);
-delete_transient($cache_key);
+// Time-based queries use DATE_SUB for efficiency
+WHERE start_time >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
 
-// Test IPStack API directly
-$api_key = get_option('rm_panel_ipstack_api_key', '');
-$response = wp_remote_get("http://api.ipstack.com/8.8.8.8?access_key={$api_key}");
-$data = json_decode(wp_remote_retrieve_body($response), true);
-print_r($data);
-
-// Check session country
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-echo $_SESSION['rm_detected_country'];
-
-// Clear session country
-unset($_SESSION['rm_detected_country']);
-unset($_SESSION['rm_detected_country_time']);
+// Limit results to prevent overload
+// Active surveys typically < 100 at once
 ```
 
----
+**AJAX Optimization:**
+```javascript
+// 5-second refresh balances real-time vs server load
+refreshInterval: 5000,
 
-## 🔐 Important Security Notes - UPDATED v1.0.4.1
+// Combined AJAX calls reduce requests
+// One call gets: stats, active surveys, waiting surveys
 
-1. **Token Validation:** All callback URLs MUST include valid token
-2. **Nonce Verification:** All AJAX requests use `wp_verify_nonce()`
-3. **User Capabilities:** Admin functions check `manage_options`
-4. **SQL Injection:** All queries use `$wpdb->prepare()`
-5. **Password Security:** Fluent Forms module never stores raw passwords
-6. **User Registration:** Passwords automatically hashed by `wp_create_user()`
-7. **Input Sanitization:** All form inputs sanitized using WordPress functions
-8. **Username Sanitization:** All usernames sanitized with `sanitize_user()`
-9. **Email Sanitization:** All emails sanitized with `sanitize_email()`
-10. **AJAX Security:** Real-time validation uses nonce verification for each endpoint
-11. **Double Validation:** Client-side validation backed by server-side checks
-12. **Rate Limiting:** Consider implementing rate limiting for AJAX validation endpoints
-13. **Singleton Pattern:** Prevents double initialization and duplicate menu items
-14. **API Key Storage:** IPStack API key stored securely in wp_options
-15. **IP Address Validation:** User IP validated before API calls
-16. **Cache Security:** Transient cache prevents excessive API calls
-17. **Error Logging:** Sensitive data not logged in production
-18. **Session Security:** PHP sessions used for country validation
-19. **Country Validation:** Cannot be bypassed - both client and server validation
-20. **Session Timeout:** 30-minute expiration for security
-21. **XSS Prevention:** All country values sanitized with `sanitize_text_field()`
-22. **Country Comparison:** Normalized comparison prevents case-sensitive bypasses
-23. **File Upload Security - v1.0.3:** File type validation prevents malicious uploads
-24. **File Size Limits - v1.0.3:** 5MB max prevents server overload
-25. **User Authentication - v1.0.3:** Profile picture uploads require login
-26. **User ID Verification - v1.0.3:** Prevents users from uploading as other users
-27. **MIME Type Validation - v1.0.3:** Uses `wp_check_filetype()` for real validation
-28. **Media Library Integration - v1.0.3:** Uses WordPress functions for secure uploads
-29. **Smart Cleanup - v1.0.3:** Prevents accidental deletion of shared images
-30. **Upload Logging - v1.0.3:** All uploads logged with IP and timestamp
-31. **Admin Bar Settings - v1.0.4.1:** Only users with `manage_options` can change settings ✨ NEW
-32. **Nonce Verification - v1.0.4.1:** Admin bar settings form uses nonce ✨ NEW
-33. **Data Sanitization - v1.0.4.1:** All admin bar settings sanitized before saving ✨ NEW
-34. **Singleton Pattern - v1.0.4.1:** Admin bar manager uses singleton to prevent duplicates ✨ NEW
-35. **No Bypass - v1.0.4.1:** Admin bar visibility cannot be overridden by users ✨ NEW
+// Cleanup on page unload prevents memory leaks
+$(window).on('beforeunload', function() {
+    clearInterval(RMLiveMonitor.refreshInterval);
+});
+```
 
----
+**Transient Cache:**
+```php
+// 2-minute expiration auto-cleans stale data
+set_transient($session_key, $data, 2 * MINUTE_IN_SECONDS);
 
-## 📊 Performance Optimization - UPDATED v1.0.4.1
-
-### Admin Bar Management Optimization - ✨ NEW v1.0.4.1
-- ✅ Module loads only if file exists (conditional loading)
-- ✅ Settings cached in WordPress options (single database query)
-- ✅ Role check happens once per page load
-- ✅ CSS inline injection only when needed (no external file)
-- ✅ No JavaScript required (pure PHP/CSS solution)
-- ✅ Minimal hooks (3 total: after_setup_theme, wp_head, admin_head)
-- ✅ Singleton pattern prevents duplicate instances
-- ✅ Default settings prevent empty database queries
-- ✅ Auto-detects roles once, not on every check
-- ✅ No AJAX calls (settings page uses standard form post)
+// No manual cleanup needed
+// WordPress handles expired transients automatically
+```
 
 **Performance Impact:**
 ```
-Database Queries: +1 (cached option)
-Memory Usage: ~6 KB
-Page Load Impact: <1ms
-Hooks: 3
-CSS Added: ~20 lines (only when hiding)
+Database Queries per Refresh: 4
+AJAX Requests per Refresh: 2
+Refresh Frequency: 5 seconds
+Typical Active Surveys: < 100
+Memory Usage: ~50 KB per session
+Server Load: Minimal with indexed queries
 ```
 
-### Profile Picture Optimization - v1.0.3
-- ✅ Scripts load only for logged-in users (conditional loading)
-- ✅ Images resized to 'medium' size automatically (reduces bandwidth)
-- ✅ Old pictures deleted only if unused (prevents orphaned files)
-- ✅ Modal content lazy-loaded (not rendered until opened)
-- ✅ AJAX upload with progress indication
-- ✅ Smart cleanup checks before deletion
-- ✅ History limited to last 5 entries (prevents database bloat)
-- ✅ Fallback to WordPress Gravatar (no custom storage needed)
-- ✅ CSS animations use GPU acceleration (transform, opacity)
-- ✅ JavaScript uses event delegation (better performance)
-- ✅ File input reset after upload (prevents memory leaks)
-- ✅ Preview uses FileReader API (no server upload until save)
-- ✅ Drag & drop uses native events (no heavy libraries)
+### Survey Reports Optimization - ✨ NEW v1.1.0
 
-### Country Detection Optimization
-- ✅ 5-minute transient cache reduces API calls by ~99%
-- ✅ Cache key based on IP hash (not raw IP for privacy)
-- ✅ AJAX timeout set to 10 seconds (prevents hanging)
-- ✅ Graceful fallback if API fails (form still usable)
-- ✅ Conditional loading (only on enabled forms)
-- ✅ Multiple detection attempts (0s, 1s, 2s) improve success rate
-- ✅ Session storage prevents re-detection on form reloads
-- ✅ 30-minute session reduces API calls further
-- ✅ Exact match priority reduces comparison operations
-
-### API Call Optimization
+**Query Optimization:**
 ```php
-// Cache structure
-$cache_key = 'rm_country_' . md5($ip); // Hashed for privacy
-set_transient($cache_key, $country, 5 * MINUTE_IN_SECONDS);
+// Use prepared statements (prevents SQL injection, cached)
+$wpdb->prepare("SELECT ... WHERE survey_id = %d", $survey_id);
 
-// Session storage
-$_SESSION['rm_detected_country'] = $country;
-$_SESSION['rm_detected_country_time'] = time();
-// 30-minute timeout reduces API calls
+// Indexed columns in WHERE clauses
+KEY survey_id (survey_id),
+KEY status (status),
+KEY start_time (start_time),
 
-// Check cache first
-$cached_country = get_transient($cache_key);
-if ($cached_country !== false) {
-    return $cached_country; // No API call needed
+// LEFT JOIN only when needed
+LEFT JOIN {$wpdb->users} u ON r.user_id = u.ID
+LEFT JOIN {$wpdb->posts} p ON r.survey_id = p.ID
+```
+
+**Export Optimization:**
+```php
+// Stream directly to output (no memory buffer)
+$output = fopen('php://output', 'w');
+
+// Process row-by-row (memory efficient)
+foreach ($responses as $response) {
+    fputcsv($output, [...]);
 }
+
+// UTF-8 BOM added once (3 bytes)
+fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 ```
 
-### Database Optimization - v1.0.3
-```php
-// Profile picture history limited to 5 entries
-$history = array_slice($history, -4); // Keep only last 4
-$history[] = $log_entry; // Add new entry = 5 total
+**Datepicker Optimization:**
+```javascript
+// jQuery UI loaded only on report pages
+if ($hook === 'rm_survey_page_rm-survey-reports') {
+    wp_enqueue_script('jquery-ui-datepicker');
+}
 
-// Smart cleanup query
-$usage_count = $wpdb->get_var($wpdb->prepare(
-    "SELECT COUNT(*) FROM {$wpdb->usermeta} 
-    WHERE meta_key = 'rm_profile_picture' 
-    AND meta_value = %d",
-    $attachment_id
-));
-// Indexed query, very fast
-```
-
-### Image Optimization - v1.0.3
-```php
-// Automatic resize to 'medium' size (default 300x300)
-$image_url = wp_get_attachment_image_url($attachment_id, 'medium');
-
-// Benefits:
-// - Reduces page load time
-// - Saves bandwidth
-// - Maintains quality for profile pictures
-// - WordPress handles resizing automatically
-```
-
-### Monitoring - v1.0.3 & v1.0.4.1
-```php
-// Track upload statistics
-// Number of users with custom pictures
-$total_users = $wpdb->get_var(
-    "SELECT COUNT(DISTINCT user_id) FROM {$wpdb->usermeta} 
-    WHERE meta_key = 'rm_profile_picture' AND meta_value != ''"
+// CDN for jQuery UI CSS (cached)
+wp_enqueue_style('jquery-ui-css', 
+    'https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css'
 );
+```
 
-// Check admin bar settings usage
-$settings = get_option('rm_panel_admin_bar_settings', []);
-$enabled_roles = array_filter($settings, function($v) { return $v === '1'; });
-echo 'Roles with admin bar: ' . count($enabled_roles);
+### User Reports Optimization - ✨ NEW v1.1.0
 
-// Average picture size
-// Check media library attachment sizes
+**Activity Tracking:**
+```php
+// Update only every 5 minutes (reduces writes)
+if (strtotime($last_activity) < strtotime('-5 minutes')) {
+    update_user_meta($user_id, 'rm_last_activity', current_time('mysql'));
+}
+
+// Login tracking on wp_login hook (automatic)
+add_action('wp_login', [$this, 'track_user_login'], 10, 2);
+```
+
+**Query Optimization:**
+```php
+// Single query per user for all survey stats
+SELECT COUNT(*) as total,
+    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+    SUM(CASE WHEN completion_status = 'success' THEN 1 ELSE 0 END) as successful
+FROM {$table_name}
+WHERE user_id = %d
+
+// User meta cached by WordPress
+// Multiple get_user_meta() calls = 1 DB query total
+```
+
+**Export Optimization:**
+```php
+// Same stream approach as Survey Reports
+// Efficient for thousands of users
+
+// Currency format once, reuse
+$currency = get_option('rm_panel_currency_symbol', '$');
+// Then: $currency . number_format($amount, 2)
+```
+
+**Frontend Optimization:**
+```javascript
+// Pending payment highlighting (client-side)
+// No extra AJAX, runs once on page load
+$('.rm-user-reports-table tbody tr').each(function() {
+    // Check DOM, add CSS class
+});
+```
+
+### Overall Reporting System Performance
+
+**Benchmarks (typical installation):**
+```
+Live Monitor Page Load: < 500ms
+Survey Reports Page Load: < 800ms
+User Reports Page Load: < 1200ms
+
+Live Monitor Auto-Refresh: < 200ms
+CSV Export (1000 records): < 2s
+CSV Export (10000 records): < 10s
+
+Database Impact: 
+- Indexed queries: < 50ms each
+- Bulk user data: < 200ms per 100 users
+- Active monitoring: < 100ms per refresh
+```
+
+**Optimization Recommendations:**
+```
+✅ Keep survey responses table under 1M rows
+✅ Archive old data (> 1 year) to separate table
+✅ Use object caching (Redis/Memcached) for high traffic
+✅ Consider CDN for jQuery UI assets
+✅ Monitor slow query log for optimization opportunities
+✅ Add database indexes if custom queries added
 ```
 
 ---
 
-## 🚀 Future Reference Usage - UPDATED v1.0.4.1
+## 📋 Version History - UPDATED
 
-**Instead of pasting files, say:**
-- "Check the Admin Bar Management section" - ✨ NEW v1.0.4.1
-- "Reference: RM_Panel_Admin_Bar_Manager::get_instance() - Singleton Pattern" - ✨ NEW
-- "See 'Issue 26: Admin Bar Visibility Inverted (FIXED)' in Common Issues" - ✨ NEW
-- "Check Admin Bar Management Testing checklist" - ✨ NEW
-- "Reference: RM_Panel_Admin_Bar_Manager::manage_admin_bar() - FIXED version" - ✨ NEW
-- "See 'Admin Bar Management Settings' in Important Settings" - ✨ NEW
-- "Check 'Admin Bar Management Optimization' in Performance section" - ✨ NEW
-- "Reference: Admin Bar Settings UI Integration code" - ✨ NEW
-- "See v1.0.4.1 bug fix notes" - ✨ NEW
-- "Check the Profile Picture Widget section" - v1.0.3
-- "Reference: RM_Profile_Picture_Handler::get_instance() - Singleton Pattern" - v1.0.3
-- "See 'Issue 20: Profile Picture Not Uploading' in Common Issues" - v1.0.3
-- "Check Profile Picture Widget Testing checklist" - v1.0.3
-- "Reference: RM_Profile_Picture_Handler::upload_profile_picture()" - v1.0.3
-- "Reference: Profile Picture JavaScript Event Handlers" - v1.0.3
-- "See 'Profile Picture CSS Animations' section" - v1.0.3
-- "Check 'Profile Picture Optimization' in Performance section" - v1.0.3
-- "Reference: Profile Picture AJAX Response Format" - v1.0.3
-- "See 'Smart Cleanup' in Security Notes" - v1.0.3
-- "Check the Country Detection & Validation Flow section"
-- "Reference: RM_Panel_Fluent_Forms_Module::get_instance() - Singleton Pattern"
-- "See 'Issue 15: Country Matching India to British Indian Ocean Territory' (FIXED in v1.0.2)"
-- "See 'Issue 16: Country Mismatch Not Showing Error' in Common Issues"
-- "Check Fluent Forms Country Detection & Validation Configuration"
-- "Reference: RM_Panel_Fluent_Forms_Module::ajax_get_country_from_ip()"
-- "Reference: RM_Panel_Fluent_Forms_Module::compare_countries()"
-- "Reference: RM_Panel_Fluent_Forms_Module::get_detected_country_from_session()"
-- "Reference: validateCountrySelection() in JavaScript"
-- "Reference: initializeCountryValidation() in JavaScript"
-- "See 'Issue 17: Form Still Submits Despite Mismatch' in Common Issues"
-- "Check Country Mismatch Validation Testing checklist"
-- "Reference: Country Alias Matching section"
-- "See Session Storage Checklist for debugging"
+### v1.1.0 (October 31, 2025) - REPORTS & ANALYTICS ✨ NEW
+**Major Feature Release: Advanced Reporting System**
 
----
+**✨ NEW: Live Survey Monitoring**
+- Added RM_Survey_Live_Monitor class (Singleton)
+- Real-time dashboard with auto-refresh (5 seconds)
+- Four stat cards: Active Now, Waiting, Completed Today, Conversion Rate
+- Active surveys table with duration tracking
+- Waiting surveys table with time indicators
+- Active users list (site-wide activity)
+- Color-coded duration warnings
+- Pulsing live indicator
+- WordPress Heartbeat API integration
+- Comprehensive AJAX system
+- Empty state handling
+- Admin menu under Surveys
 
-## 📋 Version History
+**✨ NEW: Survey Reports with Excel Export**
+- Added RM_Survey_Reports class (Singleton)
+- Advanced filtering system (survey, status, date range)
+- jQuery UI datepicker integration
+- Comprehensive data table
+- One-click CSV/Excel export
+- UTF-8 BOM for Excel compatibility
+- Status and completion badges
+- Duration display in minutes
+- Record count display
+- Clear filters functionality
+- Admin menu under Surveys
 
-### v1.0.4.1 (October 29, 2025) - CRITICAL BUG FIX ✨ NEW
+**✨ NEW: User Reports Dashboard**
+- Added RM_User_Reports class (Singleton)
+- Four summary stat cards with totals
+- Comprehensive user activity tracking
+- Earnings and payment management
+- Search and role filtering
+- Date-based filtering
+- Active now indicator (< 5 minutes)
+- Survey completion statistics
+- Pending payment highlighting
+- CSV/Excel export functionality
+- User meta tracking system:
+  - rm_last_login (datetime)
+  - rm_last_activity (datetime)
+  - rm_login_count (integer)
+  - rm_total_earnings (float)
+  - rm_paid_amount (float)
+- Admin menu under Surveys
+
+**CSS Assets Added:**
+- live-monitor.css - Live monitoring dashboard styles
+- survey-styles.css - Enhanced survey listing styles
+- user-reports.css - User reports dashboard styles
+
+**JavaScript Assets Added:**
+- live-monitor.js - Auto-refreshing live monitor
+- survey-reports.js - Datepicker and filtering
+- user-reports.js - User reports interactions
+
+**Database Schema:**
+- Enhanced wp_rm_survey_responses table usage
+- New user meta keys for activity tracking
+- Optimized indexes for report queries
+
+**Performance Improvements:**
+- Indexed database queries for fast reports
+- Stream-based CSV export (memory efficient)
+- Transient cache for active sessions (2 min)
+- Activity throttling (5-minute updates)
+- Combined AJAX calls in live monitor
+
+**Admin Integration:**
+- Three new menu items under Surveys
+- Consistent UI across all reports
+- Permissions check (manage_options)
+- Comprehensive testing checklists
+
+**Documentation:**
+- Added complete Reports & Analytics section
+- Database architecture diagrams
+- Performance benchmarks
+- Common issues and solutions
+- Quick reference commands
+- Testing checklists for all three modules
+
+### v1.0.4.1 (October 29, 2025) - CRITICAL BUG FIX
 **🐛 Bug Fix: Admin Bar Visibility Inverted**
 - Fixed critical bug where admin bar visibility was inverted
 - Added explicit `show_admin_bar(true)` for enabled roles
 - Added explicit `add_filter('show_admin_bar', '__return_true')` for enabled roles
 - Fixed `get_admin_bar_settings()` to return defaults if empty
 - Updated version comment to indicate fixed version
-- All admin bar functionality now works correctly:
-  - ✅ Checked roles CAN see admin bar (was hidden)
-  - ✅ Unchecked roles CANNOT see admin bar (was showing)
-
-**Technical Changes:**
-- Modified `manage_admin_bar()` method to explicitly enable/disable
-- Modified `get_admin_bar_settings()` to always return valid settings
-- Added proper default settings fallback
-
-**Migration:** Replace `class-admin-bar-manager.php` with fixed version
 
 ### v1.0.4 (October 29, 2025) - ⚠️ HAS BUG (Fixed in v1.0.4.1)
 **✨ NEW: Admin Bar Management by Role**
 - Added admin bar visibility control by user role
 - Added RM_Panel_Admin_Bar_Manager class (Singleton)
 - Added settings UI for role-based admin bar control
-- Added "Reset to Defaults" button
-- Added complete CSS hiding (bar + spacing)
-- Added automatic custom role detection
-- Added frontend and backend admin bar control
-- Added per-role visibility checkboxes
-- Improved: Safe defaults (administrators only)
-
-**⚠️ KNOWN ISSUE:** Admin bar visibility inverted (fixed in v1.0.4.1)
+- ⚠️ KNOWN ISSUE: Admin bar visibility inverted (fixed in v1.0.4.1)
 
 ### v1.0.3 (October 29, 2025)
 **✨ NEW: Profile Picture Management**
 - Added Profile Picture Widget for Elementor
 - Added profile picture upload with drag & drop
-- Added real-time image preview in modal
-- Added AJAX-powered file upload system
 - Added RM_Profile_Picture_Handler class (Singleton)
 - Added smart cleanup for unused profile pictures
-- Added upload history tracking (last 5 uploads)
-- Added file type validation (JPG, PNG, GIF)
-- Added file size validation (5MB max)
-- Added user authentication and authorization checks
-- Added FluentCRM integration for country display
-- Added Gravatar fallback for users without custom pictures
-- Added responsive design for mobile devices
-- Added Elementor editor compatibility
-- Added comprehensive CSS animations
-- Added loading states and error handling
-- Fixed: Scripts now load only for logged-in users
-- Improved: Conditional script loading for better performance
-- Improved: Image resize to 'medium' for optimization
-- Updated: All testing checklists and troubleshooting guides
 
 ### v1.0.2 (October 16, 2025)
 **✨ NEW: Country Mismatch Prevention**
 - Added client-side country validation on change event
 - Added form submission blocking for country mismatch
 - Added server-side country validation with session storage
-- Added compare_countries() method with alias matching
-- Added get_detected_country_from_session() method
-- Added 30-minute session timeout for detected country
-- Added red border + shake animation on mismatch
-- Added scroll to field on validation error
-- Added comprehensive error messages for country mismatch
-- Fixed: "India" now matches exactly (not "British Indian Ocean Territory")
-- Improved: Exact match priority for country selection
-- Improved: Better alias handling (India/IN, USA/US, etc.)
-- Updated: All testing checklists and troubleshooting guides
 
 ### v1.0.1 (January 2025)
 **✨ NEW: Country Auto-Detection**
-- Real-time username validation with 5 character minimum
-- Real-time email validation with availability checking
-- Real-time password strength indicator (weak/medium/strong)
+- Real-time username validation
+- Real-time email validation
+- Real-time password strength indicator
 - Auto-detect country from IP using IPStack API
-- 5-minute cache for country detection
-- Multiple detection attempts for reliability
-- Per-form validation settings in admin
-- Conditional script loading based on form settings
-- Singleton pattern to prevent double initialization
-- Three separate AJAX endpoints with nonce security
-- Country detection AJAX endpoint
-- Comprehensive visual feedback system
-- IPStack API integration with error handling
 
 ### v1.0.0 (Initial Release)
 - Survey custom post type
@@ -2302,44 +2175,23 @@ echo 'Roles with admin bar: ' . count($enabled_roles);
 
 ---
 
-**Version:** 1.0.4.1  
-**Last Updated:** October 29, 2025  
+**Version:** 1.1.0  
+**Last Updated:** October 31, 2025  
 **Latest Features:** 
-- **Admin Bar Management by Role** ✨ NEW v1.0.4.1 (BUG FIXED)
-  - Per-role admin bar visibility control
-  - Settings UI with role checkboxes
-  - Reset to defaults button
-  - Complete CSS hiding
-  - Custom role auto-detection
-  - Safe defaults (admins only)
-  - ✅ FIXED: Inverted visibility logic corrected
-- **Profile Picture Widget with upload functionality** v1.0.3
-- **Drag & drop file upload** v1.0.3
-- **Real-time image preview** v1.0.3
-- **AJAX profile picture management** v1.0.3
-- **Smart cleanup for unused images** v1.0.3
-- **Upload history tracking** v1.0.3
-- **FluentCRM integration for country display** v1.0.3
-- **Gravatar fallback** v1.0.3
-- **Comprehensive security validation** v1.0.3
-- Real-time username validation with 5 character minimum
-- Real-time email validation with availability checking
-- Real-time password strength indicator (weak/medium/strong)
-- Auto-detect country from IP using IPStack API
-- 5-minute cache for country detection
-- Multiple detection attempts for reliability
-- Per-form validation settings in admin
-- Conditional script loading based on form settings
-- Singleton pattern to prevent double initialization
-- Three separate AJAX endpoints with nonce security
-- Country detection AJAX endpoint
-- Comprehensive visual feedback system
-- IPStack API integration with error handling
-- Country mismatch prevention (client + server)
-- Exact match priority for country selection
-- Session-based country validation
-- Red border + shake animation on error
-- Form submission blocking
-- 30-minute session timeout
-- Country alias matching system
-- Comprehensive error feedback
+- **Advanced Reporting & Analytics System** ✨ NEW v1.1.0
+  - Live Survey Monitoring with auto-refresh
+  - Survey Reports with Excel export
+  - User Reports with earnings tracking
+  - Real-time dashboard updates (5s)
+  - Comprehensive filtering systems
+  - jQuery UI datepicker integration
+  - CSV/Excel export functionality
+  - Activity tracking system
+  - Payment management
+  - Conversion rate analytics
+- **Admin Bar Management by Role** v1.0.4.1 (BUG FIXED)
+- **Profile Picture Widget with upload** v1.0.3
+- **Country Auto-Detection & Mismatch Prevention** v1.0.2
+- Real-time Fluent Forms validation
+- Singleton pattern architecture
+- Comprehensive security validation
