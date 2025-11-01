@@ -92,26 +92,7 @@ class RM_Panel_Elementor_Module {
                 $widgets_manager->register(new \RM_Panel_Login_Widget());
             }
         }
-
-        // Check if survey widget is enabled
-        if (empty($this->settings['enable_survey_widget']) && isset($this->settings['enable_survey_widget'])) {
-            // Skip if explicitly disabled
-        } else {
-            // Include survey listing widget file
-            $survey_widget_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/survey-listing-widget.php';
-            if (file_exists($survey_widget_file)) {
-                require_once $survey_widget_file;
-                $widgets_manager->register(new \RM_Panel_Survey_Listing_Widget());
-            }
-
-            // Include survey accordion widget file
-            $survey_accordion_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/survey-accordion-widget.php';
-            if (file_exists($survey_accordion_file)) {
-                require_once $survey_accordion_file;
-                $widgets_manager->register(new \RM_Panel_Survey_Accordion_Widget());
-            }
-        }
-        
+               
         // Register Profile Picture Widget
         require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/profile-picture-widget.php';
         $widgets_manager->register(new \RMPanelExtensions\Modules\Elementor\Widgets\Profile_Picture_Widget());
