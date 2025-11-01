@@ -269,7 +269,32 @@ class RM_Panel_Extensions {
         $admin_bar_manager_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/admin-bar/class-admin-bar-manager.php';
         if (file_exists($admin_bar_manager_file)) {
             require_once $admin_bar_manager_file;
+        }        
+        
+        // Survey Manager Assignment
+        if (file_exists(RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-manager-metabox.php')) {
+            require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-manager-metabox.php';
         }
+
+        // Enhanced Tracking System
+        if (file_exists(RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-tracking-enhanced.php')) {
+            require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-tracking-enhanced.php';
+        }
+
+        // Enhanced Admin Columns
+        if (file_exists(RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-admin-columns-enhanced.php')) {
+            require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-admin-columns-enhanced.php';
+        }
+
+        // Database Upgrade v1.2.0
+        if (file_exists(RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-database-upgrade-v1.2.0.php')) {
+            require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-database-upgrade-v1.2.0.php';
+        }
+        
+        if (file_exists(RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-thank-you.php')) {
+             require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-thank-you.php';
+        }
+       
     }
 
     /**
