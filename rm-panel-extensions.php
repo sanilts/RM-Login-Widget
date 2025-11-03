@@ -2,7 +2,7 @@
 /**
  * Plugin Name: RM Panel Extensions
  * Description: A comprehensive suite of extensions for WordPress including custom Elementor widgets, role management, and more
- * Version: 1.2.0
+ * Version: 2.0.0
  * Author: Research and Metric
  * Author URI: https://researchandmetric.com
  * License: GPL v2 or later
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // PLUGIN CONSTANTS
 // ============================================
 
-define( 'RM_PANEL_EXT_VERSION', '1.2.0' );
+define( 'RM_PANEL_EXT_VERSION', '2.0.0' );
 define( 'RM_PANEL_EXT_FILE', __FILE__ );
 define( 'RM_PANEL_EXT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RM_PANEL_EXT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -38,7 +38,7 @@ define( 'RM_PANEL_EXT_DB_VERSION', '1.2.0' );
 /**
  * Main Plugin Class
  *
- * @since 1.0.0
+ * @since 2.0.0
  */
 class RM_Panel_Extensions {
 
@@ -71,7 +71,7 @@ class RM_Panel_Extensions {
 	/**
 	 * Constructor
 	 *
-	 * @since 1.0.0
+	 * @since 2.0.0
 	 */
 	private function __construct() {
 		$this->check_requirements();
@@ -81,7 +81,7 @@ class RM_Panel_Extensions {
 	/**
 	 * Check plugin requirements
 	 *
-	 * @since 1.0.0
+	 * @since 2.0.0
 	 * @return bool
 	 */
 	private function check_requirements() {
@@ -102,8 +102,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * PHP version notice
-	 *
-	 * @since 1.0.0
 	 */
 	public function php_version_notice() {
 		?>
@@ -115,8 +113,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * WordPress version notice
-	 *
-	 * @since 1.0.0
 	 */
 	public function wp_version_notice() {
 		?>
@@ -128,8 +124,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Initialize WordPress hooks
-	 *
-	 * @since 1.0.0
 	 */
 	private function init_hooks() {
 		// Core hooks
@@ -152,8 +146,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Load plugin textdomain
-	 *
-	 * @since 1.0.0
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain(
@@ -169,8 +161,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Initialize all modules
-	 *
-	 * @since 1.0.0
 	 */
 	public function init_modules() {
 		$this->load_modules();
@@ -181,8 +171,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Load module files
-	 *
-	 * @since 1.0.0
 	 */
 	private function load_modules() {
 		$core_modules = array();
@@ -206,7 +194,7 @@ class RM_Panel_Extensions {
 		// Survey-related modules (always load if files exist)
 		$this->load_survey_submodules();
 
-		// Elementor Module (conditional)
+		// Elementor Module (conditional - REQUIRED)
 		if ( did_action( 'elementor/loaded' ) ) {
 			$this->load_module_file(
 				'elementor-widgets',
@@ -234,7 +222,7 @@ class RM_Panel_Extensions {
 		// Profile Picture Handler
 		$this->load_file( 'modules/profile-picture/class-profile-picture-handler.php' );
 
-		// Reports Modules (v1.1.0)
+		// Reports Modules
 		$this->load_reports_modules();
 
 		// Referral System
@@ -252,8 +240,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Load survey submodules
-	 *
-	 * @since 1.2.0
 	 */
 	private function load_survey_submodules() {
 		$survey_modules = array(
@@ -261,7 +247,6 @@ class RM_Panel_Extensions {
 			'modules/survey/class-survey-database-upgrade.php',
 			'modules/survey/class-survey-database-upgrade-v1.2.0.php',
 			'modules/survey/class-survey-approval-admin.php',
-			'modules/survey/class-survey-tabs-shortcode.php',
 			'modules/survey/class-survey-manager-metabox.php',
 			'modules/survey/class-survey-tracking-enhanced.php',
 			'modules/survey/class-survey-admin-columns-enhanced.php',
@@ -272,7 +257,7 @@ class RM_Panel_Extensions {
 			$this->load_file( $module );
 		}
 
-		// Initialize Survey Callbacks immediately (doesn't need to be in modules array)
+		// Initialize Survey Callbacks immediately
 		if ( class_exists( 'RM_Survey_Callbacks' ) ) {
 			new RM_Survey_Callbacks();
 		}
@@ -280,8 +265,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Load reports modules
-	 *
-	 * @since 1.1.0
 	 */
 	private function load_reports_modules() {
 		$reports_dir = RM_PANEL_EXT_PLUGIN_DIR . 'modules/reports/';
@@ -300,7 +283,6 @@ class RM_Panel_Extensions {
 	/**
 	 * Load a single module file
 	 *
-	 * @since 1.2.0
 	 * @param string $key         Module key
 	 * @param string $file        File path relative to plugin directory
 	 * @param string $class_name  Class name
@@ -318,7 +300,6 @@ class RM_Panel_Extensions {
 	/**
 	 * Load a file if it exists
 	 *
-	 * @since 1.2.0
 	 * @param string $file File path (can be relative or absolute)
 	 * @return bool
 	 */
@@ -338,11 +319,9 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Instantiate loaded modules
-	 *
-	 * @since 1.2.0
 	 */
 	private function instantiate_modules() {
-		// Initialize Survey module first (doesn't depend on anything)
+		// Initialize Survey module first
 		if ( isset( $this->modules['survey'] ) && class_exists( $this->modules['survey'] ) ) {
 			new $this->modules['survey']();
 		}
@@ -359,7 +338,7 @@ class RM_Panel_Extensions {
 			}
 		}
 
-		// Initialize Fluent Forms module using singleton pattern
+		// Initialize Fluent Forms module
 		if ( defined( 'FLUENTFORM' ) || function_exists( 'wpFluentForm' ) ) {
 			if ( class_exists( 'RM_Panel_Fluent_Forms_Module' ) ) {
 				RM_Panel_Fluent_Forms_Module::get_instance();
@@ -369,8 +348,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Check for missing critical files
-	 *
-	 * @since 1.2.0
 	 */
 	private function check_missing_files() {
 		$missing_files = array();
@@ -400,7 +377,6 @@ class RM_Panel_Extensions {
 	/**
 	 * Show missing files notice
 	 *
-	 * @since 1.0.0
 	 * @param array $missing_files Array of missing file paths
 	 */
 	private function show_missing_files_notice( $missing_files ) {
@@ -423,9 +399,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Enqueue admin scripts and styles
-	 *
-	 * @since 1.0.0
-	 * @param string $hook Current admin page hook
 	 */
 	public function admin_enqueue_scripts( $hook ) {
 		if ( strpos( $hook, 'rm-panel-extensions' ) === false ) {
@@ -445,8 +418,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Enqueue frontend scripts and styles
-	 *
-	 * @since 1.0.0
 	 */
 	public function enqueue_frontend_scripts() {
 		// Survey tracking assets
@@ -471,8 +442,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Enqueue survey tracking assets
-	 *
-	 * @since 1.0.0
 	 */
 	private function enqueue_survey_tracking_assets() {
 		$should_load = $this->should_load_survey_tracking();
@@ -520,7 +489,6 @@ class RM_Panel_Extensions {
 	/**
 	 * Check if survey tracking assets should be loaded
 	 *
-	 * @since 1.2.0
 	 * @return bool
 	 */
 	private function should_load_survey_tracking() {
@@ -529,21 +497,11 @@ class RM_Panel_Extensions {
 			return true;
 		}
 
-		// Check if current page has the survey history shortcode
-		if ( is_singular() ) {
-			global $post;
-			if ( $post && has_shortcode( $post->post_content, 'rm_survey_history' ) ) {
-				return true;
-			}
-		}
-
 		return false;
 	}
 
 	/**
 	 * Enqueue profile picture assets
-	 *
-	 * @since 1.0.0
 	 */
 	private function enqueue_profile_picture_assets() {
 		// Enqueue CSS
@@ -576,24 +534,11 @@ class RM_Panel_Extensions {
 					'nonce'    => wp_create_nonce( 'rm_profile_picture_nonce' ),
 				)
 			);
-
-			// Debug mode
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				wp_add_inline_script(
-					'rm-profile-picture-widget',
-					'console.log("RM Profile Picture: Script enqueued successfully");',
-					'before'
-				);
-			}
-		} elseif ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'RM Panel: profile-picture-widget.js not found at: ' . $profile_js_file );
 		}
 	}
 
 	/**
 	 * Enqueue survey accordion assets
-	 *
-	 * @since 1.0.0
 	 */
 	private function enqueue_survey_accordion_assets() {
 		$accordion_css = RM_PANEL_EXT_PLUGIN_DIR . 'assets/css/survey-accordion-tabs.css';
@@ -613,8 +558,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Add admin menu pages
-	 *
-	 * @since 1.0.0
 	 */
 	public function add_admin_menu() {
 		// Main menu page
@@ -662,7 +605,6 @@ class RM_Panel_Extensions {
 	/**
 	 * Add plugin action links
 	 *
-	 * @since 1.0.0
 	 * @param array $links Existing plugin action links
 	 * @return array Modified plugin action links
 	 */
@@ -686,8 +628,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Render main admin page
-	 *
-	 * @since 1.0.0
 	 */
 	public function render_admin_page() {
 		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/main-dashboard.php';
@@ -695,8 +635,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Render settings page
-	 *
-	 * @since 1.0.0
 	 */
 	public function render_settings_page() {
 		// Save settings if form is submitted
@@ -712,8 +650,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Render modules page
-	 *
-	 * @since 1.0.0
 	 */
 	public function render_modules_page() {
 		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/modules-page.php';
@@ -721,8 +657,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Render survey responses page
-	 *
-	 * @since 1.0.0
 	 */
 	public function render_survey_responses_page() {
 		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/survey-responses-page.php';
@@ -735,7 +669,6 @@ class RM_Panel_Extensions {
 	/**
 	 * Get default settings
 	 *
-	 * @since 1.0.0
 	 * @return array Default settings
 	 */
 	private function get_default_settings() {
@@ -752,8 +685,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Save plugin settings
-	 *
-	 * @since 1.0.0
 	 */
 	private function save_settings() {
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -814,8 +745,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Check and update database if needed
-	 *
-	 * @since 1.0.0
 	 */
 	public function check_db_update() {
 		$installed_version = get_option( 'rm_panel_survey_db_version' );
@@ -828,8 +757,6 @@ class RM_Panel_Extensions {
 
 	/**
 	 * Create survey tracking database table
-	 *
-	 * @since 1.0.0
 	 */
 	private function create_survey_tracking_table() {
 		global $wpdb;
@@ -871,7 +798,6 @@ class RM_Panel_Extensions {
 /**
  * Initialize the plugin
  *
- * @since 1.0.0
  * @return RM_Panel_Extensions
  */
 function rm_panel_extensions() {
@@ -887,8 +813,6 @@ rm_panel_extensions();
 
 /**
  * Plugin activation callback
- *
- * @since 1.0.0
  */
 function rm_panel_extensions_activate() {
 	// Set default options
@@ -924,8 +848,6 @@ register_activation_hook( __FILE__, 'rm_panel_extensions_activate' );
 
 /**
  * Plugin deactivation callback
- *
- * @since 1.0.0
  */
 function rm_panel_extensions_deactivate() {
 	// Flush rewrite rules
@@ -933,137 +855,3 @@ function rm_panel_extensions_deactivate() {
 }
 
 register_deactivation_hook( __FILE__, 'rm_panel_extensions_deactivate' );
-
-// ============================================
-// DEBUGGING UTILITIES (Development Only)
-// ============================================
-
-/**
- * Debug survey targeting
- * 
- * Access via: yoursite.com/?debug_surveys=1
- *
- * @since 1.0.0
- */
-function rm_debug_survey_targeting() {
-	if ( ! is_user_logged_in() ) {
-		echo '<p>Please log in first</p>';
-		return;
-	}
-
-	$user_id = get_current_user_id();
-
-	echo '<h2>Survey Targeting Debug</h2>';
-
-	// Check if FluentCRM is active
-	echo '<h3>1. FluentCRM Status</h3>';
-	if ( defined( 'FLUENTCRM' ) ) {
-		echo '✅ FluentCRM is active<br>';
-	} else {
-		echo '❌ FluentCRM is NOT active<br>';
-		return;
-	}
-
-	// Check if helper class exists
-	echo '<h3>2. Helper Class Status</h3>';
-	if ( class_exists( 'RM_Panel_FluentCRM_Helper' ) ) {
-		echo '✅ RM_Panel_FluentCRM_Helper class exists<br>';
-	} else {
-		echo '❌ RM_Panel_FluentCRM_Helper class NOT found<br>';
-		return;
-	}
-
-	// Get user's country from FluentCRM
-	echo '<h3>3. User\'s Country from FluentCRM</h3>';
-	$user_country = RM_Panel_FluentCRM_Helper::get_contact_country( $user_id );
-	echo 'User ID: ' . $user_id . '<br>';
-	echo 'Country: ' . ( $user_country ?: '<strong>NOT SET</strong>' ) . '<br>';
-
-	// Get contact data
-	$contact_data = RM_Panel_FluentCRM_Helper::get_contact_data( $user_id );
-	if ( $contact_data ) {
-		echo '<pre>';
-		print_r( $contact_data );
-		echo '</pre>';
-	} else {
-		echo '❌ No contact data found for this user<br>';
-	}
-
-	// Get all surveys
-	echo '<h3>4. Survey Targeting Settings</h3>';
-	$surveys = get_posts(
-		array(
-			'post_type'      => 'rm_survey',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-		)
-	);
-
-	echo '<table border="1" cellpadding="10">';
-	echo '<tr><th>Survey ID</th><th>Title</th><th>Location Type</th><th>Target Countries</th><th>Should Show?</th></tr>';
-
-	foreach ( $surveys as $survey ) {
-		$location_type    = get_post_meta( $survey->ID, '_rm_survey_location_type', true );
-		$target_countries = get_post_meta( $survey->ID, '_rm_survey_countries', true );
-		$matches          = RM_Panel_FluentCRM_Helper::matches_survey_location( $user_id, $survey->ID );
-
-		echo '<tr>';
-		echo '<td>' . $survey->ID . '</td>';
-		echo '<td>' . esc_html( $survey->post_title ) . '</td>';
-		echo '<td>' . ( $location_type ?: 'all' ) . '</td>';
-		echo '<td>';
-		if ( is_array( $target_countries ) ) {
-			echo esc_html( implode( ', ', $target_countries ) );
-		} else {
-			echo 'None';
-		}
-		echo '</td>';
-		echo '<td style="background: ' . ( $matches ? '#d4edda' : '#f8d7da' ) . ';">';
-		echo $matches ? '✅ YES' : '❌ NO';
-		echo '</td>';
-		echo '</tr>';
-	}
-	echo '</table>';
-
-	// Test matching logic
-	echo '<h3>5. Detailed Matching Logic</h3>';
-	foreach ( $surveys as $survey ) {
-		echo '<strong>Survey: ' . esc_html( $survey->post_title ) . '</strong><br>';
-
-		$location_type = get_post_meta( $survey->ID, '_rm_survey_location_type', true );
-		echo 'Location Type: ' . ( $location_type ?: 'all' ) . '<br>';
-
-		if ( $location_type === 'specific' ) {
-			$target_countries = get_post_meta( $survey->ID, '_rm_survey_countries', true );
-			echo 'Target Countries (raw): ';
-			var_dump( $target_countries );
-			echo '<br>';
-
-			echo 'User Country: ' . ( $user_country ?: 'NOT SET' ) . '<br>';
-
-			if ( ! empty( $user_country ) && is_array( $target_countries ) ) {
-				if ( in_array( $user_country, $target_countries, true ) ) {
-					echo '✅ Match: User country IS in target countries<br>';
-				} else {
-					echo '❌ No Match: User country NOT in target countries<br>';
-				}
-			}
-		} else {
-			echo '✅ Showing to all countries<br>';
-		}
-		echo '<hr>';
-	}
-}
-
-// Only enable debugging in development environment
-if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-	add_action(
-		'wp',
-		function() {
-			if ( isset( $_GET['debug_surveys'] ) ) {
-				rm_debug_survey_targeting();
-				exit;
-			}
-		}
-	);
-}
