@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: RM Panel Extensions
- * Description: A comprehensive suite of extensions for WordPress including custom Elementor widgets, role management, and more
- * Version: 2.0.0
+ * Description: A comprehensive suite of extensions for WordPress including custom Elementor widgets, role management, survey system with payments and withdrawals
+ * Version: 2.1.0
  * Author: Research and Metric
  * Author URI: https://researchandmetric.com
  * License: GPL v2 or later
@@ -24,12 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 // PLUGIN CONSTANTS
 // ============================================
 
-define( 'RM_PANEL_EXT_VERSION', '2.0.0' );
+define( 'RM_PANEL_EXT_VERSION', '2.1.0' );
 define( 'RM_PANEL_EXT_FILE', __FILE__ );
 define( 'RM_PANEL_EXT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RM_PANEL_EXT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'RM_PANEL_EXT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-define( 'RM_PANEL_EXT_DB_VERSION', '1.2.0' );
+define( 'RM_PANEL_EXT_DB_VERSION', '1.3.0' );
 
 // ============================================
 // MAIN PLUGIN CLASS
@@ -194,6 +194,9 @@ class RM_Panel_Extensions {
 		// Survey-related modules (always load if files exist)
 		$this->load_survey_submodules();
 
+		// Payment and Withdrawal Modules
+		$this->load_payment_modules();
+
 		// Elementor Module (conditional - REQUIRED)
 		if ( did_action( 'elementor/loaded' ) ) {
 			$this->load_module_file(
@@ -247,6 +250,7 @@ class RM_Panel_Extensions {
 			'modules/survey/class-survey-database-upgrade.php',
 			'modules/survey/class-survey-database-upgrade-v1.2.0.php',
 			'modules/survey/class-survey-approval-admin.php',
+			'modules/survey/class-survey-approval-enhanced.php',
 			'modules/survey/class-survey-manager-metabox.php',
 			'modules/survey/class-survey-tracking-enhanced.php',
 			'modules/survey/class-survey-admin-columns-enhanced.php',
@@ -260,6 +264,23 @@ class RM_Panel_Extensions {
 		// Initialize Survey Callbacks immediately
 		if ( class_exists( 'RM_Survey_Callbacks' ) ) {
 			new RM_Survey_Callbacks();
+		}
+	}
+
+	/**
+	 * Load payment and withdrawal modules
+	 */
+	private function load_payment_modules() {
+		// Create payments directory if it doesn't exist
+		$payments_dir = RM_PANEL_EXT_PLUGIN_DIR . 'modules/payments/';
+		
+		$payment_modules = array(
+			'class-payment-methods.php',
+			'class-withdrawal-requests.php',
+		);
+
+		foreach ( $payment_modules as $module ) {
+			$this->load_file( $payments_dir . $module );
 		}
 	}
 
@@ -401,7 +422,8 @@ class RM_Panel_Extensions {
 	 * Enqueue admin scripts and styles
 	 */
 	public function admin_enqueue_scripts( $hook ) {
-		if ( strpos( $hook, 'rm-panel-extensions' ) === false ) {
+		if ( strpos( $hook, 'rm-panel-extensions' ) === false && 
+		     strpos( $hook, 'rm_survey' ) === false ) {
 			return;
 		}
 
@@ -630,7 +652,35 @@ class RM_Panel_Extensions {
 	 * Render main admin page
 	 */
 	public function render_admin_page() {
-		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/main-dashboard.php';
+		$views_file = RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/main-dashboard.php';
+		if ( file_exists( $views_file ) ) {
+			require_once $views_file;
+		} else {
+			$this->render_default_dashboard();
+		}
+	}
+
+	/**
+	 * Render default dashboard if view file doesn't exist
+	 */
+	private function render_default_dashboard() {
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'RM Panel Extensions', 'rm-panel-extensions' ); ?></h1>
+			<div class="card">
+				<h2><?php _e( 'Welcome to RM Panel Extensions', 'rm-panel-extensions' ); ?></h2>
+				<p><?php _e( 'Version', 'rm-panel-extensions' ); ?>: <?php echo RM_PANEL_EXT_VERSION; ?></p>
+				<p>
+					<a href="<?php echo admin_url( 'admin.php?page=rm-panel-extensions-settings' ); ?>" class="button button-primary">
+						<?php _e( 'Settings', 'rm-panel-extensions' ); ?>
+					</a>
+					<a href="<?php echo admin_url( 'edit.php?post_type=rm_survey' ); ?>" class="button">
+						<?php _e( 'Manage Surveys', 'rm-panel-extensions' ); ?>
+					</a>
+				</p>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
@@ -645,21 +695,68 @@ class RM_Panel_Extensions {
 
 		$settings = get_option( 'rm_panel_extensions_settings', $this->get_default_settings() );
 		
-		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/settings-page.php';
+		$views_file = RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/settings-page.php';
+		if ( file_exists( $views_file ) ) {
+			require_once $views_file;
+		} else {
+			$this->render_default_settings( $settings );
+		}
+	}
+
+	/**
+	 * Render default settings page
+	 */
+	private function render_default_settings( $settings ) {
+		?>
+		<div class="wrap">
+			<h1><?php _e( 'RM Panel Extensions Settings', 'rm-panel-extensions' ); ?></h1>
+			
+			<?php settings_errors( 'rm_panel_settings' ); ?>
+			
+			<form method="post" action="">
+				<?php wp_nonce_field( 'rm_panel_settings', 'rm_panel_settings_nonce' ); ?>
+				
+				<table class="form-table">
+					<tr>
+						<th scope="row"><?php _e( 'Survey Module', 'rm-panel-extensions' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="rm_panel_settings[enable_survey_module]" value="1" 
+									<?php checked( $settings['enable_survey_module'], 1 ); ?>>
+								<?php _e( 'Enable Survey Module', 'rm-panel-extensions' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+				
+				<?php submit_button(); ?>
+			</form>
+		</div>
+		<?php
 	}
 
 	/**
 	 * Render modules page
 	 */
 	public function render_modules_page() {
-		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/modules-page.php';
+		$views_file = RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/modules-page.php';
+		if ( file_exists( $views_file ) ) {
+			require_once $views_file;
+		} else {
+			echo '<div class="wrap"><h1>' . __( 'Modules', 'rm-panel-extensions' ) . '</h1></div>';
+		}
 	}
 
 	/**
 	 * Render survey responses page
 	 */
 	public function render_survey_responses_page() {
-		require_once RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/survey-responses-page.php';
+		$views_file = RM_PANEL_EXT_PLUGIN_DIR . 'includes/admin/views/survey-responses-page.php';
+		if ( file_exists( $views_file ) ) {
+			require_once $views_file;
+		} else {
+			echo '<div class="wrap"><h1>' . __( 'Survey Responses', 'rm-panel-extensions' ) . '</h1></div>';
+		}
 	}
 
 	// ============================================
@@ -750,9 +847,18 @@ class RM_Panel_Extensions {
 		$installed_version = get_option( 'rm_panel_survey_db_version' );
 
 		if ( version_compare( $installed_version, RM_PANEL_EXT_DB_VERSION, '<' ) ) {
-			$this->create_survey_tracking_table();
+			$this->create_all_tables();
 			update_option( 'rm_panel_survey_db_version', RM_PANEL_EXT_DB_VERSION );
 		}
+	}
+
+	/**
+	 * Create all database tables
+	 */
+	private function create_all_tables() {
+		$this->create_survey_tracking_table();
+		$this->create_payment_methods_table();
+		$this->create_withdrawal_requests_table();
 	}
 
 	/**
@@ -777,17 +883,95 @@ class RM_Panel_Extensions {
 			user_agent text DEFAULT NULL,
 			referrer_url text DEFAULT NULL,
 			notes text DEFAULT NULL,
+			approval_status varchar(20) DEFAULT 'pending',
+			approved_by bigint(20) DEFAULT NULL,
+			approval_date datetime DEFAULT NULL,
+			country varchar(100) DEFAULT NULL,
+			return_time datetime DEFAULT NULL,
+			admin_notes text DEFAULT NULL,
+			waiting_since DATETIME DEFAULT NULL,
+			last_reminder_sent DATETIME DEFAULT NULL,
+			survey_paused_at DATETIME DEFAULT NULL,
 			PRIMARY KEY (id),
 			KEY user_id (user_id),
 			KEY survey_id (survey_id),
 			KEY status (status),
 			KEY completion_status (completion_status),
+			KEY approval_status (approval_status),
 			KEY start_time (start_time),
 			UNIQUE KEY user_survey (user_id, survey_id)
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
+	}
+
+	/**
+	 * Create payment methods table
+	 */
+	private function create_payment_methods_table() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rm_payment_methods';
+		$charset_collate = $wpdb->get_charset_collate();
+		
+		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			method_name varchar(100) NOT NULL,
+			method_type varchar(50) NOT NULL,
+			icon varchar(255) DEFAULT NULL,
+			description text DEFAULT NULL,
+			required_fields longtext DEFAULT NULL,
+			min_withdrawal decimal(10,2) DEFAULT 0.00,
+			max_withdrawal decimal(10,2) DEFAULT NULL,
+			processing_fee_type varchar(20) DEFAULT 'none',
+			processing_fee_value decimal(10,2) DEFAULT 0.00,
+			processing_days int(11) DEFAULT 3,
+			instructions text DEFAULT NULL,
+			is_active tinyint(1) DEFAULT 1,
+			sort_order int(11) DEFAULT 0,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY method_type (method_type),
+			KEY is_active (is_active)
+		) $charset_collate;";
+		
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta($sql);
+	}
+
+	/**
+	 * Create withdrawal requests table
+	 */
+	private function create_withdrawal_requests_table() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . 'rm_withdrawal_requests';
+		$charset_collate = $wpdb->get_charset_collate();
+		
+		$sql = "CREATE TABLE IF NOT EXISTS $table_name (
+			id bigint(20) NOT NULL AUTO_INCREMENT,
+			user_id bigint(20) NOT NULL,
+			payment_method_id bigint(20) NOT NULL,
+			amount decimal(10,2) NOT NULL,
+			processing_fee decimal(10,2) DEFAULT 0.00,
+			net_amount decimal(10,2) NOT NULL,
+			payment_details longtext DEFAULT NULL,
+			status varchar(50) DEFAULT 'pending',
+			admin_notes text DEFAULT NULL,
+			processed_by bigint(20) DEFAULT NULL,
+			processed_at datetime DEFAULT NULL,
+			transaction_reference varchar(255) DEFAULT NULL,
+			created_at datetime DEFAULT CURRENT_TIMESTAMP,
+			updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY user_id (user_id),
+			KEY payment_method_id (payment_method_id),
+			KEY status (status),
+			KEY created_at (created_at)
+		) $charset_collate;";
+		
+		require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+		dbDelta($sql);
 	}
 }
 
