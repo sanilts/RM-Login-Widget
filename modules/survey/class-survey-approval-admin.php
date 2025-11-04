@@ -415,13 +415,13 @@ class RM_Survey_Approval_Admin {
         
         wp_enqueue_script(
             'rm-survey-approval-v2',
-            RM_PANEL_EXT_PLUGIN_URL . 'assets/js/survey-approval-v2.js',
+            RM_PANEL_EXT_PLUGIN_URL . 'assets/js/survey-approval.js',
             ['jquery'],
             RM_PANEL_EXT_VERSION,
             true
         );
         
-        wp_localize_script('rm-survey-approval-v2', 'rmApprovalAjax', [
+        wp_localize_script('rm-survey-approval', 'rmApprovalAjax', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('rm_approval_v2_nonce'),
             'current_user' => wp_get_current_user()->display_name,

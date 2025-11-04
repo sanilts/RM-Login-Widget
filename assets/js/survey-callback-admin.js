@@ -1,95 +1,141 @@
 /**
  * Survey Callback Admin JavaScript
- * File: assets/js/survey-callback-admin.js
+ * Handles survey callback URL management
+ * @package RM_Panel_Extensions
+ * @version 2.1.0
  */
 
 (function($) {
     'use strict';
-    
-    $(document).ready(function() {
-        
-        // Initialize clipboard.js
-        if (typeof ClipboardJS !== 'undefined') {
-            var clipboard = new ClipboardJS('.copy-url-btn');
-            
-            clipboard.on('success', function(e) {
-                var btn = $(e.trigger);
-                var originalText = btn.text();
-                
-                btn.addClass('copied');
-                btn.text(rm_callback_ajax.strings.copied);
-                
-                setTimeout(function() {
-                    btn.removeClass('copied');
-                    btn.text(originalText);
-                }, 2000);
-                
-                e.clearSelection();
-            });
-            
-            clipboard.on('error', function(e) {
-                console.error('Copy failed:', e.action);
-            });
+
+    // Configuration
+    const config = {
+        copiedDisplayTime: 2000
+    };
+
+    /**
+     * Initialize Clipboard.js for URL copying
+     */
+    function initClipboard() {
+        if (typeof ClipboardJS === 'undefined') {
+            console.warn('ClipboardJS library not loaded');
+            return;
         }
-        
-        // Generate user-specific URLs
-        $('#generate_user_specific_urls').on('click', function() {
-            var $btn = $(this);
-            var surveyId = $btn.data('survey-id');
-            var $container = $('#user_specific_urls');
-            var $content = $('#user_urls_content');
-            
-            $btn.prop('disabled', true);
-            
-            $.ajax({
-                url: rm_callback_ajax.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'copy_callback_urls',
-                    survey_id: surveyId,
-                    user_id: rm_callback_ajax.current_user_id,
-                    nonce: rm_callback_ajax.nonce
-                },
-                success: function(response) {
-                    if (response.success) {
-                        var urls = response.data;
-                        
-                        var html = '<div class="user-urls-list">';
-                        html += '<div class="url-item">';
-                        html += '<strong>Success:</strong><br>';
-                        html += '<input type="text" value="' + urls.success + '" readonly class="widefat" />';
-                        html += '</div>';
-                        
-                        html += '<div class="url-item">';
-                        html += '<strong>Terminate:</strong><br>';
-                        html += '<input type="text" value="' + urls.terminate + '" readonly class="widefat" />';
-                        html += '</div>';
-                        
-                        html += '<div class="url-item">';
-                        html += '<strong>Quota Full:</strong><br>';
-                        html += '<input type="text" value="' + urls.quotafull + '" readonly class="widefat" />';
-                        html += '</div>';
-                        html += '</div>';
-                        
-                        $content.html(html);
-                        $container.slideDown();
-                    } else {
-                        alert(rm_callback_ajax.strings.error);
-                    }
-                },
-                error: function() {
+
+        const clipboard = new ClipboardJS('.copy-url-btn');
+
+        clipboard.on('success', handleCopySuccess);
+        clipboard.on('error', handleCopyError);
+    }
+
+    /**
+     * Handle successful copy
+     */
+    function handleCopySuccess(e) {
+        const $btn = $(e.trigger);
+        const originalText = $btn.text();
+
+        $btn.addClass('copied')
+            .text(rm_callback_ajax.strings.copied);
+
+        setTimeout(function() {
+            $btn.removeClass('copied')
+                .text(originalText);
+        }, config.copiedDisplayTime);
+
+        e.clearSelection();
+    }
+
+    /**
+     * Handle copy error
+     */
+    function handleCopyError(e) {
+        console.error('Copy failed:', e.action);
+        alert('Failed to copy URL. Please copy manually.');
+    }
+
+    /**
+     * Generate user-specific callback URLs
+     */
+    function generateUserSpecificUrls() {
+        const $btn = $(this);
+        const surveyId = $btn.data('survey-id');
+        const $container = $('#user_specific_urls');
+        const $content = $('#user_urls_content');
+
+        $btn.prop('disabled', true);
+
+        $.ajax({
+            url: rm_callback_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'copy_callback_urls',
+                survey_id: surveyId,
+                user_id: rm_callback_ajax.current_user_id,
+                nonce: rm_callback_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    renderUserUrls(response.data, $content);
+                    $container.slideDown();
+                } else {
                     alert(rm_callback_ajax.strings.error);
-                },
-                complete: function() {
-                    $btn.prop('disabled', false);
                 }
-            });
+            },
+            error: function() {
+                alert(rm_callback_ajax.strings.error);
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+            }
         });
-        
-        // Make URL fields selectable on click
-        $('.callback-url-field, #user_urls_content').on('click', 'input[readonly]', function() {
+    }
+
+    /**
+     * Render user-specific URLs
+     */
+    function renderUserUrls(urls, $container) {
+        const urlTypes = ['success', 'terminate', 'quotafull'];
+        let html = '<div class="user-urls-list">';
+
+        urlTypes.forEach(function(type) {
+            const label = type.charAt(0).toUpperCase() + type.slice(1);
+            html += `
+                <div class="url-item">
+                    <strong>${label}:</strong><br>
+                    <input type="text" 
+                           value="${urls[type]}" 
+                           readonly 
+                           class="widefat" />
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        $container.html(html);
+    }
+
+    /**
+     * Make URL fields selectable on click
+     */
+    function makeUrlFieldsSelectable() {
+        $(document).on('click', '.callback-url-field input[readonly], #user_urls_content input[readonly]', function() {
             $(this).select();
         });
-    });
-    
+    }
+
+    /**
+     * Initialize all functionality
+     */
+    function init() {
+        initClipboard();
+        makeUrlFieldsSelectable();
+
+        // Event bindings
+        $('#generate_user_specific_urls').on('click', generateUserSpecificUrls);
+    }
+
+    // Initialize on document ready
+    $(document).ready(init);
+
 })(jQuery);
