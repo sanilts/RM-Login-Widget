@@ -246,15 +246,13 @@ class RM_Panel_Extensions {
 	 */
 	private function load_survey_submodules() {
 		$survey_modules = array(
-			'modules/survey/class-survey-callbacks.php',
-			'modules/survey/class-survey-database-upgrade.php',
-			'modules/survey/class-survey-database-upgrade-v1.2.0.php',
-			'modules/survey/class-survey-approval-admin.php',
-			'modules/survey/class-survey-approval-enhanced.php',
-			'modules/survey/class-survey-manager-metabox.php',
-			'modules/survey/class-survey-tracking-enhanced.php',
-			'modules/survey/class-survey-admin-columns-enhanced.php',
-			'modules/survey/class-survey-thank-you.php',
+                    'modules/survey/class-survey-database-manager.php',  // Already unified
+                    'modules/survey/class-survey-callbacks.php',
+                    'modules/survey/class-survey-approval-admin.php',     // Now merged
+                    'modules/survey/class-survey-manager-metabox.php',
+                    'modules/survey/class-survey-admin-columns-enhanced.php',
+                    'modules/survey/class-survey-thank-you.php',
+                    'modules/survey/class-survey-database-admin.php',
 		);
 
 		foreach ( $survey_modules as $module ) {

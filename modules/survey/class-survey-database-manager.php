@@ -1,24 +1,17 @@
 <?php
 /**
- * Survey Database Manager - UNIFIED
- * File: modules/survey/class-survey-database-manager.php
+ * Survey Database Manager - Unified & Optimized
  * 
  * This class consolidates ALL database operations for the survey module:
- * - Initial table creation
+ * - Initial table creation (v1.0.0 schema)
  * - Schema upgrades (v1.0.0 → v1.1.0 → v1.2.0)
  * - Future migrations
  * - Database maintenance
- * 
- * INSTALLATION:
- * 1. Replace the old database files with this single file
- * 2. Remove these old files:
- *    - class-survey-database-upgrade.php
- *    - class-survey-database-upgrade-v1.2.0.php
- * 3. Update main plugin file to use this class
+ * - Schema verification
  * 
  * @package RM_Panel_Extensions
  * @subpackage Survey
- * @version 1.2.0
+ * @version 2.1.0
  */
 
 if (!defined('ABSPATH')) {
@@ -91,12 +84,16 @@ class RM_Survey_Database_Manager {
         try {
             // Fresh install (no existing database)
             if (version_compare($from_version, '1.0.0', '<')) {
-                $this->create_initial_table();
-                $from_version = '1.0.0';
+                if (!$this->create_initial_table()) {
+                    $errors[] = 'Failed to create initial table';
+                    $success = false;
+                } else {
+                    $from_version = '1.0.0';
+                }
             }
             
             // Upgrade to v1.1.0 (Approval system)
-            if (version_compare($from_version, '1.1.0', '<')) {
+            if (version_compare($from_version, '1.1.0', '<') && $success) {
                 if (!$this->upgrade_to_1_1_0()) {
                     $errors[] = 'Failed to upgrade to v1.1.0';
                     $success = false;
@@ -142,6 +139,8 @@ class RM_Survey_Database_Manager {
      * Create initial database table (v1.0.0)
      * 
      * Base schema with essential tracking fields
+     * 
+     * @return bool Success status
      */
     private function create_initial_table() {
         $charset_collate = $this->wpdb->get_charset_collate();
@@ -172,9 +171,25 @@ class RM_Survey_Database_Manager {
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        $result = dbDelta($sql);
         
-        $this->log_success('Initial database table created (v1.0.0)');
+        if (!empty($result)) {
+            $this->log_success('Initial database table created (v1.0.0)');
+            return true;
+        }
+        
+        // Verify table was created
+        $table_exists = $this->wpdb->get_var(
+            $this->wpdb->prepare("SHOW TABLES LIKE %s", $this->table_name)
+        );
+        
+        if ($table_exists === $this->table_name) {
+            $this->log_success('Initial database table verified (v1.0.0)');
+            return true;
+        }
+        
+        $this->log_error('Failed to create initial database table');
+        return false;
     }
     
     /**
@@ -186,6 +201,8 @@ class RM_Survey_Database_Manager {
      * - Country tracking
      * - Return time tracking
      * - Admin notes
+     * 
+     * @return bool Success status
      */
     private function upgrade_to_1_1_0() {
         $columns = $this->get_table_columns();
@@ -220,6 +237,10 @@ class RM_Survey_Database_Manager {
             $this->create_index('country', 'country');
         }
         
+        if ($success) {
+            $this->log_success('Upgraded to v1.1.0 (Approval System)');
+        }
+        
         return $success;
     }
     
@@ -230,6 +251,8 @@ class RM_Survey_Database_Manager {
      * - Waiting to complete status tracking
      * - Reminder system support
      * - Survey pause tracking
+     * 
+     * @return bool Success status
      */
     private function upgrade_to_1_2_0() {
         $columns = $this->get_table_columns();
@@ -272,6 +295,10 @@ class RM_Survey_Database_Manager {
         // Create indexes for new columns
         if ($success) {
             $this->create_index('waiting_since', 'waiting_since');
+        }
+        
+        if ($success) {
+            $this->log_success('Upgraded to v1.2.0 (Enhanced Tracking)');
         }
         
         return $success;
@@ -528,7 +555,7 @@ class RM_Survey_Database_Manager {
                     <?php echo esc_html($error); ?>
                 </p>
                 <p>
-                    <a href="<?php echo admin_url('admin.php?page=rm-panel-extensions-database'); ?>" class="button">
+                    <a href="<?php echo admin_url('admin.php?page=rm-survey-database'); ?>" class="button">
                         <?php _e('View Database Status', 'rm-panel-extensions'); ?>
                     </a>
                 </p>
