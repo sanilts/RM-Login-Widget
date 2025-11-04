@@ -1,0 +1,466 @@
+/**
+ * Balance Sidebar Widget Styles
+ * Compact Elementor widget for sidebars
+ * 
+ * @package RM_Panel_Extensions
+ * @version 1.0.0
+ */
+
+/* ============================================
+   MAIN CONTAINER
+   ============================================ */
+
+.rm-balance-sidebar-widget {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* ============================================
+   BALANCE HEADER
+   ============================================ */
+
+.rm-sidebar-balance-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.rm-sidebar-balance-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.rm-sidebar-balance-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.rm-sidebar-balance-icon .dashicons {
+    width: 36px;
+    height: 36px;
+    font-size: 36px;
+}
+
+.rm-sidebar-balance-info {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.rm-sidebar-balance-label {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rm-sidebar-balance-amount {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* ============================================
+   WITHDRAWAL BUTTON
+   ============================================ */
+
+.rm-sidebar-button-wrapper {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rm-sidebar-withdrawal-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 20px;
+    background: #3b82f6;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.rm-sidebar-withdrawal-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.rm-sidebar-withdrawal-btn .dashicons {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+}
+
+/* No Balance/Methods Messages */
+.rm-sidebar-no-balance,
+.rm-sidebar-no-methods {
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rm-sidebar-no-balance small,
+.rm-sidebar-no-methods small {
+    font-size: 12px;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* ============================================
+   STATISTICS
+   ============================================ */
+
+.rm-sidebar-stats {
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.rm-sidebar-stat-item {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.rm-sidebar-stat-item:hover {
+    background: #f3f4f6;
+    transform: translateX(2px);
+}
+
+.rm-sidebar-stat-label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.rm-sidebar-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* ============================================
+   WITHDRAWAL MODAL
+   ============================================ */
+
+.rm-sidebar-modal {
+    position: fixed;
+    z-index: 999999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.rm-sidebar-modal-content {
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.rm-sidebar-modal-content h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    padding: 30px 30px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rm-sidebar-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.rm-sidebar-modal-close:hover {
+    background: #e5e7eb;
+    color: #1f2937;
+}
+
+.rm-sidebar-modal-body {
+    padding: 30px;
+}
+
+/* ============================================
+   NOTICE STYLES
+   ============================================ */
+
+.rm-sidebar-notice {
+    padding: 15px 20px;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+    .rm-sidebar-balance-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .rm-sidebar-balance-amount {
+        font-size: 28px;
+    }
+
+    .rm-sidebar-modal-content {
+        margin: 0 10px;
+    }
+
+    .rm-sidebar-modal-content h3 {
+        padding: 25px 20px 15px;
+        font-size: 20px;
+    }
+
+    .rm-sidebar-modal-body {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rm-sidebar-balance-amount {
+        font-size: 24px;
+    }
+
+    .rm-sidebar-stat-value {
+        font-size: 16px;
+    }
+}
+
+/* ============================================
+   ELEMENTOR SPECIFIC
+   ============================================ */
+
+/* For narrow Elementor sidebars */
+.elementor-widget-rm-balance-sidebar {
+    max-width: 100%;
+}
+
+/* Prevent interaction in editor */
+.elementor-editor-active .rm-sidebar-withdrawal-btn {
+    pointer-events: none;
+}
+
+/* ============================================
+   LOADING STATE
+   ============================================ */
+
+.rm-sidebar-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+}
+
+.rm-sidebar-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: rm-sidebar-spin 1s linear infinite;
+}
+
+@keyframes rm-sidebar-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   DARK MODE SUPPORT (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .rm-balance-sidebar-widget {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .rm-sidebar-stat-item {
+        background: #374151;
+    }
+
+    .rm-sidebar-stat-item:hover {
+        background: #4b5563;
+    }
+
+    .rm-sidebar-stat-label {
+        color: #9ca3af;
+    }
+
+    .rm-sidebar-stat-value {
+        color: #f9fafb;
+    }
+
+    .rm-sidebar-button-wrapper,
+    .rm-sidebar-no-balance,
+    .rm-sidebar-no-methods {
+        border-bottom-color: #374151;
+    }
+}
+
+/* ============================================
+   ANIMATION VARIANTS
+   ============================================ */
+
+/* Fade in animation */
+.rm-balance-sidebar-widget.rm-animate-fade {
+    animation: rm-sidebar-fadeIn 0.5s ease;
+}
+
+@keyframes rm-sidebar-fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Slide up animation */
+.rm-balance-sidebar-widget.rm-animate-slide {
+    animation: rm-sidebar-slideUp 0.5s ease;
+}
+
+@keyframes rm-sidebar-slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scale animation */
+.rm-balance-sidebar-widget.rm-animate-scale {
+    animation: rm-sidebar-scaleIn 0.5s ease;
+}
+
+@keyframes rm-sidebar-scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .rm-balance-sidebar-widget {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+
+    .rm-sidebar-withdrawal-btn,
+    .rm-sidebar-modal {
+        display: none;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.rm-sidebar-withdrawal-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.rm-sidebar-modal-close:focus {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .rm-balance-sidebar-widget {
+        border-width: 2px;
+    }
+
+    .rm-sidebar-balance-header {
+        background: #000000;
+        color: #ffffff;
+    }
+
+    .rm-sidebar-withdrawal-btn {
+        border: 2px solid #000000;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .rm-balance-sidebar-widget *,
+    .rm-sidebar-withdrawal-btn,
+    .rm-sidebar-stat-item {
+        animation: none !important;
+        transition: none !important;
+    }
+}

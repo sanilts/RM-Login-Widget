@@ -1,10 +1,10 @@
 <?php
 /**
- * Withdrawal Requests Management
+ * Withdrawal Requests Management - FIXED VERSION
  * Users can request withdrawals, admins can process them
  * 
  * @package RM_Panel_Extensions
- * @version 2.0.0
+ * @version 2.0.1
  */
 
 if (!defined('ABSPATH')) {
@@ -42,6 +42,7 @@ class RM_Withdrawal_Requests {
         add_action('wp_ajax_rm_cancel_withdrawal', [$this, 'ajax_cancel_withdrawal']);
         
         // AJAX handlers - Admin side
+        add_action('wp_ajax_rm_get_withdrawal_details', [$this, 'ajax_get_withdrawal_details']);
         add_action('wp_ajax_rm_approve_withdrawal', [$this, 'ajax_approve_withdrawal']);
         add_action('wp_ajax_rm_reject_withdrawal', [$this, 'ajax_reject_withdrawal']);
         add_action('wp_ajax_rm_complete_withdrawal', [$this, 'ajax_complete_withdrawal']);
@@ -259,7 +260,8 @@ class RM_Withdrawal_Requests {
                                 <td>
                                     <strong><?php echo esc_html($request->method_name); ?></strong><br>
                                     <button type="button" class="button button-small view-details-btn" 
-                                            data-request-id="<?php echo $request->id; ?>">
+                                            data-request-id="<?php echo $request->id; ?>"
+                                            data-payment-details='<?php echo esc_attr($request->payment_details); ?>'>
                                         <?php _e('View Details', 'rm-panel-extensions'); ?>
                                     </button>
                                 </td>
@@ -800,8 +802,45 @@ class RM_Withdrawal_Requests {
         return $labels[$status] ?? ucfirst($status);
     }
     
-    // AJAX Handlers continue in next part...
+    // ============================================
+    // AJAX HANDLERS
+    // ============================================
     
+    /**
+     * AJAX: Get withdrawal details
+     */
+    public function ajax_get_withdrawal_details() {
+        check_ajax_referer('rm_withdrawal_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions']);
+        }
+        
+        $request_id = intval($_POST['request_id']);
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'rm_withdrawal_requests';
+        
+        $request = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE id = %d",
+            $request_id
+        ));
+        
+        if (!$request) {
+            wp_send_json_error(['message' => 'Request not found']);
+        }
+        
+        wp_send_json_success([
+            'payment_details' => $request->payment_details,
+            'amount' => $request->amount,
+            'fee' => $request->processing_fee,
+            'net_amount' => $request->net_amount
+        ]);
+    }
+    
+    /**
+     * AJAX: Submit withdrawal request (user side)
+     */
     public function ajax_submit_withdrawal() {
         check_ajax_referer('rm_withdrawal_nonce', 'nonce');
         
@@ -887,6 +926,9 @@ class RM_Withdrawal_Requests {
         }
     }
     
+    /**
+     * AJAX: Cancel withdrawal request (user side)
+     */
     public function ajax_cancel_withdrawal() {
         check_ajax_referer('rm_withdrawal_nonce', 'nonce');
         
@@ -921,6 +963,9 @@ class RM_Withdrawal_Requests {
         wp_send_json_success(['message' => __('Withdrawal request cancelled', 'rm-panel-extensions')]);
     }
     
+    /**
+     * AJAX: Approve withdrawal (admin side)
+     */
     public function ajax_approve_withdrawal() {
         check_ajax_referer('rm_withdrawal_nonce', 'nonce');
         
@@ -949,12 +994,15 @@ class RM_Withdrawal_Requests {
             $request = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $request_id));
             $this->send_user_withdrawal_approved($request);
             
-            wp_send_json_success(['message' => 'Withdrawal approved']);
+            wp_send_json_success(['message' => 'Withdrawal approved successfully!']);
         } else {
             wp_send_json_error(['message' => 'Database error']);
         }
     }
     
+    /**
+     * AJAX: Reject withdrawal (admin side)
+     */
     public function ajax_reject_withdrawal() {
         check_ajax_referer('rm_withdrawal_nonce', 'nonce');
         
@@ -999,6 +1047,9 @@ class RM_Withdrawal_Requests {
         }
     }
     
+    /**
+     * AJAX: Complete withdrawal (admin side)
+     */
     public function ajax_complete_withdrawal() {
         check_ajax_referer('rm_withdrawal_nonce', 'nonce');
         
@@ -1034,31 +1085,39 @@ class RM_Withdrawal_Requests {
             
             $this->send_user_withdrawal_completed($request);
             
-            wp_send_json_success(['message' => 'Withdrawal marked as completed']);
+            wp_send_json_success(['message' => 'Withdrawal marked as completed successfully!']);
         } else {
             wp_send_json_error(['message' => 'Database error']);
         }
     }
     
-    // Email notification methods
+    // ============================================
+    // EMAIL NOTIFICATION METHODS (Stubs)
+    // ============================================
+    
     private function notify_admin_new_withdrawal($request_id) {
-        // Implementation for admin notification
+        // TODO: Implementation for admin notification
+        // Send email to admin about new withdrawal request
     }
     
     private function send_user_withdrawal_confirmation($user_id, $request_id) {
-        // Implementation for user confirmation
+        // TODO: Implementation for user confirmation
+        // Send email to user confirming withdrawal request received
     }
     
     private function send_user_withdrawal_approved($request) {
-        // Implementation for approval notification
+        // TODO: Implementation for approval notification
+        // Send email to user that withdrawal was approved
     }
     
     private function send_user_withdrawal_rejected($request, $reason) {
-        // Implementation for rejection notification
+        // TODO: Implementation for rejection notification
+        // Send email to user that withdrawal was rejected with reason
     }
     
     private function send_user_withdrawal_completed($request) {
-        // Implementation for completion notification
+        // TODO: Implementation for completion notification
+        // Send email to user that payment has been sent
     }
 }
 

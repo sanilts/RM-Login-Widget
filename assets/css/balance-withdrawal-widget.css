@@ -1,0 +1,511 @@
+/**
+ * Balance & Withdrawal Widget Styles
+ * 
+ * @package RM_Panel_Extensions
+ * @version 1.0.0
+ */
+
+/* ============================================
+   BALANCE CARDS GRID
+   ============================================ */
+
+.rm-balance-withdrawal-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.rm-balance-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* ============================================
+   BALANCE CARD STYLES
+   ============================================ */
+
+.rm-balance-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.rm-balance-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Main Balance Card */
+.rm-balance-card.rm-balance-main {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.rm-balance-card.rm-balance-main::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.rm-balance-card.rm-balance-main .rm-balance-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 48px;
+    opacity: 0.2;
+}
+
+.rm-balance-card.rm-balance-main .rm-balance-icon .dashicons {
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+}
+
+.rm-balance-main .rm-balance-content {
+    position: relative;
+    z-index: 1;
+}
+
+.rm-balance-main .rm-balance-label {
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.9;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rm-balance-main .rm-balance-amount {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1;
+}
+
+/* Stat Cards */
+.rm-balance-stat {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rm-balance-stat .rm-stat-icon {
+    font-size: 36px;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 12px;
+}
+
+.rm-balance-stat .rm-stat-content {
+    flex: 1;
+}
+
+.rm-balance-stat .rm-stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.rm-balance-stat .rm-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* Pending Stat Special Styling */
+.rm-balance-stat.rm-pending-stat .rm-stat-icon {
+    background: #fef3c7;
+}
+
+.rm-balance-stat.rm-pending-stat .rm-stat-value {
+    color: #f59e0b;
+}
+
+/* ============================================
+   WITHDRAWAL BUTTON
+   ============================================ */
+
+.rm-withdrawal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.rm-withdrawal-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.rm-withdrawal-btn .dashicons {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+}
+
+/* No Balance/Methods Messages */
+.rm-no-balance-message,
+.rm-no-methods-notice {
+    margin-top: 15px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.rm-no-balance-message small,
+.rm-no-methods-notice small {
+    font-size: 13px;
+}
+
+/* ============================================
+   PAYMENT HISTORY SECTION
+   ============================================ */
+
+.rm-payment-history-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 30px;
+    margin-top: 30px;
+}
+
+.rm-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.rm-section-heading .dashicons {
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    color: #667eea;
+}
+
+.rm-no-history {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+/* ============================================
+   PAYMENT HISTORY TABLE
+   ============================================ */
+
+.rm-table-responsive {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.rm-payment-history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.rm-payment-history-table thead {
+    background: #f9fafb;
+}
+
+.rm-payment-history-table thead th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.rm-payment-history-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.rm-payment-history-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.rm-payment-history-table tbody td {
+    padding: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+.rm-payment-history-table tbody td small {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* ============================================
+   STATUS BADGES
+   ============================================ */
+
+.rm-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.rm-status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.rm-status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.rm-status-processing {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.rm-status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.rm-status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.rm-status-cancelled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+
+.rm-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.rm-page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 15px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    color: #4b5563;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.rm-page-link:hover {
+    background: #f9fafb;
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.rm-page-link.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: #ffffff;
+}
+
+/* ============================================
+   WITHDRAWAL MODAL
+   ============================================ */
+
+.rm-modal {
+    position: fixed;
+    z-index: 999999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.rm-modal-content {
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.rm-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 1;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.rm-modal-close:hover {
+    background: #e5e7eb;
+    color: #1f2937;
+}
+
+.rm-modal h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 20px;
+}
+
+.rm-withdrawal-form-wrapper {
+    margin-top: 20px;
+}
+
+/* ============================================
+   NOTICE STYLES
+   ============================================ */
+
+.rm-notice {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rm-notice-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
+}
+
+.rm-notice-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-left: 4px solid #3b82f6;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+    .rm-balance-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-balance-card.rm-balance-main {
+        grid-column: span 1;
+    }
+
+    .rm-balance-main .rm-balance-amount {
+        font-size: 36px;
+    }
+
+    .rm-table-responsive {
+        overflow-x: scroll;
+    }
+
+    .rm-payment-history-table {
+        min-width: 600px;
+    }
+
+    .rm-modal-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rm-balance-withdrawal-container {
+        padding: 15px;
+    }
+
+    .rm-balance-card {
+        padding: 20px;
+    }
+
+    .rm-balance-main .rm-balance-amount {
+        font-size: 32px;
+    }
+
+    .rm-withdrawal-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .rm-payment-history-section {
+        padding: 20px;
+    }
+}
+
+/* ============================================
+   ELEMENTOR EDITOR STYLES
+   ============================================ */
+
+.elementor-editor-active .rm-balance-withdrawal-container {
+    pointer-events: none;
+}
+
+.elementor-editor-active .rm-withdrawal-btn {
+    pointer-events: auto;
+    cursor: default;
+}

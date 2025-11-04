@@ -1,17 +1,14 @@
 <?php
 /**
- * Survey Approval Admin System - Unified & Optimized
+ * Survey Approval Admin System
  * 
- * Features:
- * - Pending approvals management
- * - Approval workflow with balance updates
- * - Rejection workflow with notifications
- * - Admin notices for pending approvals
- * - Email notifications
- * - Balance tracking integration
+ * FIXES:
+ * - Script handle consistency (rm-survey-approval)
+ * - Correct nonce verification
+ * - Proper AJAX response handling
  * 
  * @package RM_Panel_Extensions
- * @version 2.1.0
+ * @version 2.1.1
  */
 
 if (!defined('ABSPATH')) {
@@ -406,21 +403,23 @@ class RM_Survey_Approval_Admin {
     }
     
     /**
-     * Enqueue scripts
+     * Enqueue scripts - FIXED VERSION
      */
     public function enqueue_scripts($hook) {
         if ($hook !== 'rm_survey_page_rm-survey-approvals') {
             return;
         }
         
+        // Enqueue with consistent handle
         wp_enqueue_script(
-            'rm-survey-approval-v2',
+            'rm-survey-approval',
             RM_PANEL_EXT_PLUGIN_URL . 'assets/js/survey-approval.js',
             ['jquery'],
             RM_PANEL_EXT_VERSION,
             true
         );
         
+        // Localize with matching handle
         wp_localize_script('rm-survey-approval', 'rmApprovalAjax', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('rm_approval_v2_nonce'),
@@ -616,7 +615,7 @@ Your survey response has been reviewed.
 Survey: %s
 Status: Not Approved
 
-Reason: %s
+Reason: %ssanil@researchand... - Resea
 
 If you have questions about this decision, please contact our support team.
 

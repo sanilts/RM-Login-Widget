@@ -96,6 +96,20 @@ class RM_Panel_Elementor_Module {
         // Register Profile Picture Widget
         require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/profile-picture-widget.php';
         $widgets_manager->register(new \RMPanelExtensions\Modules\Elementor\Widgets\Profile_Picture_Widget());
+        
+        // Register Balance & Withdrawal Widget
+        $balance_widget_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/balance-withdrawal-widget.php';
+        if (file_exists($balance_widget_file)) {
+            require_once $balance_widget_file;
+            $widgets_manager->register(new \RMPanelExtensions\Modules\Elementor\Widgets\Balance_Withdrawal_Widget());
+        }
+        
+        // Register Balance Sidebar Widget
+        $balance_sidebar_file = RM_PANEL_EXT_PLUGIN_DIR . 'modules/elementor/widgets/balance-sidebar-widget.php';
+        if (file_exists($balance_sidebar_file)) {
+            require_once $balance_sidebar_file;
+            $widgets_manager->register(new \RMPanelExtensions\Modules\Elementor\Widgets\Balance_Sidebar_Widget());
+        }
 
 
         // Include survey accordion tabs widget
@@ -149,6 +163,13 @@ class RM_Panel_Elementor_Module {
                     RM_PANEL_EXT_VERSION
             );
         }
+        
+        wp_enqueue_style(
+            'rm-balance-sidebar-widget',
+            RM_PANEL_EXT_PLUGIN_URL . 'assets/css/balance-sidebar-widget.css',
+            [],
+            RM_PANEL_EXT_VERSION
+        );
 
         // Enqueue custom scripts
         wp_enqueue_script(
@@ -157,6 +178,14 @@ class RM_Panel_Elementor_Module {
                 ['jquery'],
                 RM_PANEL_EXT_VERSION,
                 true
+        );
+        
+        // Enqueue Balance & Withdrawal widget styles
+        wp_enqueue_style(
+            'rm-balance-withdrawal-widget',
+            RM_PANEL_EXT_PLUGIN_URL . 'assets/css/balance-withdrawal-widget.css',
+            [],
+            RM_PANEL_EXT_VERSION
         );
 
         // Enqueue survey scripts if survey post type exists

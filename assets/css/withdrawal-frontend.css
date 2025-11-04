@@ -20,6 +20,9 @@
     margin-bottom: 30px;
     box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
 }
+.rm-balance-card .balance-amount{
+    color: #1d2327;
+}
 
 .balance-label {
     font-size: 14px;

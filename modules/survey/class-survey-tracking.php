@@ -13,7 +13,6 @@
  * @package RM_Panel_Extensions
  * @version 2.1.0
  */
-
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -32,7 +31,7 @@ class RM_Panel_Survey_Tracking {
     const STATUS_WAITING = 'waiting_to_complete';
     const STATUS_NOT_COMPLETE = 'not_complete';
     const STATUS_COMPLETED = 'completed';
-    
+
     /**
      * Completion status constants
      */
@@ -73,7 +72,7 @@ class RM_Panel_Survey_Tracking {
 
         // Cron for checking waiting responses
         add_action('rm_check_waiting_responses', [$this, 'check_waiting_responses_cron']);
-        
+
         if (!wp_next_scheduled('rm_check_waiting_responses')) {
             wp_schedule_event(time(), 'hourly', 'rm_check_waiting_responses');
         }
@@ -155,11 +154,20 @@ class RM_Panel_Survey_Tracking {
             return new WP_Error('invalid_status', __('Invalid completion status.', 'rm-panel-extensions'));
         }
 
+        // Check if response exists
+        $existing = $this->get_user_survey_response($user_id, $survey_id);
+
+        if (!$existing) {
+            // If no response exists, create one first
+            $response_id = $this->start_survey($user_id, $survey_id);
+            if (is_wp_error($response_id)) {
+                return $response_id;
+            }
+        }
+
         // Determine approval status
         $survey_type = get_post_meta($survey_id, '_rm_survey_type', true);
-        $approval_status = ($survey_type === 'paid' && $completion_status === self::STATUS_SUCCESS) 
-            ? 'pending' 
-            : 'auto_approved';
+        $approval_status = ($survey_type === 'paid' && $completion_status === self::STATUS_SUCCESS) ? 'pending' : 'auto_approved';
 
         $data = [
             'status' => self::STATUS_COMPLETED,
@@ -172,12 +180,12 @@ class RM_Panel_Survey_Tracking {
         ];
 
         $result = $wpdb->update(
-            $this->table_name,
-            $data,
-            [
-                'user_id' => $user_id,
-                'survey_id' => $survey_id
-            ]
+                $this->table_name,
+                $data,
+                [
+                    'user_id' => $user_id,
+                    'survey_id' => $survey_id
+                ]
         );
 
         if ($result !== false) {
@@ -188,10 +196,32 @@ class RM_Panel_Survey_Tracking {
                 $this->handle_quota_full($survey_id);
             }
 
-            // Process rewards if auto-approved
-            if ($approval_status === 'auto_approved') {
+            // Process rewards if auto-approved AND successful
+            if ($approval_status === 'auto_approved' && $completion_status === self::STATUS_SUCCESS) {
                 $this->process_survey_rewards($user_id, $survey_id, $completion_status);
             }
+
+            // Log success for debugging
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                                'Survey completed: User %d, Survey %d, Status: %s, Approval: %s',
+                                $user_id, $survey_id, $completion_status, $approval_status
+                ));
+            }
+        } else {
+            error_log(sprintf(
+                            'Survey completion failed: User %d, Survey %d, DB Error: %s',
+                            $user_id, $survey_id, $wpdb->last_error
+            ));
+        }
+
+        // TEMPORARY DEBUG - REMOVE AFTER TESTING
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $check = $wpdb->get_row($wpdb->prepare(
+                            "SELECT * FROM {$this->table_name} WHERE user_id = %d AND survey_id = %d",
+                            $user_id, $survey_id
+            ));
+            error_log('Survey completion check: ' . print_r($check, true));
         }
 
         return $result;
@@ -212,8 +242,8 @@ class RM_Panel_Survey_Tracking {
         global $wpdb;
 
         $response = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$this->table_name} WHERE id = %d",
-            $response_id
+                        "SELECT * FROM {$this->table_name} WHERE id = %d",
+                        $response_id
         ));
 
         if (!$response) {
@@ -236,9 +266,9 @@ class RM_Panel_Survey_Tracking {
         if ($result !== false) {
             // Process payment
             $this->process_survey_rewards(
-                $response->user_id,
-                $response->survey_id,
-                $response->completion_status
+                    $response->user_id,
+                    $response->survey_id,
+                    $response->completion_status
             );
 
             do_action('rm_survey_approved', $response->user_id, $response->survey_id, $response_id);
@@ -273,8 +303,8 @@ class RM_Panel_Survey_Tracking {
 
         if ($result !== false) {
             $response = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM {$this->table_name} WHERE id = %d",
-                $response_id
+                            "SELECT * FROM {$this->table_name} WHERE id = %d",
+                            $response_id
             ));
 
             do_action('rm_survey_rejected', $response->user_id, $response->survey_id, $response_id);
@@ -317,14 +347,14 @@ class RM_Panel_Survey_Tracking {
 
         // Update response record
         $wpdb->query($wpdb->prepare(
-            "UPDATE {$this->table_name} 
+                        "UPDATE {$this->table_name} 
              SET survey_paused_at = %s 
              WHERE survey_id = %d 
              AND completion_status = 'quota_complete' 
              ORDER BY completion_time DESC 
              LIMIT 1",
-            current_time('mysql'),
-            $survey_id
+                        current_time('mysql'),
+                        $survey_id
         ));
 
         do_action('rm_survey_auto_paused', $survey_id, $reason);
@@ -357,12 +387,12 @@ class RM_Panel_Survey_Tracking {
         $stats = $this->get_survey_stats($survey_id);
 
         $subject = sprintf(
-            __('[Action Required] Survey Quota Full: %s', 'rm-panel-extensions'),
-            $survey_title
+                __('[Action Required] Survey Quota Full: %s', 'rm-panel-extensions'),
+                $survey_title
         );
 
         $message = sprintf(
-            __('Hello %s,
+                __('Hello %s,
 
 The survey "%s" has reached its quota and has been automatically paused.
 
@@ -384,14 +414,14 @@ View Survey: %s
 
 ---
 This is an automated notification from RM Panel Extensions.', 'rm-panel-extensions'),
-            $manager->display_name,
-            $survey_title,
-            $stats->total_participants,
-            $stats->total_completed,
-            $stats->successful,
-            $stats->quota_complete,
-            $stats->disqualified,
-            admin_url('post.php?post=' . $survey_id . '&action=edit')
+                $manager->display_name,
+                $survey_title,
+                $stats->total_participants,
+                $stats->total_completed,
+                $stats->successful,
+                $stats->quota_complete,
+                $stats->disqualified,
+                admin_url('post.php?post=' . $survey_id . '&action=edit')
         );
 
         $headers = [
@@ -479,24 +509,24 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         $timeout_hours = apply_filters('rm_survey_waiting_timeout_hours', 48);
 
         $waiting_responses = $wpdb->get_results($wpdb->prepare(
-            "SELECT id, user_id, survey_id, start_time, waiting_since
+                        "SELECT id, user_id, survey_id, start_time, waiting_since
              FROM {$this->table_name}
              WHERE status = %s
              AND waiting_since < DATE_SUB(NOW(), INTERVAL %d HOUR)",
-            self::STATUS_WAITING,
-            $timeout_hours
+                        self::STATUS_WAITING,
+                        $timeout_hours
         ));
 
         foreach ($waiting_responses as $response) {
             $wpdb->update(
-                $this->table_name,
-                [
-                    'status' => self::STATUS_NOT_COMPLETE,
-                    'completion_status' => 'abandoned',
-                    'completion_time' => current_time('mysql'),
-                    'waiting_since' => NULL
-                ],
-                ['id' => $response->id]
+                    $this->table_name,
+                    [
+                        'status' => self::STATUS_NOT_COMPLETE,
+                        'completion_status' => 'abandoned',
+                        'completion_time' => current_time('mysql'),
+                        'waiting_since' => NULL
+                    ],
+                    ['id' => $response->id]
             );
 
             do_action('rm_survey_marked_not_complete', $response->user_id, $response->survey_id, $response->id);
@@ -504,9 +534,9 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
 
         if (count($waiting_responses) > 0 && defined('WP_DEBUG') && WP_DEBUG) {
             error_log(sprintf(
-                'Marked %d surveys as not_complete after %d hour timeout',
-                count($waiting_responses),
-                $timeout_hours
+                            'Marked %d surveys as not_complete after %d hour timeout',
+                            count($waiting_responses),
+                            $timeout_hours
             ));
         }
     }
@@ -522,9 +552,9 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         global $wpdb;
 
         return $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$this->table_name} WHERE user_id = %d AND survey_id = %d",
-            $user_id,
-            $survey_id
+                                "SELECT * FROM {$this->table_name} WHERE user_id = %d AND survey_id = %d",
+                                $user_id,
+                                $survey_id
         ));
     }
 
@@ -571,7 +601,7 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         global $wpdb;
 
         return $wpdb->get_row($wpdb->prepare(
-            "SELECT 
+                                "SELECT 
                 COUNT(DISTINCT user_id) as total_participants,
                 COUNT(CASE WHEN status = 'completed' THEN 1 END) as total_completed,
                 COUNT(CASE WHEN completion_status = 'success' THEN 1 END) as successful,
@@ -581,7 +611,7 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
                 COUNT(CASE WHEN status = 'started' THEN 1 END) as in_progress
             FROM {$this->table_name}
             WHERE survey_id = %d",
-            $survey_id
+                                $survey_id
         ));
     }
 
@@ -591,7 +621,7 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
     public function get_pending_count() {
         global $wpdb;
         return $wpdb->get_var(
-            "SELECT COUNT(*) FROM {$this->table_name} 
+                        "SELECT COUNT(*) FROM {$this->table_name} 
              WHERE approval_status = 'pending'"
         );
     }
@@ -655,7 +685,7 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         $surveys = get_posts($args);
         $completed_ids = $this->get_user_completed_survey_ids($user_id);
 
-        return array_filter($surveys, function($survey) use ($completed_ids) {
+        return array_filter($surveys, function ($survey) use ($completed_ids) {
             return !in_array($survey->ID, $completed_ids);
         });
     }
@@ -667,10 +697,10 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         global $wpdb;
 
         $ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT survey_id FROM {$this->table_name} 
+                        "SELECT survey_id FROM {$this->table_name} 
              WHERE user_id = %d 
              AND status = 'completed'",
-            $user_id
+                        $user_id
         ));
 
         return array_map('intval', $ids);
@@ -740,9 +770,9 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
      */
     public function add_survey_callback_endpoint() {
         add_rewrite_rule(
-            '^survey-callback/?$',
-            'index.php?rm_survey_callback=1',
-            'top'
+                '^survey-callback/?$',
+                'index.php?rm_survey_callback=1',
+                'top'
         );
 
         add_rewrite_tag('%rm_survey_callback%', '([^&]+)');
@@ -785,7 +815,7 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         $redirect_url = add_query_arg([
             'survey_id' => $survey_id,
             'status' => $completion_status
-        ], home_url('/survey-thank-you/'));
+                ], home_url('/survey-thank-you/'));
 
         wp_redirect($redirect_url);
         exit;
@@ -804,9 +834,9 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
         $amount = get_post_meta($response->survey_id, '_rm_survey_amount', true);
 
         $subject = sprintf(__('Survey Approved: %s', 'rm-panel-extensions'), $survey->post_title);
-        
+
         $message = sprintf(
-            __('Congratulations! Your survey response has been approved.
+                __('Congratulations! Your survey response has been approved.
 
 Survey: %s
 Amount: $%s
@@ -815,9 +845,9 @@ Approval Date: %s
 The amount has been added to your withdrawable balance.
 
 Thank you for your participation!', 'rm-panel-extensions'),
-            $survey->post_title,
-            number_format($amount, 2),
-            date_i18n(get_option('date_format'), strtotime($response->approval_date))
+                $survey->post_title,
+                number_format($amount, 2),
+                date_i18n(get_option('date_format'), strtotime($response->approval_date))
         );
 
         wp_mail($user->user_email, $subject, $message);
@@ -831,9 +861,9 @@ Thank you for your participation!', 'rm-panel-extensions'),
         $survey = get_post($response->survey_id);
 
         $subject = sprintf(__('Survey Response Update: %s', 'rm-panel-extensions'), $survey->post_title);
-        
+
         $message = sprintf(
-            __('Your survey response has been reviewed.
+                __('Your survey response has been reviewed.
 
 Survey: %s
 Status: Not Approved
@@ -841,8 +871,8 @@ Status: Not Approved
 %s
 
 If you have questions, please contact support.', 'rm-panel-extensions'),
-            $survey->post_title,
-            $response->admin_notes ? "Admin Notes: " . $response->admin_notes : ''
+                $survey->post_title,
+                $response->admin_notes ? "Admin Notes: " . $response->admin_notes : ''
         );
 
         wp_mail($user->user_email, $subject, $message);
@@ -857,7 +887,7 @@ If you have questions, please contact support.', 'rm-panel-extensions'),
      */
     private function get_user_ip() {
         $ip_keys = ['HTTP_CF_CONNECTING_IP', 'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
-        
+
         foreach ($ip_keys as $key) {
             if (array_key_exists($key, $_SERVER)) {
                 $ips = explode(',', $_SERVER[$key]);
@@ -869,7 +899,7 @@ If you have questions, please contact support.', 'rm-panel-extensions'),
                 }
             }
         }
-        
+
         return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
 
@@ -932,7 +962,7 @@ If you have questions, please contact support.', 'rm-panel-extensions'),
         $atts = shortcode_atts([
             'limit' => 10,
             'show_earnings' => 'yes'
-        ], $atts);
+                ], $atts);
 
         $user_id = get_current_user_id();
         $history = $this->get_user_survey_history($user_id, ['limit' => $atts['limit']]);
@@ -942,12 +972,12 @@ If you have questions, please contact support.', 'rm-panel-extensions'),
         <div class="rm-survey-history">
             <h3><?php _e('Your Survey History', 'rm-panel-extensions'); ?></h3>
 
-            <?php if ($atts['show_earnings'] === 'yes') : ?>
-                <?php $total_earned = get_user_meta($user_id, 'rm_total_earnings', true) ?: 0; ?>
+        <?php if ($atts['show_earnings'] === 'yes') : ?>
+            <?php $total_earned = get_user_meta($user_id, 'rm_total_earnings', true) ?: 0; ?>
                 <div class="survey-earnings-summary">
                     <p><strong><?php _e('Total Earned:', 'rm-panel-extensions'); ?></strong> $<?php echo number_format($total_earned, 2); ?></p>
                 </div>
-            <?php endif; ?>
+        <?php endif; ?>
 
             <?php if (empty($history)) : ?>
                 <p><?php _e('You have not completed any surveys yet.', 'rm-panel-extensions'); ?></p>
@@ -959,82 +989,83 @@ If you have questions, please contact support.', 'rm-panel-extensions'),
                             <th><?php _e('Date', 'rm-panel-extensions'); ?></th>
                             <th><?php _e('Status', 'rm-panel-extensions'); ?></th>
                             <th><?php _e('Result', 'rm-panel-extensions'); ?></th>
-                            <?php if ($atts['show_earnings'] === 'yes') : ?>
+            <?php if ($atts['show_earnings'] === 'yes') : ?>
                                 <th><?php _e('Earned', 'rm-panel-extensions'); ?></th>
                             <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($history as $response) : ?>
-                            <?php
-                            $survey_type = get_post_meta($response->survey_id, '_rm_survey_type', true);
-                            $survey_amount = get_post_meta($response->survey_id, '_rm_survey_amount', true);
-                            ?>
+            <?php foreach ($history as $response) : ?>
+                <?php
+                $survey_type = get_post_meta($response->survey_id, '_rm_survey_type', true);
+                $survey_amount = get_post_meta($response->survey_id, '_rm_survey_amount', true);
+                ?>
                             <tr>
                                 <td><?php echo esc_html($response->survey_title); ?></td>
                                 <td><?php echo date_i18n(get_option('date_format'), strtotime($response->start_time)); ?></td>
                                 <td>
                                     <span class="status-badge status-<?php echo esc_attr($response->status); ?>">
-                                        <?php echo esc_html(self::get_status_label($response->status)); ?>
+                <?php echo esc_html(self::get_status_label($response->status)); ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if ($response->completion_status) : ?>
+                <?php if ($response->completion_status) : ?>
                                         <span class="completion-status <?php echo esc_attr($response->completion_status); ?>">
-                                            <?php echo self::get_status_label($response->completion_status); ?>
+                                        <?php echo self::get_status_label($response->completion_status); ?>
                                         </span>
-                                    <?php else : ?>
+                                        <?php else : ?>
                                         —
                                     <?php endif; ?>
                                 </td>
-                                <?php if ($atts['show_earnings'] === 'yes') : ?>
+                                    <?php if ($atts['show_earnings'] === 'yes') : ?>
                                     <td>
-                                        <?php if ($survey_type === 'paid' && $response->completion_status === self::STATUS_SUCCESS) : ?>
+                                    <?php if ($survey_type === 'paid' && $response->completion_status === self::STATUS_SUCCESS) : ?>
                                             $<?php echo number_format($survey_amount, 2); ?>
                                         <?php else : ?>
                                             —
                                         <?php endif; ?>
                                     </td>
-                                <?php endif; ?>
+                                    <?php endif; ?>
                             </tr>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
                     </tbody>
                 </table>
-            <?php endif; ?>
+                    <?php endif; ?>
         </div>
-        <?php
-        return ob_get_clean();
-    }
+            <?php
+            return ob_get_clean();
+        }
 
-    /**
-     * Add response count column
-     */
-    public function add_response_column($columns) {
-        $columns['responses'] = __('Responses', 'rm-panel-extensions');
-        return $columns;
-    }
+        /**
+         * Add response count column
+         */
+        public function add_response_column($columns) {
+            $columns['responses'] = __('Responses', 'rm-panel-extensions');
+            return $columns;
+        }
 
-    /**
-     * Render response count column
-     */
-    public function render_response_column($column, $post_id) {
-        if ($column === 'responses') {
-            $stats = $this->get_survey_stats($post_id);
-            echo sprintf(
-                '<span title="%s">%d / %d</span>',
-                sprintf(
-                    __('Success: %d, Quota: %d, Disqualified: %d, Waiting: %d', 'rm-panel-extensions'),
-                    $stats->successful,
-                    $stats->quota_complete,
-                    $stats->disqualified,
-                    $stats->waiting
-                ),
-                $stats->total_completed,
-                $stats->total_participants
-            );
+        /**
+         * Render response count column
+         */
+        public function render_response_column($column, $post_id) {
+            if ($column === 'responses') {
+                $stats = $this->get_survey_stats($post_id);
+                echo sprintf(
+                        '<span title="%s">%d / %d</span>',
+                        sprintf(
+                                __('Success: %d, Quota: %d, Disqualified: %d, Waiting: %d', 'rm-panel-extensions'),
+                                $stats->successful,
+                                $stats->quota_complete,
+                                $stats->disqualified,
+                                $stats->waiting
+                        ),
+                        $stats->total_completed,
+                        $stats->total_participants
+                );
+            }
         }
     }
-}
 
 // Initialize
-new RM_Panel_Survey_Tracking();
+    new RM_Panel_Survey_Tracking();
+    

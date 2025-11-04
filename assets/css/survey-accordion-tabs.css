@@ -1,6 +1,7 @@
 /**
- * RM Panel Survey Accordion Tabs - OPTIMIZED CSS
- * Version: 2.1.0 - Production Ready
+ * RM Panel Survey Accordion Tabs - FIXED CSS
+ * Version: 2.1.1 - Completion Details Fixed
+ * File: assets/css/survey-accordion-tabs.css
  */
 
 /* ============================================
@@ -483,6 +484,360 @@
 }
 
 /* ============================================
+   Completion Details Section (FIXED)
+   ============================================ */
+.rm-completion-details {
+    padding: 0;
+}
+
+.rm-completion-details h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--rm-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--rm-success-green);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.detail-item {
+    background: #f8fafc;
+    border: 1px solid var(--rm-border-light);
+    border-radius: var(--rm-radius-sm);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: var(--rm-transition);
+}
+
+.detail-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: var(--rm-shadow-sm);
+}
+
+.detail-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--rm-text-light);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--rm-text-dark);
+    line-height: 1.4;
+}
+
+/* Completion Badge */
+.completion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.completion-badge .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Approval Status Badges */
+.approval-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.approval-status.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.approval-status.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.approval-status.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.approval-status.status-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.approval-status.status-quota_complete {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.approval-status.status-disqualified {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ============================================
+   Survey Action Buttons
+   ============================================ */
+.rm-survey-action {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.rm-survey-button,
+.rm-invite-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--rm-radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--rm-transition);
+    text-decoration: none;
+}
+
+.rm-survey-button {
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
+}
+
+.rm-survey-button:hover {
+    background: var(--rm-primary-blue-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--rm-shadow-md);
+}
+
+.rm-invite-button {
+    background: var(--rm-success-green);
+    color: var(--rm-white);
+}
+
+.rm-invite-button:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: var(--rm-shadow-md);
+}
+
+.rm-button-disabled {
+    background: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.rm-button-disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* ============================================
+   Invite Modal
+   ============================================ */
+.rm-invite-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.rm-invite-modal-content {
+    position: relative;
+    background: var(--rm-white);
+    margin: 5% auto;
+    padding: 32px;
+    border-radius: var(--rm-radius);
+    max-width: 600px;
+    box-shadow: var(--rm-shadow-lg);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.rm-invite-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--rm-text-light);
+    cursor: pointer;
+    line-height: 1;
+    transition: var(--rm-transition);
+}
+
+.rm-invite-close:hover {
+    color: var(--rm-text-dark);
+}
+
+.rm-invite-modal-content h3 {
+    margin: 0 0 12px 0;
+    font-size: 24px;
+    color: var(--rm-text-dark);
+}
+
+.rm-invite-modal-content p {
+    margin: 0 0 24px 0;
+    color: var(--rm-text-gray);
+    line-height: 1.6;
+}
+
+.referral-link-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.referral-link-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--rm-border-light);
+    border-radius: var(--rm-radius-sm);
+    font-size: 14px;
+    color: var(--rm-text-dark);
+}
+
+.copy-link-btn {
+    padding: 12px 24px;
+    background: var(--rm-primary-blue);
+    color: var(--rm-white);
+    border: none;
+    border-radius: var(--rm-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--rm-transition);
+}
+
+.copy-link-btn:hover {
+    background: var(--rm-primary-blue-hover);
+}
+
+.social-share-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.share-btn {
+    padding: 12px 16px;
+    border: none;
+    border-radius: var(--rm-radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--rm-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--rm-white);
+}
+
+.whatsapp-share {
+    background: #25d366;
+}
+
+.whatsapp-share:hover {
+    background: #20ba5a;
+}
+
+.facebook-share {
+    background: #1877f2;
+}
+
+.facebook-share:hover {
+    background: #1560d0;
+}
+
+.twitter-share {
+    background: #1da1f2;
+}
+
+.twitter-share:hover {
+    background: #1a8cd8;
+}
+
+.email-share {
+    background: #ea4335;
+}
+
+.email-share:hover {
+    background: #d33426;
+}
+
+.invite-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rm-border-light);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--rm-primary-blue);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 13px;
+    color: var(--rm-text-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================
    Responsive Design
    ============================================ */
 @media (max-width: 768px) {
@@ -539,13 +894,22 @@
     .rm-survey-meta-item { font-size: 13px; }
     .rm-survey-content-wrapper { padding: 16px; }
     
-    .rm-info-cards-grid {
+    .rm-info-cards-grid,
+    .detail-grid {
         grid-template-columns: 1fr;
         gap: 10px;
     }
     
     .rm-info-card { padding: 12px; }
     .no-surveys-message { padding: 40px 20px; }
+    
+    .social-share-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .invite-stats {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 480px) {
@@ -582,6 +946,11 @@
         width: 18px;
         height: 18px;
     }
+    
+    .rm-invite-modal-content {
+        margin: 10% 5%;
+        padding: 24px 16px;
+    }
 }
 
 /* ============================================
@@ -591,4 +960,24 @@
 .rm-survey-accordion-header:focus {
     outline: 2px solid var(--rm-primary-blue);
     outline-offset: 2px;
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+    .rm-accordion-tabs-nav,
+    .rm-invite-button,
+    .rm-invite-modal {
+        display: none !important;
+    }
+    
+    .rm-survey-accordion-item {
+        page-break-inside: avoid;
+    }
+    
+    .rm-survey-accordion-content {
+        max-height: none !important;
+        display: block !important;
+    }
 }

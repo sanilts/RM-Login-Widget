@@ -1,9 +1,9 @@
 <?php
+
 /**
  * Survey Callback URLs Handler - DEBUG VERSION
  * Add this temporarily to see what's happening
  */
-
 // Add this to your wp-config.php temporarily:
 // define('WP_DEBUG', true);
 // define('WP_DEBUG_LOG', true);
@@ -92,7 +92,7 @@ class RM_Survey_Callbacks {
                 $this->show_debug_page($debug_info);
                 exit;
             }
-            
+
             wp_die('Invalid callback token. This request cannot be processed.', 'Security Error', ['response' => 403]);
         }
 
@@ -119,98 +119,154 @@ class RM_Survey_Callbacks {
         ?>
         <!DOCTYPE html>
         <html>
-        <head>
-            <title>Survey Callback Debug</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-                .container { background: white; padding: 30px; border-radius: 8px; max-width: 800px; margin: 0 auto; }
-                h1 { color: #333; border-bottom: 2px solid #007cba; padding-bottom: 10px; }
-                .info-grid { display: grid; gap: 10px; margin: 20px 0; }
-                .info-row { display: grid; grid-template-columns: 200px 1fr; gap: 10px; padding: 10px; background: #f9f9f9; }
-                .info-label { font-weight: bold; color: #666; }
-                .info-value { font-family: monospace; word-break: break-all; }
-                .success { color: green; font-weight: bold; }
-                .error { color: red; font-weight: bold; }
-                .token { background: #e0e0e0; padding: 5px; border-radius: 3px; }
-                .match { background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin: 20px 0; }
-                .no-match { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin: 20px 0; }
-                code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🔍 Survey Callback Debug Information</h1>
-                
-                <div class="<?php echo $debug_info['tokens_match'] ? 'match' : 'no-match'; ?>">
-                    <strong>Token Verification: <?php echo $debug_info['tokens_match'] ? '✅ PASS' : '❌ FAIL'; ?></strong>
-                </div>
+            <head>
+                <title>Survey Callback Debug</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 40px;
+                        background: #f5f5f5;
+                    }
+                    .container {
+                        background: white;
+                        padding: 30px;
+                        border-radius: 8px;
+                        max-width: 800px;
+                        margin: 0 auto;
+                    }
+                    h1 {
+                        color: #333;
+                        border-bottom: 2px solid #007cba;
+                        padding-bottom: 10px;
+                    }
+                    .info-grid {
+                        display: grid;
+                        gap: 10px;
+                        margin: 20px 0;
+                    }
+                    .info-row {
+                        display: grid;
+                        grid-template-columns: 200px 1fr;
+                        gap: 10px;
+                        padding: 10px;
+                        background: #f9f9f9;
+                    }
+                    .info-label {
+                        font-weight: bold;
+                        color: #666;
+                    }
+                    .info-value {
+                        font-family: monospace;
+                        word-break: break-all;
+                    }
+                    .success {
+                        color: green;
+                        font-weight: bold;
+                    }
+                    .error {
+                        color: red;
+                        font-weight: bold;
+                    }
+                    .token {
+                        background: #e0e0e0;
+                        padding: 5px;
+                        border-radius: 3px;
+                    }
+                    .match {
+                        background: #d4edda;
+                        color: #155724;
+                        padding: 10px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                    }
+                    .no-match {
+                        background: #f8d7da;
+                        color: #721c24;
+                        padding: 10px;
+                        border-radius: 5px;
+                        margin: 20px 0;
+                    }
+                    code {
+                        background: #f0f0f0;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🔍 Survey Callback Debug Information</h1>
 
-                <div class="info-grid">
-                    <div class="info-row">
-                        <div class="info-label">Callback Type:</div>
-                        <div class="info-value"><?php echo esc_html($debug_info['callback_type']); ?></div>
+                    <div class="<?php echo $debug_info['tokens_match'] ? 'match' : 'no-match'; ?>">
+                        <strong>Token Verification: <?php echo $debug_info['tokens_match'] ? '✅ PASS' : '❌ FAIL'; ?></strong>
                     </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Survey ID:</div>
-                        <div class="info-value"><?php echo esc_html($debug_info['survey_id']); ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">User ID:</div>
-                        <div class="info-value"><?php echo esc_html($debug_info['user_id']); ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Provided Token:</div>
-                        <div class="info-value token"><?php echo esc_html($debug_info['provided_token']); ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Expected Token:</div>
-                        <div class="info-value token"><?php echo esc_html($debug_info['expected_token']); ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Request URI:</div>
-                        <div class="info-value"><?php echo esc_html($debug_info['request_uri']); ?></div>
-                    </div>
-                </div>
 
-                <h2>How to Fix</h2>
-                <?php if (!$debug_info['tokens_match']) : ?>
-                    <ol>
-                        <li>Go to your survey edit page in WordPress admin</li>
-                        <li>Find the "Survey Callback URLs" meta box</li>
-                        <li>Copy the NEW token from there (it should be: <code><?php echo substr($debug_info['expected_token'], 0, 20); ?>...</code>)</li>
-                        <li>Replace the old token in your URL</li>
-                    </ol>
-                    
-                    <h3>Correct URL for User ID <?php echo $debug_info['user_id']; ?>:</h3>
-                    <div style="background: #e8f4f8; padding: 15px; border-radius: 5px; margin: 10px 0;">
-                        <code style="word-break: break-all;">
-                            <?php 
-                            $correct_url = home_url('/survey-callback/' . $debug_info['callback_type'] . '/');
-                            $correct_url = add_query_arg([
-                                'sid' => $debug_info['survey_id'],
-                                'uid' => $debug_info['user_id'],
-                                'token' => $debug_info['expected_token']
-                            ], $correct_url);
-                            echo esc_html($correct_url);
-                            ?>
-                        </code>
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <div class="info-label">Callback Type:</div>
+                            <div class="info-value"><?php echo esc_html($debug_info['callback_type']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Survey ID:</div>
+                            <div class="info-value"><?php echo esc_html($debug_info['survey_id']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">User ID:</div>
+                            <div class="info-value"><?php echo esc_html($debug_info['user_id']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Provided Token:</div>
+                            <div class="info-value token"><?php echo esc_html($debug_info['provided_token']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Expected Token:</div>
+                            <div class="info-value token"><?php echo esc_html($debug_info['expected_token']); ?></div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">Request URI:</div>
+                            <div class="info-value"><?php echo esc_html($debug_info['request_uri']); ?></div>
+                        </div>
                     </div>
-                    
-                    <p><a href="<?php echo $correct_url; ?>" class="button">Test Correct URL</a></p>
-                <?php else : ?>
-                    <p class="success">✅ Token is correct! The callback should work.</p>
-                <?php endif; ?>
-                
-                <p style="margin-top: 30px;">
-                    <a href="<?php echo admin_url('edit.php?post_type=rm_survey'); ?>">← Back to Surveys</a>
-                </p>
-            </div>
-        </body>
+
+                    <h2>How to Fix</h2>
+                    <?php if (!$debug_info['tokens_match']) : ?>
+                        <ol>
+                            <li>Go to your survey edit page in WordPress admin</li>
+                            <li>Find the "Survey Callback URLs" meta box</li>
+                            <li>Copy the NEW token from there (it should be: <code><?php echo substr($debug_info['expected_token'], 0, 20); ?>...</code>)</li>
+                            <li>Replace the old token in your URL</li>
+                        </ol>
+
+                        <h3>Correct URL for User ID <?php echo $debug_info['user_id']; ?>:</h3>
+                        <div style="background: #e8f4f8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+                            <code style="word-break: break-all;">
+                                <?php
+                                $correct_url = home_url('/survey-callback/' . $debug_info['callback_type'] . '/');
+                                $correct_url = add_query_arg([
+                                    'sid' => $debug_info['survey_id'],
+                                    'uid' => $debug_info['user_id'],
+                                    'token' => $debug_info['expected_token']
+                                        ], $correct_url);
+                                echo esc_html($correct_url);
+                                ?>
+                            </code>
+                        </div>
+
+                        <p><a href="<?php echo $correct_url; ?>" class="button">Test Correct URL</a></p>
+                    <?php else : ?>
+                        <p class="success">✅ Token is correct! The callback should work.</p>
+                    <?php endif; ?>
+
+                    <p style="margin-top: 30px;">
+                        <a href="<?php echo admin_url('edit.php?post_type=rm_survey'); ?>">← Back to Surveys</a>
+                    </p>
+                </div>
+            </body>
         </html>
         <?php
     }
@@ -222,9 +278,9 @@ class RM_Survey_Callbacks {
         if (get_query_var('rm_callback')) {
             return;
         }
-        
+
         $request_uri = $_SERVER['REQUEST_URI'];
-        
+
         if (strpos($request_uri, '/survey-callback/') !== false) {
             if (preg_match('/survey-callback\/(success|terminate|quotafull)/', $request_uri, $matches)) {
                 $_GET['rm_callback'] = $matches[1];
@@ -238,14 +294,14 @@ class RM_Survey_Callbacks {
         if (!is_admin()) {
             return;
         }
-        
+
         $rules = get_option('rewrite_rules');
-        
+
         if (!$rules || !isset($rules['^survey-callback/success/?$'])) {
             $this->register_callback_endpoints();
             set_transient('rm_survey_flush_rules', true, 60);
         }
-        
+
         if (get_transient('rm_survey_flush_rules')) {
             flush_rewrite_rules();
             delete_transient('rm_survey_flush_rules');
@@ -282,12 +338,12 @@ class RM_Survey_Callbacks {
 
     public function add_callback_urls_metabox() {
         add_meta_box(
-            'rm_survey_callback_urls',
-            __('Survey Callback URLs', 'rm-panel-extensions'),
-            [$this, 'render_callback_urls_metabox'],
-            'rm_survey',
-            'normal',
-            'high'
+                'rm_survey_callback_urls',
+                __('Survey Callback URLs', 'rm-panel-extensions'),
+                [$this, 'render_callback_urls_metabox'],
+                'rm_survey',
+                'normal',
+                'high'
         );
     }
 
@@ -295,7 +351,7 @@ class RM_Survey_Callbacks {
         $survey_id = $post->ID;
         $urls = $this->generate_callback_urls($survey_id);
         $current_user_id = get_current_user_id();
-        
+
         // Generate test URLs with current user
         $test_urls = [
             'success' => str_replace('{USER_ID}', $current_user_id, $urls['success']),
@@ -311,43 +367,47 @@ class RM_Survey_Callbacks {
             </div>
 
             <?php foreach (['success', 'terminate', 'quotafull'] as $type) : ?>
-            <div class="callback-url-group" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
-                <label style="font-weight: bold; display: block; margin-bottom: 10px;">
-                    <?php echo ucfirst($type); ?> URL:
-                </label>
-                
-                <div style="margin-bottom: 10px;">
-                    <strong>With Placeholder:</strong>
-                    <input type="text" 
-                           id="callback_url_<?php echo $type; ?>" 
-                           value="<?php echo esc_url($urls[$type]); ?>" 
-                           readonly 
-                           style="width: 100%; padding: 8px; font-family: monospace; font-size: 12px;" />
-                    <button type="button" 
-                            class="button copy-url-btn" 
-                            data-clipboard-target="#callback_url_<?php echo $type; ?>"
-                            style="margin-top: 5px;">
-                        📋 Copy URL with {USER_ID}
-                    </button>
-                </div>
-                
-                <div style="margin-top: 10px;">
-                    <strong>Test with Your User ID (<?php echo $current_user_id; ?>):</strong>
-                    <div style="margin-top: 5px;">
-                        <a href="<?php echo esc_url($test_urls[$type] . '&debug=1'); ?>" 
-                           class="button button-primary" 
-                           target="_blank">
-                            🧪 Test <?php echo ucfirst($type); ?> URL
-                        </a>
+                <div class="callback-url-group" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 10px;">
+                        <?php echo ucfirst($type); ?> URL:
+                    </label>
+
+                    <div style="margin-bottom: 10px;">
+                        <strong>With Placeholder:</strong>
+                        <input type="text" 
+                               id="callback_url_<?php echo $type; ?>" 
+                               value="<?php echo esc_url($urls[$type]); ?>" 
+                               readonly 
+                               style="width: 100%; padding: 8px; font-family: monospace; font-size: 12px;" />
+                        <button type="button" 
+                                class="button copy-url-btn" 
+                                data-clipboard-target="#callback_url_<?php echo $type; ?>"
+                                style="margin-top: 5px;">
+                            📋 Copy URL with {USER_ID}
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 10px;">
+                        <strong>Test with Your User ID (<?php echo $current_user_id; ?>):</strong>
+                        <div style="margin-top: 5px;">
+                            <a href="<?php echo esc_url($test_urls[$type] . '&debug=1'); ?>" 
+                               class="button button-primary" 
+                               target="_blank">
+                                🧪 Test <?php echo ucfirst($type); ?> URL
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
             <?php endforeach; ?>
         </div>
-        
+
         <style>
-            .callback-url-group { border: 1px solid #ddd; }
-            .copy-url-btn { margin-top: 5px; }
+            .callback-url-group {
+                border: 1px solid #ddd;
+            }
+            .copy-url-btn {
+                margin-top: 5px;
+            }
         </style>
         <?php
     }
@@ -363,11 +423,11 @@ class RM_Survey_Callbacks {
         }
 
         wp_enqueue_script(
-            'clipboard-js',
-            'https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js',
-            [],
-            '2.0.11',
-            true
+                'clipboard-js',
+                'https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js',
+                [],
+                '2.0.11',
+                true
         );
 
         wp_add_inline_script('clipboard-js', '
@@ -393,7 +453,21 @@ class RM_Survey_Callbacks {
 
         if (class_exists('RM_Panel_Survey_Tracking')) {
             $tracker = new RM_Panel_Survey_Tracking();
-            $tracker->complete_survey($user_id, $survey_id, $status);
+
+            // First, check if response exists
+            $existing_response = $tracker->get_user_survey_response($user_id, $survey_id);
+
+            if (!$existing_response) {
+                // If no response exists, start it first
+                $tracker->start_survey($user_id, $survey_id);
+            }
+
+            // Now complete the survey
+            $result = $tracker->complete_survey($user_id, $survey_id, $status);
+
+            if (is_wp_error($result)) {
+                error_log('Survey completion error: ' . $result->get_error_message());
+            }
         }
 
         do_action('rm_survey_callback_processed', $survey_id, $user_id, $status);
@@ -404,7 +478,7 @@ class RM_Survey_Callbacks {
         $thank_you_url = add_query_arg([
             'survey_id' => $survey_id,
             'status' => $status
-        ], $thank_you_url);
+                ], $thank_you_url);
 
         wp_redirect($thank_you_url);
         exit;

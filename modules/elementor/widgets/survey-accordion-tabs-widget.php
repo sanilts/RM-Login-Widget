@@ -1,9 +1,9 @@
 <?php
 /**
- * RM Panel Survey Accordion Tabs Widget for Elementor (FULL CONTROL VERSION)
+ * RM Panel Survey Accordion Tabs Widget for Elementor (COMPLETION DETAILS FIXED)
  * 
  * File: modules/elementor/widgets/survey-accordion-tabs-widget.php
- * Version: 1.1.1 (FIXED - Accordion animation conflict)
+ * Version: 1.1.2 (FIXED - Proper HTML structure for completion details)
  * 
  * @package RM_Panel_Extensions
  * @subpackage Modules/Elementor/Widgets
@@ -902,7 +902,7 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
     }
 
     /**
-     * Render completed survey accordion item
+     * Render completed survey accordion item - FIXED VERSION
      */
     private function render_completed_accordion_item($response, $settings) {
         $survey = get_post($response->survey_id);
@@ -931,41 +931,43 @@ class RM_Panel_Survey_Accordion_Tabs_Widget extends \Elementor\Widget_Base {
             </div>
 
             <div class="rm-survey-accordion-content">
-                <div class="rm-completion-details">
-                    <h4><?php _e('Completion Details', 'rm-panel-extensions'); ?></h4>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <span class="detail-label"><?php _e('Status', 'rm-panel-extensions'); ?></span>
-                            <span class="detail-value">
-                                <span class="approval-status status-<?php echo esc_attr($response->completion_status); ?>">
-                                    <?php echo $this->get_status_label($response->completion_status); ?>
-                                </span>
-                            </span>
-                        </div>
-
-                        <?php if ($survey_type === 'paid' && $response->completion_status === 'success') : ?>
+                <div class="rm-survey-content-wrapper">
+                    <div class="rm-completion-details">
+                        <h4><?php _e('Completion Details', 'rm-panel-extensions'); ?></h4>
+                        <div class="detail-grid">
                             <div class="detail-item">
-                                <span class="detail-label"><?php _e('Amount Earned', 'rm-panel-extensions'); ?></span>
-                                <span class="detail-value">$<?php echo number_format($survey_amount, 2); ?></span>
-                            </div>
-
-                            <div class="detail-item">
-                                <span class="detail-label"><?php _e('Payment Status', 'rm-panel-extensions'); ?></span>
+                                <span class="detail-label"><?php _e('Status', 'rm-panel-extensions'); ?></span>
                                 <span class="detail-value">
-                                    <span class="approval-status status-<?php echo esc_attr($response->approval_status ?? 'pending'); ?>">
-                                        <?php 
-                                        $approval_status = $response->approval_status ?? 'pending';
-                                        $labels = [
-                                            'pending' => __('Pending Review', 'rm-panel-extensions'),
-                                            'approved' => __('Approved', 'rm-panel-extensions'),
-                                            'rejected' => __('Not Approved', 'rm-panel-extensions')
-                                        ];
-                                        echo $labels[$approval_status] ?? $approval_status;
-                                        ?>
+                                    <span class="approval-status status-<?php echo esc_attr($response->completion_status); ?>">
+                                        <?php echo $this->get_status_label($response->completion_status); ?>
                                     </span>
                                 </span>
                             </div>
-                        <?php endif; ?>
+
+                            <?php if ($survey_type === 'paid' && $response->completion_status === 'success') : ?>
+                                <div class="detail-item">
+                                    <span class="detail-label"><?php _e('Amount Earned', 'rm-panel-extensions'); ?></span>
+                                    <span class="detail-value">$<?php echo number_format($survey_amount, 2); ?></span>
+                                </div>
+
+                                <div class="detail-item">
+                                    <span class="detail-label"><?php _e('Payment Status', 'rm-panel-extensions'); ?></span>
+                                    <span class="detail-value">
+                                        <span class="approval-status status-<?php echo esc_attr($response->approval_status ?? 'pending'); ?>">
+                                            <?php 
+                                            $approval_status = $response->approval_status ?? 'pending';
+                                            $labels = [
+                                                'pending' => __('Pending Review', 'rm-panel-extensions'),
+                                                'approved' => __('Approved', 'rm-panel-extensions'),
+                                                'rejected' => __('Not Approved', 'rm-panel-extensions')
+                                            ];
+                                            echo $labels[$approval_status] ?? $approval_status;
+                                            ?>
+                                        </span>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>

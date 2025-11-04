@@ -206,6 +206,8 @@ class RM_Panel_Extensions {
 				$core_modules
 			);
 		}
+                
+                require_once RM_PANEL_EXT_PLUGIN_DIR . 'modules/survey/class-survey-reset-handler.php';
 
 		// FluentCRM Helper (conditional)
 		if ( defined( 'FLUENTCRM' ) || function_exists( 'FluentCrmApi' ) ) {
