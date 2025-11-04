@@ -1,17 +1,12 @@
 <?php
 /**
- * Survey Database Manager - Unified & Optimized
+ * Survey Database Manager - FIXED VERSION
  * 
- * This class consolidates ALL database operations for the survey module:
- * - Initial table creation (v1.0.0 schema)
- * - Schema upgrades (v1.0.0 → v1.1.0 → v1.2.0)
- * - Future migrations
- * - Database maintenance
- * - Schema verification
+ * This version properly handles the created_at and updated_at columns
  * 
  * @package RM_Panel_Extensions
  * @subpackage Survey
- * @version 2.1.0
+ * @version 2.1.1
  */
 
 if (!defined('ABSPATH')) {
@@ -102,7 +97,7 @@ class RM_Survey_Database_Manager {
                 }
             }
             
-            // Upgrade to v1.2.0 (Enhanced tracking)
+            // Upgrade to v1.2.0 (Enhanced tracking + ensure timestamp columns)
             if (version_compare($from_version, '1.2.0', '<') && $success) {
                 if (!$this->upgrade_to_1_2_0()) {
                     $errors[] = 'Failed to upgrade to v1.2.0';
@@ -245,12 +240,13 @@ class RM_Survey_Database_Manager {
     }
     
     /**
-     * Upgrade to v1.2.0 - Add enhanced tracking columns
+     * Upgrade to v1.2.0 - Add enhanced tracking columns + ensure timestamp columns
      * 
      * New features:
      * - Waiting to complete status tracking
      * - Reminder system support
      * - Survey pause tracking
+     * - Ensure created_at and updated_at columns exist (for older installs)
      * 
      * @return bool Success status
      */
@@ -265,16 +261,38 @@ class RM_Survey_Database_Manager {
             'survey_paused_at' => "ADD COLUMN survey_paused_at datetime DEFAULT NULL AFTER admin_notes"
         ];
         
+        // Add timestamp columns if they don't exist (for very old installs)
+        if (!in_array('created_at', $columns)) {
+            $new_columns['created_at'] = "ADD COLUMN created_at datetime DEFAULT CURRENT_TIMESTAMP AFTER survey_paused_at";
+        }
+        
+        if (!in_array('updated_at', $columns)) {
+            $new_columns['updated_at'] = "ADD COLUMN updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at";
+        }
+        
         // Add each column if it doesn't exist
         foreach ($new_columns as $column_name => $sql) {
             if (!in_array($column_name, $columns)) {
                 $result = $this->wpdb->query("ALTER TABLE {$this->table_name} $sql");
                 if ($result === false) {
-                    $this->log_error("Failed to add column: $column_name");
+                    $this->log_error("Failed to add column: $column_name - Error: " . $this->wpdb->last_error);
                     $success = false;
                 } else {
                     $this->log_success("Added column: $column_name");
                 }
+            }
+        }
+        
+        // Backfill created_at for existing records if we just added it
+        if ($success && isset($new_columns['created_at'])) {
+            $backfilled = $this->wpdb->query("
+                UPDATE {$this->table_name} 
+                SET created_at = start_time 
+                WHERE created_at IS NULL
+            ");
+            
+            if ($backfilled !== false) {
+                $this->log_success("Backfilled created_at for $backfilled records");
             }
         }
         
@@ -342,7 +360,7 @@ class RM_Survey_Database_Manager {
                 $this->log_success("Created index: $index_name");
                 return true;
             } else {
-                $this->log_error("Failed to create index: $index_name");
+                $this->log_error("Failed to create index: $index_name - Error: " . $this->wpdb->last_error);
                 return false;
             }
         }
