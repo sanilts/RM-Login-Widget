@@ -1,19 +1,6 @@
 /**
- * RM Panel Survey Accordion Tabs - UPDATED CSS (v2.1.0)
- * 
- * File: assets/css/survey-accordion-tabs.css
- * Version: 2.1.0 - Enhanced Styling Update
- * 
- * @package RM_Panel_Extensions
- * 
- * CHANGELOG v2.1.0:
- * - Added highlighted Survey Length section (yellow background)
- * - Added highlighted Target Audience section (blue background)
- * - Added centered text alignment for completed surveys empty state
- * - Added padding to completed surveys message
- * - Added active tab blue background with light text
- * - Improved visual hierarchy with uppercase labels
- * - Added better spacing and alignment
+ * RM Panel Survey Accordion Tabs - OPTIMIZED CSS
+ * Version: 2.1.0 - Production Ready
  */
 
 /* ============================================
@@ -38,26 +25,22 @@
 }
 
 /* ============================================
-   Base Container - FIXED
+   Base Container
    ============================================ */
 .rm-accordion-tabs-wrapper {
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
     background: var(--rm-background);
     padding: 0;
-    position: relative;
 }
 
-.rm-accordion-tabs-wrapper * {
-    box-sizing: border-box;
-}
+.rm-accordion-tabs-wrapper * { box-sizing: border-box; }
 
 /* ============================================
-   Tab Navigation - UPDATED WITH ACTIVE STATE
+   Tab Navigation
    ============================================ */
 .rm-accordion-tabs-nav {
     display: flex;
@@ -86,7 +69,6 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    position: relative;
     white-space: nowrap;
 }
 
@@ -95,23 +77,17 @@
     color: var(--rm-text-dark);
 }
 
-/* UPDATED: Active Tab with Blue Background and Light Text */
 .rm-accordion-tab-btn.active {
     background: var(--rm-primary-blue);
     color: var(--rm-white);
     border-bottom-color: var(--rm-primary-blue-hover);
 }
 
-/* Tab Icon */
 .rm-accordion-tab-btn .tab-icon {
     font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     flex-shrink: 0;
 }
 
-/* Tab Count Badge - UPDATED for Active State */
 .rm-accordion-tab-btn .tab-count {
     background: var(--rm-primary-blue);
     color: var(--rm-white);
@@ -121,11 +97,9 @@
     font-weight: 600;
     min-width: 24px;
     text-align: center;
-    line-height: 1.5;
     flex-shrink: 0;
 }
 
-/* Badge inverts color when tab is active */
 .rm-accordion-tab-btn.active .tab-count {
     background: var(--rm-white);
     color: var(--rm-primary-blue);
@@ -134,28 +108,19 @@
 /* ============================================
    Tab Content
    ============================================ */
-.rm-accordion-tab-content {
-    display: none;
+.rm-accordion-tab-content { display: none; }
+.rm-accordion-tab-content.active {
+    display: block;
     animation: fadeIn 0.3s ease-in;
 }
 
-.rm-accordion-tab-content.active {
-    display: block;
-}
-
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================
-   NO SURVEYS MESSAGE - CENTERED WITH PADDING
+   No Surveys Message
    ============================================ */
 .no-surveys-message {
     text-align: center;
@@ -173,7 +138,7 @@
 }
 
 /* ============================================
-   Survey Accordion Container
+   Survey Accordion
    ============================================ */
 .rm-survey-accordion {
     display: flex;
@@ -181,9 +146,6 @@
     gap: 12px;
 }
 
-/* ============================================
-   Accordion Item - FIXED
-   ============================================ */
 .rm-survey-accordion-item {
     background: var(--rm-white);
     border: 1px solid var(--rm-border-light);
@@ -204,7 +166,7 @@
 }
 
 /* ============================================
-   Accordion Header - FIXED LAYOUT
+   Accordion Header
    ============================================ */
 .rm-survey-accordion-header {
     display: flex;
@@ -217,32 +179,18 @@
     min-height: 80px;
 }
 
-.rm-survey-accordion-header:hover {
-    background: #f8fafc;
-}
+.rm-survey-accordion-header:hover { background: #f8fafc; }
 
 .rm-survey-accordion-item.active .rm-survey-accordion-header {
     background: var(--rm-white);
     border-bottom: 1px solid var(--rm-border-light);
 }
 
-.rm-survey-accordion-item.active .rm-survey-accordion-header .rm-survey-accordion-title{
-    color: #ffffff !important;
-}
-
-.rm-survey-accordion-item.active .rm-survey-accordion-header .rm-survey-accordion-title{
-    color: #ffffff !important;
-}
-.rm-survey-accordion-item.active .rm-survey-accordion-header .rm-survey-meta-item{
-    color: #ffffff !important;
-}
-
-/* Survey Avatar Icon */
+/* Survey Avatar */
 .rm-survey-avatar {
     width: 48px;
     height: 48px;
     min-width: 48px;
-    min-height: 48px;
     border-radius: var(--rm-radius-sm);
     background: var(--rm-primary-blue);
     color: var(--rm-white);
@@ -255,7 +203,7 @@
     text-transform: uppercase;
 }
 
-/* Header Content Area */
+/* Header Content */
 .rm-survey-accordion-header-content {
     flex: 1;
     min-width: 0;
@@ -265,7 +213,6 @@
     overflow: hidden;
 }
 
-/* Survey Title */
 .rm-survey-accordion-title {
     margin: 0;
     font-size: 16px;
@@ -279,7 +226,6 @@
     -webkit-box-orient: vertical;
 }
 
-/* Meta Information Row */
 .rm-survey-accordion-meta {
     display: flex;
     flex-wrap: wrap;
@@ -298,17 +244,13 @@
     flex-shrink: 0;
 }
 
-/* Amount Styling - Green */
 .rm-survey-meta-item.meta-amount {
     color: var(--rm-success-green);
     font-weight: 600;
 }
 
-/* Icons in Meta */
 .rm-survey-meta-item .meta-icon {
     font-size: 16px;
-    display: flex;
-    align-items: center;
     flex-shrink: 0;
 }
 
@@ -320,10 +262,6 @@
     flex-shrink: 0;
     width: 20px;
     height: 20px;
-    min-width: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin-left: auto;
 }
 
@@ -333,7 +271,7 @@
 }
 
 /* ============================================
-   Accordion Content (Expanded Area)
+   Accordion Content
    ============================================ */
 .rm-survey-accordion-content {
     max-height: 0;
@@ -354,9 +292,7 @@
 /* ============================================
    About Survey Section
    ============================================ */
-.rm-about-survey-section {
-    padding: 0;
-}
+.rm-about-survey-section { padding: 0; }
 
 .rm-section-heading {
     margin: 0 0 16px 0;
@@ -370,7 +306,6 @@
     border-bottom: 2px solid var(--rm-primary-blue);
 }
 
-/* Survey Description */
 .rm-survey-description-text {
     margin: 0 0 20px 0;
     padding: 0;
@@ -383,9 +318,7 @@
     font-size: 14px;
 }
 
-.rm-survey-description-text p:last-child {
-    margin-bottom: 0;
-}
+.rm-survey-description-text p:last-child { margin-bottom: 0; }
 
 /* ============================================
    Info Cards Grid
@@ -462,7 +395,7 @@
 }
 
 /* ============================================
-   SURVEY LENGTH BOX - HIGHLIGHTED (YELLOW)
+   Survey Length Box (Yellow Highlight)
    ============================================ */
 .rm-survey-length-box {
     background: #fff9e6;
@@ -477,7 +410,6 @@
 
 .rm-length-icon {
     font-size: 28px;
-    line-height: 1;
     flex-shrink: 0;
 }
 
@@ -512,7 +444,7 @@
 }
 
 /* ============================================
-   TARGET AUDIENCE BOX - HIGHLIGHTED (BLUE)
+   Target Audience Box (Blue Highlight)
    ============================================ */
 .rm-target-audience-box {
     background: #e3f2fd;
@@ -527,7 +459,6 @@
 
 .rm-audience-icon {
     font-size: 28px;
-    line-height: 1;
     flex-shrink: 0;
 }
 
@@ -552,7 +483,7 @@
 }
 
 /* ============================================
-   Responsive Design - Mobile
+   Responsive Design
    ============================================ */
 @media (max-width: 768px) {
     .rm-accordion-tabs-nav {
@@ -593,13 +524,10 @@
         width: 40px;
         height: 40px;
         min-width: 40px;
-        min-height: 40px;
         font-size: 18px;
     }
     
-    .rm-survey-accordion-title {
-        font-size: 15px;
-    }
+    .rm-survey-accordion-title { font-size: 15px; }
     
     .rm-survey-accordion-meta {
         flex-direction: column;
@@ -608,40 +536,25 @@
         width: 100%;
     }
     
-    .rm-survey-meta-item {
-        font-size: 13px;
-    }
-    
-    .rm-survey-content-wrapper {
-        padding: 16px;
-    }
+    .rm-survey-meta-item { font-size: 13px; }
+    .rm-survey-content-wrapper { padding: 16px; }
     
     .rm-info-cards-grid {
         grid-template-columns: 1fr;
         gap: 10px;
     }
     
-    .rm-info-card {
-        padding: 12px;
-    }
-    
-    .no-surveys-message {
-        padding: 40px 20px;
-    }
+    .rm-info-card { padding: 12px; }
+    .no-surveys-message { padding: 40px 20px; }
 }
 
-/* ============================================
-   Responsive Design - Small Mobile
-   ============================================ */
 @media (max-width: 480px) {
     .rm-accordion-tab-btn {
         font-size: 14px;
         padding: 12px 16px;
     }
     
-    .rm-accordion-tab-btn .tab-icon {
-        font-size: 16px;
-    }
+    .rm-accordion-tab-btn .tab-icon { font-size: 16px; }
     
     .rm-accordion-tab-btn .tab-count {
         font-size: 12px;
@@ -658,50 +571,16 @@
         width: 36px;
         height: 36px;
         min-width: 36px;
-        min-height: 36px;
         font-size: 16px;
     }
     
-    .rm-survey-accordion-title {
-        font-size: 14px;
-    }
-    
-    .rm-survey-meta-item {
-        font-size: 12px;
-    }
+    .rm-survey-accordion-title { font-size: 14px; }
+    .rm-survey-meta-item { font-size: 12px; }
     
     .rm-accordion-toggle-icon {
         font-size: 16px;
         width: 18px;
         height: 18px;
-        min-width: 18px;
-    }
-}
-
-/* ============================================
-   Print Styles
-   ============================================ */
-@media print {
-    .rm-accordion-tabs-nav,
-    .rm-survey-action,
-    .rm-accordion-toggle-icon,
-    .rm-invite-button {
-        display: none !important;
-    }
-    
-    .rm-accordion-tab-content {
-        display: block !important;
-    }
-    
-    .rm-survey-accordion-content {
-        max-height: none !important;
-        display: block !important;
-    }
-    
-    .rm-survey-accordion-item {
-        page-break-inside: avoid;
-        border: 1px solid #000;
-        margin-bottom: 20px;
     }
 }
 
@@ -709,77 +588,7 @@
    Accessibility
    ============================================ */
 .rm-accordion-tab-btn:focus,
-.rm-survey-button:focus,
-.rm-invite-button:focus {
+.rm-survey-accordion-header:focus {
     outline: 2px solid var(--rm-primary-blue);
     outline-offset: 2px;
 }
-
-.rm-survey-accordion-header:focus {
-    outline: 2px solid var(--rm-primary-blue);
-    outline-offset: -2px;
-}
-
-/* ============================================
-   Loading State
-   ============================================ */
-.rm-survey-accordion.loading {
-    opacity: 0.6;
-    pointer-events: none;
-    position: relative;
-    min-height: 200px;
-}
-
-.rm-survey-accordion.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--rm-border-light);
-    border-top-color: var(--rm-primary-blue);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: translate(-50%, -50%) rotate(360deg);
-    }
-}
-
-/* ============================================
-   Critical Layout Fixes
-   ============================================ */
-.elementor-widget-rm_panel_survey_accordion_tabs .rm-accordion-tabs-wrapper {
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
-.elementor-widget-rm_panel_survey_accordion_tabs {
-    width: 100%;
-}
-
-.rm-accordion-tabs-wrapper .rm-survey-accordion-header * {
-    box-sizing: border-box !important;
-}
-
-.rm-accordion-tabs-wrapper [class*="icon"],
-.rm-accordion-tabs-wrapper [class*="Icon"] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.rm-survey-accordion-header::after,
-.rm-accordion-tabs-nav::after {
-    content: "";
-    display: table;
-    clear: both;
-}
-
-/* ============================================
-   End of Stylesheet
-   ============================================ */

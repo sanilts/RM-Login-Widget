@@ -1,16 +1,14 @@
 /* ============================================
    RM Panel Extensions - Survey Reports Styles
-   Version: 1.1.0
+   Version: 1.1.0 - OPTIMIZED
    ============================================ */
 
 /* Page Container */
-.rm-survey-reports-page {
-    max-width: 1400px;
-}
+.rm-survey-reports-page { max-width: 1400px; }
 
 /* Filters Section */
 .rm-reports-filters {
-    background: white;
+    background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
@@ -25,9 +23,7 @@
     margin-bottom: 15px;
 }
 
-.rm-filter-row:last-child {
-    margin-bottom: 0;
-}
+.rm-filter-row:last-child { margin-bottom: 0; }
 
 .rm-filter-field {
     flex: 1;
@@ -63,9 +59,7 @@
     gap: 10px;
 }
 
-.rm-filter-actions .button {
-    margin-top: 0 !important;
-}
+.rm-filter-actions .button { margin-top: 0 !important; }
 
 /* Datepicker Input */
 .rm-datepicker {
@@ -91,15 +85,13 @@
 
 /* Reports Table */
 .rm-reports-table-wrapper {
-    background: white;
+    background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
 }
 
-.rm-reports-table-wrapper table {
-    margin: 0;
-}
+.rm-reports-table-wrapper table { margin: 0; }
 
 .rm-reports-table-wrapper th {
     background: #f9f9f9;
@@ -110,9 +102,7 @@
     color: #666;
 }
 
-.rm-reports-table-wrapper td {
-    vertical-align: middle;
-}
+.rm-reports-table-wrapper td { vertical-align: middle; }
 
 /* Status Badges */
 .rm-status-badge {
@@ -160,19 +150,11 @@
 
 /* Responsive */
 @media (max-width: 782px) {
-    .rm-filter-row {
-        flex-direction: column;
-    }
+    .rm-filter-row { flex-direction: column; }
     
-    .rm-filter-field {
-        width: 100%;
-    }
+    .rm-filter-field { width: 100%; }
     
-    .rm-filter-actions {
-        width: 100%;
-    }
+    .rm-filter-actions { width: 100%; }
     
-    .rm-filter-actions .button {
-        flex: 1;
-    }
+    .rm-filter-actions .button { flex: 1; }
 }

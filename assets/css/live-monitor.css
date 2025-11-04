@@ -1,6 +1,6 @@
 /* ============================================
    RM Panel Extensions - Live Monitor Styles
-   Version: 1.1.0
+   Version: 1.1.0 - OPTIMIZED
    ============================================ */
 
 /* Live Indicator */
@@ -9,7 +9,7 @@
     align-items: center;
     gap: 8px;
     background: #dc3232;
-    color: white;
+    color: #fff;
     padding: 6px 12px;
     border-radius: 4px;
     font-size: 12px;
@@ -21,7 +21,7 @@
 .rm-live-dot {
     width: 8px;
     height: 8px;
-    background: white;
+    background: #fff;
     border-radius: 50%;
     animation: pulse-dot 1.5s ease-in-out infinite;
 }
@@ -45,7 +45,7 @@
 }
 
 .rm-stat-card {
-    background: white;
+    background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
@@ -60,14 +60,8 @@
     transform: translateY(-2px);
 }
 
-.rm-stat-icon {
-    font-size: 36px;
-    line-height: 1;
-}
-
-.rm-stat-content {
-    flex: 1;
-}
+.rm-stat-icon { font-size: 36px; line-height: 1; }
+.rm-stat-content { flex: 1; }
 
 .rm-stat-label {
     font-size: 12px;
@@ -84,25 +78,14 @@
     color: #333;
 }
 
-.rm-stat-active .rm-stat-value {
-    color: #dc3232;
-}
-
-.rm-stat-waiting .rm-stat-value {
-    color: #f0b849;
-}
-
-.rm-stat-completed .rm-stat-value {
-    color: #46b450;
-}
-
-.rm-stat-conversion .rm-stat-value {
-    color: #00a0d2;
-}
+.rm-stat-active .rm-stat-value { color: #dc3232; }
+.rm-stat-waiting .rm-stat-value { color: #f0b849; }
+.rm-stat-completed .rm-stat-value { color: #46b450; }
+.rm-stat-conversion .rm-stat-value { color: #00a0d2; }
 
 /* Monitor Sections */
 .rm-monitor-section {
-    background: white;
+    background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
@@ -124,7 +107,7 @@
     font-style: italic;
 }
 
-/* Active Surveys Table */
+/* Survey Rows */
 .rm-active-survey-row,
 .rm-waiting-survey-row {
     padding: 15px;
@@ -136,14 +119,10 @@
 }
 
 .rm-active-survey-row:last-child,
-.rm-waiting-survey-row:last-child {
-    border-bottom: none;
-}
+.rm-waiting-survey-row:last-child { border-bottom: none; }
 
 .rm-active-survey-row:hover,
-.rm-waiting-survey-row:hover {
-    background: #f9f9f9;
-}
+.rm-waiting-survey-row:hover { background: #f9f9f9; }
 
 .rm-survey-user strong {
     display: block;
@@ -166,17 +145,10 @@
     font-weight: 600;
 }
 
-.rm-survey-duration.rm-duration-warning {
-    color: #f0b849;
-}
+.rm-survey-duration.rm-duration-warning { color: #f0b849; }
+.rm-survey-duration.rm-duration-danger { color: #dc3232; }
 
-.rm-survey-duration.rm-duration-danger {
-    color: #dc3232;
-}
-
-.rm-survey-status {
-    text-align: center;
-}
+.rm-survey-status { text-align: center; }
 
 .rm-status-badge {
     display: inline-block;
@@ -203,7 +175,7 @@
     50% { opacity: 0.7; }
 }
 
-/* Active Users List */
+/* Active Users */
 .rm-active-user-item {
     padding: 12px;
     border-bottom: 1px solid #f0f0f0;
@@ -212,13 +184,8 @@
     gap: 10px;
 }
 
-.rm-active-user-item:last-child {
-    border-bottom: none;
-}
-
-.rm-active-user-item:hover {
-    background: #f9f9f9;
-}
+.rm-active-user-item:last-child { border-bottom: none; }
+.rm-active-user-item:hover { background: #f9f9f9; }
 
 .rm-user-avatar {
     width: 40px;
@@ -265,9 +232,7 @@
 
 /* Responsive */
 @media (max-width: 782px) {
-    .rm-stats-cards {
-        grid-template-columns: 1fr;
-    }
+    .rm-stats-cards { grid-template-columns: 1fr; }
     
     .rm-active-survey-row,
     .rm-waiting-survey-row {
@@ -276,7 +241,5 @@
     }
     
     .rm-survey-duration,
-    .rm-survey-status {
-        text-align: left;
-    }
+    .rm-survey-status { text-align: left; }
 }
