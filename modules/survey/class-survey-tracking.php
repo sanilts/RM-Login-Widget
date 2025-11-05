@@ -677,8 +677,7 @@ This is an automated notification from RM Panel Extensions.', 'rm-panel-extensio
             'post_status' => 'publish',
             'posts_per_page' => -1,
             'meta_query' => $meta_query,
-            'meta_key' => '_rm_survey_start_date',
-            'orderby' => 'meta_value',
+            'orderby' => 'date',
             'order' => 'DESC',
         ];
 
